@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 '''
 Copyright (c) 2011, Ciaran Farrell, Vladislav Gorobets
 All rights reserved.
@@ -28,7 +30,6 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
-# -*- coding: utf-8 -*-
 from suds.client import Client
 from suds import sudsobject
 
