@@ -53,7 +53,9 @@ urls = (
   '/currentMatchDayData','getCurrentMatchdayData',
   '/w','worker',
   '/seasondata','seasonData',
-  '/goals','getGoals'
+  '/goals','getGoals',
+  '/getUpdates','getUpdates',
+  '/getData','getData'
 )
 
 DEFAULT_LEAGUE = 'bl1'
@@ -183,50 +185,7 @@ class checkMD5:
       y = str(json.dumps(retobj))
       return "%s(%s)"%(cbk,y)
 
-
-class seasonData1:
-  '''This should call a shim which will check if there is:
-     (a) a json file available for the requested league, season
-     (b) if the json file is still valid
-     If (a) and (b) then the GET method should quickly return
-     the gzipped json data. If either (a) or (b) is not the case then
-     the shim should both download the new data and provide it to the 
-     GET method (which should respond to the client with this) and 
-     rewrite the json file on disk
-  '''
-  def GET(self):
-    cursor = OpenLigaDB()
-    cbk = web.input(callback=None)
-    cbk = cbk.callback
-    league = web.input(league=None)
-    league = league.league
-    if not league:
-      league = DEFAULT_LEAGUE
-    season = web.input(season=None)
-    season = season.season
-    if not season:
-      season = current_bundesliga_season()
-    incoming_md5 = web.input(md5=None)
-    incoming_md5 = incoming_md5.md5
-    upstream_tstamp = cursor.GetLastChangeDateByLeagueSaison(league,season)
-    upstream_md5 = tstamp_to_md5(upstream_tstamp)
-    print "Upstream MD5 for league '%s' and season '%s' is '%s'"%(league,season,upstream_md5)
-    web.header('Cache-Control','no-cache')
-    web.header('Pragma','no-cache')
-    web.header('Content-Type','application/json')
-    if upstream_md5 == incoming_md5:
-      print "Client MD5 '%s' == upstream MD5 '%s' => no update needed => sending no data"%(incoming_md5,upstream_md5)
-      return "%s()"%cbk
-    else:
-      print "Client MD5 '%s' != upstream MD5 '%s' => update needed => sending data"%(incoming_md5,upstream_md5)
-      season_data = getSeasonData(league,season)
-      getMatchDay = cursor.GetCurrentGroup(league)
-      matchday = getMatchDay.groupOrderID
-      season_data['currentMatchday'] = matchday
-      print type(season_data)
-      return "%s(%s)"%(cbk,str(json.dumps(season_data)))
-
-class seasonData:
+class getData:
   def GET(self):
     cbk = web.input(callback=None)
     cbk = cbk.callback
@@ -237,10 +196,10 @@ class seasonData:
     season = season.season
     if not season: season = current_bundesliga_season()
     tstamp = web.input(tstamp=None)
-    if tstamp:
+    if tstamp.tstamp:
       try:
         tstamp = datetime.strptime(tstamp.tstamp,"%Y-%m-%dT%H:%M:%S.%f")
-      except ValueError:
+      except (TypeError,ValueError):
         print "Could not format string %s as datetime. Using NoneType instead"%tstamp
       else:
         pass
@@ -249,10 +208,19 @@ class seasonData:
     except AlreadyUpToDate,e:
       return "%s(%s)"%(cbk,json.dumps({'current':1}))
     else:
-      d = {}
+      container = {}
       for md in data.matchdays:
-        pass 
-      return "%s(%s)"%(cbk,json.dumps({'current':0}))
+        container[md.matchdayNum] = {}
+        matches = md.matches
+        for m in matches: # handle all matches in a matchday
+          container[md.matchdayNum][m.id] = {'t1':m.teams[0].id,
+                     't2':m.teams[1].id,
+                     'st':m.startTime.isoformat(),
+                     'et':m.endTime.isoformat(),
+                     'fin':m.isFinished
+                    }
+      y = json.dumps(container)
+      return "%s(%s)"%(cbk,y)
     return "foobar"
 
 class getCurrentMatchday:
@@ -301,21 +269,12 @@ class getCurrentMatchdayData:
     print "Execution of getCurrentMatchdayData took %.2f"%(end-start)
     return "%s(%s)"%(cbk,matchdayData.decode('utf-8'))
 
-class test:
-  def GET(self):
-    cbk = web.input(callback=None)
-    cbk = cbk.callback
-    web.header('Cache-Control','no-cache')
-    web.header('Pragma','no-cache')
-    web.header('Content-Type','application/json')
-    x = "%s([{'machine':{'created_at':'2010-08-26T12:21:29Z','updated_at':'2010-08-26T12:21:29Z','domain':'jquery.com','id':4}}])"%cbk
-    return x
-
 class getTeams:
   '''This class enables the client to have speedy access to all the teams in a specified
      league. It queries the upstream server for all teams in the league and mixes the data
      returned from upstream with locally stored supplemental data (such as team shortcut)))
   '''
+
   def GET(self):
     '''
     Return all the teams for specified league and year. Defaults to Bundesliga 1 for 
@@ -343,38 +302,6 @@ class getTeams:
     web.header('Content-Type', 'application/json')
     return "%s(%s)"%(cbk,y)
 
-class matchday:
-  def GET(self):
-    bl1 = OpenLigaDB(league='bl1')
-    matchday = bl1.matchDayCache[19]
-    print matchday
-    for m in matchday.Matchdata:
-      matchList.append({'nameTeam1':m['nameTeam1'].encode('utf-8'),\
-                        'nameTeam2':m['nameTeam2'].encode('utf-8'),\
-                        'idTeam1':m['idTeam1'],\
-                        'idTeam2':m['idTeam2'],\
-                        'pointsTeam1':m['pointsTeam1'],\
-                        'pointsTeam2':m['pointsTeam2'],\
-                        #'lastUpdate':m['lastUpdate'].encode('utf-8'),\
-                        'matchIsFinished':m['matchIsFinished'],\
-                        #'numberOfViewers':m['numberOfViewers'].encode('utf-8')
-                      })
-    web.header('Content-Type', 'application/json')
-    return json.dumps(matchList)
-
-class md:
-  def GET(self):
-    cbk = web.input(callback=None)
-    cbk = cbk.callback
-    web.header('Cache-Control','no-cache')
-    web.header('Pragma','no-cache')
-    web.header('Content-Type', 'application/json')
-    s = ""
-    for x in range(1,35):
-      s = s+","+"{'%d':'%d Spieltag'}"%(x,x)
-    x = "%s(%s)"%(cbk,"[%s]"%s.lstrip(","))
-    return x
-      
 if __name__ == '__main__':
   app.run(gzm)
 

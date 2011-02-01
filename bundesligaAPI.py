@@ -41,6 +41,9 @@ class BundesligaAPI:
        if the client's tstamp indicates that the client's dataset is already
        up to date, then to save bandwidth we return an empty set
     '''
+    if not isinstance(client_tstamp,datetime):
+      print "client_tstamp %s is not a datetime object...ignoring"%client_tstamp
+      client_tstamp = None
     session=Session()
     update_required = False
     remote_tstamp = self.oldb.GetLastChangeDateByLeagueSaison(league,season)
@@ -93,10 +96,12 @@ class BundesligaAPI:
       print "done...now returning the data..."
       local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
     else:
-      print last_match_change, last_matchday_change
-      if client_tstamp > last_match_change.mtime and client_tstamp > last_matchday_change.mtime:# and client_tstamp > last_goal_change.mtime:
-        print "Client tstamp: %s Match tstamp: %s Matchday tstamp: %s"%(client_tstamp,last_match_change.mtime,last_matchday_change.mtime)
-        raise AlreadyUpToDate, "Client's timestamp indicates that client dataset is up to date"
+      if client_tstamp:
+        if client_tstamp > last_match_change.mtime and client_tstamp > last_matchday_change.mtime:# and client_tstamp > last_goal_change.mtime:
+          print "Client tstamp: %s Match tstamp: %s Matchday tstamp: %s"%(client_tstamp,last_match_change.mtime,last_matchday_change.mtime)
+          raise AlreadyUpToDate, "Client's timestamp indicates that client dataset is up to date"
+        else: # no client tstamp was sent - this is fine, but we have to return all data
+          local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
       else:
         local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
     return local_matchdata
