@@ -196,6 +196,9 @@ class getData:
     season = season.season
     if not season: season = current_bundesliga_season()
     tstamp = web.input(tstamp=None)
+    web.header('Cache-Control','no-cache')
+    web.header('Pragma','no-cache')
+    web.header('Content-Type','application/json')
     if tstamp.tstamp:
       try:
         tstamp = datetime.strptime(tstamp.tstamp,"%Y-%m-%dT%H:%M:%S.%f")
