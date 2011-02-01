@@ -112,8 +112,6 @@ class getGoals:
     matchday = d[0].split("=")[1]
     league = d[1].split("=")[1]
     season = d[2].split("=")[1]
-    print matchday,league,season
-    print type(matchday), type(league), type(season)
     new_matchday_data = cursor.GetMatchdataByGroupLeagueSaison(matchday,league,season)
     x = matchdata_to_py(new_matchday_data)
     retobj = {'matchdata':x,'matchday':matchday}
@@ -216,11 +214,19 @@ class getData:
         container[md.matchdayNum] = {}
         matches = md.matches
         for m in matches: # handle all matches in a matchday
+          gc = {}
+          for g in m.goals:
+            gc[g.id] = {'scorer':g.scorer,
+                        'minute':g.minute}
           container[md.matchdayNum][m.id] = {'t1':m.teams[0].id,
                      't2':m.teams[1].id,
                      'st':m.startTime.isoformat(),
                      'et':m.endTime.isoformat(),
-                     'fin':m.isFinished
+                     'fin':m.isFinished,
+                     'v':m.viewers,
+                     'g':gc,
+                     'p1':m.pointsTeam1,
+                     'p2':m.pointsTeam2
                     }
       y = json.dumps(container)
       return "%s(%s)"%(cbk,y)

@@ -73,7 +73,12 @@ class BundesligaAPI:
           # realistic default = 45+3+15+45+3?
           d = timedelta(minutes=111)
           endTime = m.matchDateTime+d
-          match = session.merge(Match(m.matchID,m.matchDateTime,endTime,m.matchIsFinished))
+          if m.NumberOfViewers:
+            viewers = m.NumberOfViewers
+          else:
+            viewers = 0
+          match = session.merge(Match(m.matchID,m.matchDateTime,
+                                  endTime,m.matchIsFinished,m.pointsTeam1,m.pointsTeam2,viewers))
           if m.idTeam1 in shortcuts.keys():
             shortcut1 = shortcuts[m.idTeam1]
           else:
@@ -90,6 +95,14 @@ class BundesligaAPI:
             local_league.teams.append(t1)
           if t2 not in local_league.teams:
             local_league.teams.append(t2)
+          if m.goals:
+            for aog in m.goals:
+              for gobj in aog:
+                if isinstance(gobj,list):
+                  for g in gobj:
+                   if hasattr(g,'goalGetterName'):
+                    gdata = session.merge(Goal(g.goalID,g.goalGetterName.encode('utf-8'),g.goalMatchMinute,g.goalPenalty))
+                    match.goals.append(gdata)
           md.matches.append(match)
       print "committing session..."
       session.commit()

@@ -55,38 +55,45 @@ match_table = Table('match',metadata,
   Column('endTime', DateTime),
   Column('isFinished',Boolean),
   Column('matchday_id', Integer, ForeignKey('matchday.id')),
+  Column('viewers',Integer,default=0),
+  Column('pointsTeam1',Integer,default=0),
+  Column('pointsTeam2',Integer,default=0),
   Column('mtime', DateTime,default=now(),onupdate=now())
 )
 
 class Match(object):
-  def __init__(self,id,startTime,endTime,isFinished):
+  def __init__(self,id,startTime,endTime,isFinished,pointsTeam1,pointsTeam2,viewers=0):
     self.id = id
     self.startTime = startTime
     self.endTime = endTime
     self.isFinished = isFinished
+    self.viewers = viewers
+    self.pointsTeam1 = pointsTeam1
+    self.pointsTeam2 = pointsTeam2
 
   def __repr__(self):
-    return "<Match('%d','%s','%s','%s')>"%(self.id,self.startTime,
-      self.endTime,self.isFinished)
+    return "<Match('%d','%s','%s','%s','%d','%d','%d)>"%(self.id,self.startTime,
+      self.endTime,self.isFinished,self.viewers,self.pointsTeam1,self.pointsTeam2)
 
 goal_table = Table('goal',metadata,
   Column('id', Integer, primary_key=True),
   Column('scorer', String),
   Column('minute', Integer),
   Column('penalty', Boolean),
-  Column('for_team_id', Integer, ForeignKey('team.id'),nullable=False),
-  Column('match_id', Integer, ForeignKey('match.id'),nullable=False),
+  Column('for_team_id', Integer, ForeignKey('team.id')),
+  Column('match_id', Integer, ForeignKey('match.id')),
   Column('mtime',DateTime,default=now(),onupdate=now())
   )
 
 class Goal(object):
-  def __init__(self,scorer,minute,penalty=False):
-    self.scorer = scorer
+  def __init__(self,id,scorer,minute,penalty=False):
+    self.id = id
+    self.scorer = u"%s"%scorer.decode('utf-8')
     self.minute = minute
     self.penalty = penalty
 
   def __repr__(self):
-    return "<Goal('%s','%s','%s')>"%(self.scorer,self.minute,self.penalty)
+    return "<Goal('%d','%s','%s','%s')>"%(self.id,self.scorer,self.minute,self.penalty)
 
 team_table = Table('team',metadata,
   Column('id',Integer,primary_key=True),
