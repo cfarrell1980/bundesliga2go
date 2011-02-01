@@ -35,6 +35,7 @@ import web,os,json,time
 import hashlib
 from datetime import datetime
 from bundesligaHelpers import *
+from bundesligaAPI import BundesligaAPI,AlreadyUpToDate
 from OpenLigaDB import OpenLigaDB
 from paste.gzipper import middleware as gzm
 
@@ -44,7 +45,7 @@ web.config.debug = False
 
 urls = (
   '/test','test',
-  '/teams', 'getTeams',
+  '/getTeams', 'getTeams',
   '/matchday','matchday',
   '/md','md',
   '/checkMD5','checkMD5',
@@ -58,6 +59,8 @@ urls = (
 DEFAULT_LEAGUE = 'bl1'
 
 app = web.application(urls,globals(),autoreload=True)
+
+api = BundesligaAPI()
 
 class worker:
   def GET(self):
@@ -181,7 +184,7 @@ class checkMD5:
       return "%s(%s)"%(cbk,y)
 
 
-class seasonData:
+class seasonData1:
   '''This should call a shim which will check if there is:
      (a) a json file available for the requested league, season
      (b) if the json file is still valid
@@ -222,6 +225,35 @@ class seasonData:
       season_data['currentMatchday'] = matchday
       print type(season_data)
       return "%s(%s)"%(cbk,str(json.dumps(season_data)))
+
+class seasonData:
+  def GET(self):
+    cbk = web.input(callback=None)
+    cbk = cbk.callback
+    league = web.input(league=None)
+    league = league.league
+    if not league: league = DEFAULT_LEAGUE
+    season = web.input(season=None)
+    season = season.season
+    if not season: season = current_bundesliga_season()
+    tstamp = web.input(tstamp=None)
+    if tstamp:
+      try:
+        tstamp = datetime.strptime(tstamp.tstamp,"%Y-%m-%dT%H:%M:%S.%f")
+      except ValueError:
+        print "Could not format string %s as datetime. Using NoneType instead"%tstamp
+      else:
+        pass
+    try:
+      data = api.getMatchdataByLeagueSeason(league,season,tstamp)
+    except AlreadyUpToDate,e:
+      return "%s(%s)"%(cbk,json.dumps({'current':1}))
+    else:
+      d = {}
+      for md in data.matchdays:
+        pass 
+      return "%s(%s)"%(cbk,json.dumps({'current':0}))
+    return "foobar"
 
 class getCurrentMatchday:
   '''
@@ -298,24 +330,17 @@ class getTeams:
       league = DEFAULT_LEAGUE
     if not season:
       season = current_bundesliga_season()
-    cursor = OpenLigaDB()
-    teamObj = cursor.GetTeamsByLeagueSaison(league,season)
-    teamList = []
-    tmp = ""
-    for t in teamObj.Team:
-      teamdict = {}
-      teamdict['teamID']=t.teamID
-      teamdict['teamName']=t.teamName.encode('utf-8')
-      teamdict['teamIconURL']=t.teamIconURL
-      if t.teamID in shortcuts.keys():
-        teamdict['teamShortcut'] = shortcuts[t.teamID]
-      else:
-        teamdict['teamShortcut'] = None
-      teamList.append(teamdict)
+    data = api.getTeams(league,season)
+    d = {}
+    for t in data:
+      print dir(t)
+      d[t.id] = {'name':t.name,
+                 'icon':t.iconURL,
+                 'short':t.shortcut}
+    y = json.dumps(d)
     web.header('Cache-Control','no-cache')
     web.header('Pragma','no-cache')
     web.header('Content-Type', 'application/json')
-    y = str(json.dumps(teamList))
     return "%s(%s)"%(cbk,y)
 
 class matchday:

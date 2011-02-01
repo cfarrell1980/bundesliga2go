@@ -2,20 +2,44 @@
 from OpenLigaDB import OpenLigaDB
 from sqlalchemy.exc import IntegrityError
 from bundesligaORM import *
-from bundesligaHelpers import shortcuts
+from bundesligaHelpers import shortcuts,tstamp_to_md5
 from suds import WebFault
 import time
 from datetime import datetime,timedelta
+
+class AlreadyUpToDate(Exception):
+  '''If the client's dataset is already up to date then raise this exception
+     to tell the invoking script that it is ok to return an empty dataset
+  '''
+  def __init__(self, value):
+    self.value = value
+
+  def __str__(self):
+    return repr(self.value)
 
 class BundesligaAPI:
 
   def __init__(self):
     self.oldb = OpenLigaDB()
 
-  def getMatchdataByLeagueSeason(self,league,season):
+  def compareClientToLocal(self,tstamp,request):
+    '''The client stores certain timestamps. This method accepts
+       the client's tstamp and the request the client has sent. The request is used
+       to check which database tables are affected by the response. If the time stamp
+       that the client sends is newer or equal to the most recent modification of any
+       of the tables that is required to produce the data that the client requests then
+       the client's localStorage dataset is already up to date and no data is returned
+       to the client. Otherwise, the client's cache needs to be updated.
+    '''
+    pass
+
+  def getMatchdataByLeagueSeason(self,league,season,client_tstamp=None):
     '''Return a dictionary holding data for matches returned for an entire
        season where the keys of the dictionary are the matchdays. The values
-       are dictionaries containing the matchdata
+       are dictionaries containing the matchdata. If the client's tstamp is
+       specified we additionally check if we can return an empty dataset - i.e
+       if the client's tstamp indicates that the client's dataset is already
+       up to date, then to save bandwidth we return an empty set
     '''
     session=Session()
     update_required = False
@@ -69,7 +93,12 @@ class BundesligaAPI:
       print "done...now returning the data..."
       local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
     else:
-      local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
+      print last_match_change, last_matchday_change
+      if client_tstamp > last_match_change.mtime and client_tstamp > last_matchday_change.mtime:# and client_tstamp > last_goal_change.mtime:
+        print "Client tstamp: %s Match tstamp: %s Matchday tstamp: %s"%(client_tstamp,last_match_change.mtime,last_matchday_change.mtime)
+        raise AlreadyUpToDate, "Client's timestamp indicates that client dataset is up to date"
+      else:
+        local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
     return local_matchdata
 
   def getMatchdataByLeagueSeasonMatchday(self,league,season,matchday):
@@ -78,10 +107,25 @@ class BundesligaAPI:
        of the matches taking place. Thus, there should be 9 keys in any
        dictionary returned from this method
     '''
+    update_required = False
     session = Session()
     remote_tstamp = self.oldb.GetLastChangeDateByGroupLeagueSaison(matchday,league,season)
-    q1 = session.query(Matchday.mtime).order_by(Matchday.mtime.desc()).first()
-    print q1
+    local_tstamp = session.query(Matchday.mtime).order_by(Matchday.mtime.desc()).first()
+    if not local_tstamp:
+      print "No local data available. Update required..."
+      update_required = True
+    else:
+      if local_tstamp.mtime < remote_tstamp:
+        print "Local data available but out of date. Update required..."
+        update_required = True
+      else:
+        print "Local data available is up to date. No update required..."
+    if update_required:
+      remote_data = self.oldb.GetMatchdataByGroupLeagueSaison(matchday,league,season)
+      print remote_data
+    else:
+      local_data = session.query(Matchday).filter(Matchday.matchdayNum==matchday).all()
+    
 
   def getMatchdataByMatchID(self,matchID):
     pass
@@ -95,14 +139,10 @@ class BundesligaAPI:
     '''
     start = time.time()
     session=Session()
-    #local_league = session.merge(League(None,league,season))
     local_league = session.query(League).filter_by(shortname=league).first()
     if not local_league:
       local_league = League(None,league,season)
     teams = local_league.teams
-    print teams
-    print type(teams)
-    print len(teams) 
     if len(teams) != 18:
       print "Number of teams in %s for season %d is %d: UPDATING"%(league,season,len(teams))
       try:
