@@ -80,17 +80,23 @@ goal_table = Table('goal',metadata,
   Column('scorer', String),
   Column('minute', Integer),
   Column('penalty', Boolean),
+  Column('t1score', Integer),
+  Column('t2score', Integer),
   Column('for_team_id', Integer, ForeignKey('team.id')),
   Column('match_id', Integer, ForeignKey('match.id')),
+  Column('ownGoal', Boolean,default=False),
   Column('mtime',DateTime,default=now(),onupdate=now())
   )
 
 class Goal(object):
-  def __init__(self,id,scorer,minute,penalty=False):
+  def __init__(self,id,scorer,minute,t1,t2,og,penalty=False):
     self.id = id
     self.scorer = u"%s"%scorer.decode('utf-8')
     self.minute = minute
     self.penalty = penalty
+    self.t1score = t1
+    self.t2score = t2
+    self.ownGoal = og
 
   def __repr__(self):
     return "<Goal('%d','%s','%s','%s')>"%(self.id,self.scorer,self.minute,self.penalty)

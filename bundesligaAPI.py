@@ -38,7 +38,7 @@ class BundesligaAPI:
     goals = {}
     goalindex = {}
     for g in updates:
-      goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty}
+      goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty,'ownGoal':g.ownGoal,'teamID':g.for_team_id}
       goalindex[g.match.id] = [x.id for x in g.match.goals]
     rd = (goals,goalindex)
     return rd
@@ -111,8 +111,23 @@ class BundesligaAPI:
                 if isinstance(gobj,list):
                   for g in gobj:
                    if hasattr(g,'goalGetterName'):
-                    gdata = session.merge(Goal(g.goalID,g.goalGetterName.encode('utf-8'),g.goalMatchMinute,g.goalPenalty))
+                    gdata = session.merge(Goal(g.goalID,g.goalGetterName.encode('utf-8'),g.goalMatchMinute,
+                                    g.goalScoreTeam1,g.goalScoreTeam2,g.goalOwnGoal,g.goalPenalty))
                     match.goals.append(gdata)
+          for goal in match.goals:# now try to find out what team scored. not easy from raw openligadb data
+            if match.goals.index(goal) == 0:#the first goal is easy
+              if match.goals[0].t1score == 1:
+                match.goals[0].for_team_id = match.teams[0].id
+              else:
+                match.goals[0].for_team_id = match.teams[1].id
+            else:#look to the last goal to see whose score increased
+              prev1 = match.goals[match.goals.index(goal)-1].t1score
+              prev2 = match.goals[match.goals.index(goal)-1].t2score
+              if match.goals[match.goals.index(goal)].t1score > prev1:
+                match.goals[match.goals.index(goal)].for_team_id = match.teams[0].id
+              else:
+                match.goals[match.goals.index(goal)].for_team_id = match.teams[1].id
+              
           md.matches.append(match)
       print "committing session..."
       session.commit()

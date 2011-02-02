@@ -192,8 +192,12 @@ class getData:
         for m in matches: # handle all matches in a matchday
           goalpointer[m.id] = []
           for g in m.goals:
+            if g.for_team_id:
+              teamID = g.for_team_id
+            else:
+              teamID = None
             goalcontainer[g.id] = {'scorer':g.scorer,
-                        'minute':g.minute}
+                        'minute':g.minute,'teamID':teamID,'og':g.ownGoal}
             goalpointer[m.id].append(g.id)
           container[m.id] = {'t1':m.teams[0].id,
                      't2':m.teams[1].id,
