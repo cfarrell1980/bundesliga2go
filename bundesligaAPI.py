@@ -22,7 +22,7 @@ class BundesligaAPI:
   def __init__(self):
     self.oldb = OpenLigaDB()
 
-  def compareClientToLocal(self,tstamp,request):
+  def getUpdates(self,tstamp):
     '''The client stores certain timestamps. This method accepts
        the client's tstamp and the request the client has sent. The request is used
        to check which database tables are affected by the response. If the time stamp
@@ -31,7 +31,17 @@ class BundesligaAPI:
        the client's localStorage dataset is already up to date and no data is returned
        to the client. Otherwise, the client's cache needs to be updated.
     '''
-    pass
+    if not isinstance(tstamp,datetime):
+      raise TypeError, "tstamp must be a datetime.datetime type!"
+    session = Session()
+    updates = session.query(Goal).filter(Goal.mtime > tstamp).all()
+    goals = {}
+    goalindex = {}
+    for g in updates:
+      goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty}
+      goalindex[g.match.id] = [x.id for x in g.match.goals]
+    rd = {'goalobjects':goals,'goalindex':goalindex}
+    return rd
 
   def getMatchdataByLeagueSeason(self,league,season,client_tstamp=None):
     '''Return a dictionary holding data for matches returned for an entire
