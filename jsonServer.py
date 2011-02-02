@@ -38,7 +38,7 @@ from bundesligaHelpers import *
 from bundesligaAPI import BundesligaAPI,AlreadyUpToDate
 from OpenLigaDB import OpenLigaDB
 from paste.gzipper import middleware as gzm
-
+import time
 render_in_context = web.template.render('templates/', base='layout')
 render = web.template.render('templates/')
 web.config.debug = False
@@ -194,8 +194,6 @@ class getData:
     season = season.season
     if not season: season = current_bundesliga_season()
     tstamp = web.input(tstamp=None)
-    #web.header('Cache-Control','no-cache')
-    #web.header('Pragma','no-cache')
     web.header('Content-Type','application/json')
     if tstamp.tstamp:
       try:
@@ -205,7 +203,10 @@ class getData:
       else:
         pass
     try:
+      x = time.time()
       data = api.getMatchdataByLeagueSeason(league,season,tstamp)
+      y = time.time()
+      print "Getting data from API took %f"%(y-x)
     except AlreadyUpToDate,e:
       return "%s(%s)"%(cbk,json.dumps({'current':1}))
     else:
@@ -215,6 +216,7 @@ class getData:
       goalpointer = {}
       for x in range(1,35):#prepare the matchday arrays
         matchdaycontainer[x] = []
+      x = time.time()
       for md in data.matchdays:
         matches = md.matches
         for m in matches: # handle all matches in a matchday
@@ -222,7 +224,7 @@ class getData:
           for g in m.goals:
             goalcontainer[g.id] = {'scorer':g.scorer,
                         'minute':g.minute}
-            goalpointer[m.id].append(goalcontainer)
+            goalpointer[m.id].append(g.id)
           container[m.id] = {'t1':m.teams[0].id,
                      't2':m.teams[1].id,
                      'st':m.startTime.isoformat(),
@@ -233,9 +235,10 @@ class getData:
                      'p2':m.pointsTeam2
                     }
           matchdaycontainer[md.matchdayNum].append(m.id)
+      y = time.time()
+      print "Creating the returnable dictionaries took %f"%(y-x)
       packdict = {'tstamp':'foo','matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalpointer}
       y = json.dumps(packdict)
-      print y
       return "%s(%s)"%(cbk,y)
     return "foobar"
 
