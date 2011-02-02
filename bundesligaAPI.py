@@ -40,7 +40,7 @@ class BundesligaAPI:
     for g in updates:
       goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty}
       goalindex[g.match.id] = [x.id for x in g.match.goals]
-    rd = {'goalobjects':goals,'goalindex':goalindex}
+    rd = (goals,goalindex)
     return rd
 
   def getMatchdataByLeagueSeason(self,league,season,client_tstamp=None):

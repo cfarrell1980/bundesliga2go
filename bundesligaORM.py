@@ -14,32 +14,6 @@ Session = sessionmaker(bind=engine)
 def now():
   return datetime.datetime.now()
 
-tracker_table = Table('tracker',metadata,
-  Column('id',Integer,primary_key=True),
-  Column('api_tstamp',DateTime),
-  Column('goal_tstamp',DateTime),
-  Column('match_tstamp',DateTime),
-  Column('matchday_tstamp',DateTime),
-  Column('mtime',DateTime,default=now(),onupdate=now())
-)
-
-class Tracker(object):
-  def __init__(self,api,goal,match,matchday):
-    '''This object gets written when data is returned to the client. The idea is
-       that an api generated timestamp is sent to the client. At the time the api
-       timestamp is created we also create a record of the state of the update 
-       relevant tables. Thus, when the client later provides us with exactly the
-       same timestamp we sent, we can reference this table and determine what 
-       updates need to be sent back to the client'''
-    self.api_tstamp = api
-    self.goal_tstamp = goal
-    self.match_tstamp = match
-    self.matchday_tstamp = matchday
-
-  def __repr__(self):
-    return "<Tracker(api:'%s',goal:'%s',match:'%s',matchday:'%s')>"%(self.api_tstamp,
-             self.goal_tstamp,self.match_tstamp,self.matchday_tstamp)
-
 league_table = Table('league', metadata,
   Column('id', Integer, primary_key=True),
   Column('shortname', String),
@@ -160,7 +134,7 @@ mapper(League,league_table,properties={
 
 mapper(Match,match_table,properties={
   'teams': relationship(Team,secondary=teams_matches,backref='matches'),
-  'goals':relationship(Goal,backref='matches'),
+  'goals':relationship(Goal,backref='match'),
 })
 
 mapper(Matchday,matchday_table,properties={'matches':relationship(Match,backref='matchday')})
@@ -168,7 +142,5 @@ mapper(Matchday,matchday_table,properties={'matches':relationship(Match,backref=
 mapper(Goal,goal_table)
 
 mapper(Team, team_table,properties={'goals':relationship(Goal,backref='team')})
-
-mapper(Tracker, tracker_table)
 
 metadata.create_all(engine)

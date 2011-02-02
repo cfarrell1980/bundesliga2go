@@ -38,7 +38,7 @@ from bundesligaHelpers import *
 from bundesligaAPI import BundesligaAPI,AlreadyUpToDate
 from OpenLigaDB import OpenLigaDB
 from paste.gzipper import middleware as gzm
-import time
+
 render_in_context = web.template.render('templates/', base='layout')
 render = web.template.render('templates/')
 web.config.debug = False
@@ -129,59 +129,33 @@ class getGoals:
     print web.ctx.headers
     return json.dumps({'name':'Ciaran','job':'Bundespresident'})
 
-
-class checkMD5:
-  '''This class is responsible for accepting an MD5 checksum from the mobile client
-     (or none, if the client doesn't send one) and checking it against an MD5 checksum
-     generated from the timestamp of the most recent change for the dataset for the
-     Bundesliga/Season on the upstream server. If the GET parameters season and league
-     are missing from the client's request, the current season and the default league
-     are used. The GET method will return a padded json response to the client. If the
-     client sends a still valid MD5 checksum (i.e. the upstream dataset has not changed)
-     then the padded json dataset to be returned to the client will be empty. If the
-     upstream dataset has been changed then the server will return the new dataset plus
-     the updated MD5 checksum generated from the upstream timestamp.
-  '''
-
+class getUpdates:
   def GET(self):
-    update_required = False
     cbk = web.input(callback=None)
     cbk = cbk.callback
-    league=web.input(league=None)
-    league=league.league
-    if not league:
-      league = DEFAULT_LEAGUE
+    league = web.input(league=None)
+    league = league.league
+    if not league: league = DEFAULT_LEAGUE
     season = web.input(season=None)
-    season=season.season
-    if not season:
-      season = current_bundesliga_season()
-    cursor = OpenLigaDB()
-    matchday = web.input(matchday=None)
-    matchday = matchday.matchday
-    if not matchday:
-      matchday = cursor.GetCurrentGroup(league)
-      matchday = matchday.groupOrderID
-    upstream_tstamp = cursor.GetLastChangeDateByGroupLeagueSaison(matchday,league,season)
-    upstream_md5 = tstamp_to_md5(upstream_tstamp)
-    incoming_md5 = web.input(md5=None)
-    incoming_md5 = incoming_md5.md5
-    web.header('Cache-Control','no-cache')
-    web.header('Pragma','no-cache')
+    season = season.season
+    if not season: season = current_bundesliga_season()
+    tstamp = web.input(tstamp=None)
     web.header('Content-Type','application/json')
-
-    print "md5 checksum from client: %s"%incoming_md5
-    if incoming_md5:
-      if incoming_md5 == upstream_md5:
-        return "%s()"%cbk
+    if tstamp.tstamp:
+      try:
+        tstamp = datetime.strptime(tstamp.tstamp,"%Y-%m-%dT%H:%M:%S")
+      except (TypeError,ValueError):
+        d = {'invocationError':'invalid timestamp (%s)'%tstamp.tstamp}
+        return "%s(%s)"%(cbk,json.dumps(d))
       else:
-        update_required = True
-    else: update_required = True
-    if update_required:
-      new_matchday_data = cursor.GetMatchdataByGroupLeagueSaison(matchday,league,season)
-      x = matchdata_to_py(new_matchday_data)
-      retobj = {'md5':upstream_md5,'matchdata':x,'matchday':matchday,'env':x}
-      y = str(json.dumps(retobj))
-      return "%s(%s)"%(cbk,y)
+        new_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        updates = api.getUpdates(tstamp)
+        rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1]}
+        d = json.dumps(rd)
+        return "%s(%s)"%(cbk,d)
+    else:
+      d = {'invocationError':'no timestamp'}
+      return "%s(%s)"%(cbk,json.dumps(d))
 
 class getData:
   def GET(self):
@@ -203,10 +177,7 @@ class getData:
       else:
         pass
     try:
-      x = time.time()
       data = api.getMatchdataByLeagueSeason(league,season,tstamp)
-      y = time.time()
-      print "Getting data from API took %f"%(y-x)
     except AlreadyUpToDate,e:
       return "%s(%s)"%(cbk,json.dumps({'current':1}))
     else:
@@ -216,7 +187,6 @@ class getData:
       goalpointer = {}
       for x in range(1,35):#prepare the matchday arrays
         matchdaycontainer[x] = []
-      x = time.time()
       for md in data.matchdays:
         matches = md.matches
         for m in matches: # handle all matches in a matchday
@@ -235,12 +205,10 @@ class getData:
                      'p2':m.pointsTeam2
                     }
           matchdaycontainer[md.matchdayNum].append(m.id)
-      y = time.time()
-      print "Creating the returnable dictionaries took %f"%(y-x)
-      packdict = {'tstamp':'foo','matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalpointer}
+      now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+      packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalpointer}
       y = json.dumps(packdict)
       return "%s(%s)"%(cbk,y)
-    return "foobar"
 
 class getCurrentMatchday:
   '''
