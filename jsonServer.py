@@ -31,7 +31,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
-import web,os,json,time
+import web,os,json,time,sys
+abspath = os.path.dirname(__file__)
+sys.path.append(abspath)
+os.chdir(abspath)
+import web
 import hashlib
 from datetime import datetime
 from bundesligaHelpers import *
@@ -60,7 +64,9 @@ urls = (
 
 DEFAULT_LEAGUE = 'bl1'
 
-app = web.application(urls,globals(),autoreload=True)
+#app = web.application(urls,globals(),autoreload=True)
+app = web.application(urls, globals(), autoreload=False)
+application = app.wsgifunc()
 
 api = BundesligaAPI()
 
@@ -165,7 +171,7 @@ class getData:
     league = league.league
     if not league: league = DEFAULT_LEAGUE
     season = web.input(season=None)
-    season = season.season
+    season = int(season.season)
     if not season: season = current_bundesliga_season()
     tstamp = web.input(tstamp=None)
     web.header('Content-Type','application/json')
@@ -294,5 +300,5 @@ class getTeams:
     return "%s(%s)"%(cbk,y)
 
 if __name__ == '__main__':
-  app.run(gzm)
+  app.run()
 
