@@ -209,26 +209,33 @@ class getData:
     except AlreadyUpToDate,e:
       return "%s(%s)"%(cbk,json.dumps({'current':1}))
     else:
-      container = {}
+      matchdaycontainer = {} #hold matchdays
+      container = {}#hold matches by matchid
+      goalcontainer = {}
+      goalpointer = {}
+      for x in range(1,35):#prepare the matchday arrays
+        matchdaycontainer[x] = []
       for md in data.matchdays:
-        container[md.matchdayNum] = {}
         matches = md.matches
         for m in matches: # handle all matches in a matchday
-          gc = {}
+          goalpointer[m.id] = []
           for g in m.goals:
-            gc[g.id] = {'scorer':g.scorer,
+            goalcontainer[g.id] = {'scorer':g.scorer,
                         'minute':g.minute}
-          container[md.matchdayNum][m.id] = {'t1':m.teams[0].id,
+            goalpointer[m.id].append(goalcontainer)
+          container[m.id] = {'t1':m.teams[0].id,
                      't2':m.teams[1].id,
                      'st':m.startTime.isoformat(),
                      'et':m.endTime.isoformat(),
                      'fin':m.isFinished,
                      'v':m.viewers,
-                     'g':gc,
                      'p1':m.pointsTeam1,
                      'p2':m.pointsTeam2
                     }
-      y = json.dumps(container)
+          matchdaycontainer[md.matchdayNum].append(m.id)
+      packdict = {'tstamp':'foo','matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalpointer}
+      y = json.dumps(packdict)
+      print y
       return "%s(%s)"%(cbk,y)
     return "foobar"
 
