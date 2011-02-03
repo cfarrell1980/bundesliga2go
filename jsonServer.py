@@ -32,9 +32,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
 import web,os,json,time,sys
-abspath = os.path.dirname(__file__)
-sys.path.append(abspath)
-os.chdir(abspath)
+if len(sys.argv) == 2:
+ if sys.argv[1] == '--apache':
+  abspath = os.path.dirname(__file__)
+  sys.path.append(abspath)
+  os.chdir(abspath)
 import web
 import hashlib
 from datetime import datetime
@@ -171,8 +173,17 @@ class getData:
     league = league.league
     if not league: league = DEFAULT_LEAGUE
     season = web.input(season=None)
-    season = int(season.season)
-    if not season: season = current_bundesliga_season()
+    if not season:
+      print "season undefined..."
+      season = current_bundesliga_season()
+    else:
+      print "trying to use client defined season %s"%season.season
+      try:
+        season = int(season.season)
+      except TypeError:
+        print "Can't convert season %s into int"%season
+        season = current_bundesliga_season()
+      else: pass
     tstamp = web.input(tstamp=None)
     web.header('Content-Type','application/json')
     if tstamp.tstamp:

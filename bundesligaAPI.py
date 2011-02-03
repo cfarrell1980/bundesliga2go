@@ -60,6 +60,8 @@ class BundesligaAPI:
     last_match_change = session.query(Match.mtime).order_by(Match.mtime.desc()).first()
     last_matchday_change = session.query(Matchday.mtime).order_by(Matchday.mtime.desc()).first()
     last_goal_change = session.query(Goal.mtime).order_by(Goal.mtime.desc()).first()
+    print last_match_change
+    print last_matchday_change
     if not last_match_change or not last_matchday_change:# or not last_goal_change:
       print "No local data available for %s %d. Performing update..."%(league,season)
       update_required = True
