@@ -157,7 +157,7 @@ class getUpdates:
         return "%s(%s)"%(cbk,json.dumps(d))
       else:
         new_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        updates = api.getUpdates(tstamp)
+        updates = api.getUpdates(tstamp,league,season)
         rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1]}
         d = json.dumps(rd)
         return "%s(%s)"%(cbk,d)

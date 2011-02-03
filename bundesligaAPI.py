@@ -22,24 +22,28 @@ class BundesligaAPI:
   def __init__(self):
     self.oldb = OpenLigaDB()
 
-  def getUpdates(self,tstamp):
-    '''The client stores certain timestamps. This method accepts
-       the client's tstamp and the request the client has sent. The request is used
-       to check which database tables are affected by the response. If the time stamp
-       that the client sends is newer or equal to the most recent modification of any
-       of the tables that is required to produce the data that the client requests then
-       the client's localStorage dataset is already up to date and no data is returned
-       to the client. Otherwise, the client's cache needs to be updated.
+  def getUpdates(self,tstamp,league,season):
+    '''The client is sent a timestamp with each response. When the client makes the
+       next request the client sends the same timestamp back to the server, which
+       checks if any data need be returned to the client. This function queries the
+       middleware database with the client's timestamp to obtain matchdata that 
+       arrived since the client's timestamp. Only such updates are sent back to the
+       client
     '''
+    #TODO: it is possible that something will change in the Match object - e.g. the Match
+    #field isFinished will change from False to True. This is currently not taken care of
+    #by the getUpdates method, even though it would be relatively trivial given that the
+    #Match object is already readily available at the time the goals are returned
     if not isinstance(tstamp,datetime):
       raise TypeError, "tstamp must be a datetime.datetime type!"
     session = Session()
-    updates = session.query(Goal).filter(Goal.mtime > tstamp).all()
+    updates = session.query(Match).join(Goal).join(Matchday).join(League).filter(League.year==season).filter(Match.isFinished==True).filter(Match.startTime >= tstamp).all()
     goals = {}
     goalindex = {}
-    for g in updates:
-      goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty,'ownGoal':g.ownGoal,'teamID':g.for_team_id}
-      goalindex[g.match.id] = [x.id for x in g.match.goals]
+    for match in updates:
+      for g in match.goals:
+       goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty,'ownGoal':g.ownGoal,'teamID':g.for_team_id}
+       goalindex[g.match.id] = [x.id for x in g.match.goals]
     rd = (goals,goalindex)
     return rd
 
@@ -60,8 +64,6 @@ class BundesligaAPI:
     last_match_change = session.query(Match.mtime).order_by(Match.mtime.desc()).first()
     last_matchday_change = session.query(Matchday.mtime).order_by(Matchday.mtime.desc()).first()
     last_goal_change = session.query(Goal.mtime).order_by(Goal.mtime.desc()).first()
-    print last_match_change
-    print last_matchday_change
     if not last_match_change or not last_matchday_change:# or not last_goal_change:
       print "No local data available for %s %d. Performing update..."%(league,season)
       update_required = True
