@@ -41,7 +41,7 @@ import web
 import hashlib
 from datetime import datetime
 from bundesligaHelpers import *
-from bundesligaAPI import BundesligaAPI,AlreadyUpToDate
+from bundesligaAPI import BundesligaAPI,AlreadyUpToDate,InvocationError
 from OpenLigaDB import OpenLigaDB
 from paste.gzipper import middleware as gzm
 
@@ -291,6 +291,9 @@ class getTeams:
     season = web.input(season=None)
     cbk = cbk.callback
     league = league.league
+    #web.header('Cache-Control','no-cache')
+    #web.header('Pragma','no-cache')
+    web.header('Content-Type', 'application/json')
     season = season.season
     if not league:
       league = DEFAULT_LEAGUE
@@ -304,17 +307,19 @@ class getTeams:
         season = current_bundesliga_season()
       else:
         pass
-    data = api.getTeams(league,season)
-    d = {}
-    for t in data:
-      d[t.id] = {'name':t.name,
+    try:
+      data = api.getTeams(league,season)
+    except InvocationError:
+      d = json.dumps({'invocationError':'Season %d or League %s does not exist?'%(season,league)})
+      return "%s(%s)"%(cbk,d)
+    else:
+      d = {}
+      for t in data:
+        d[t.id] = {'name':t.name,
                  'icon':t.iconURL,
                  'short':t.shortcut}
-    y = json.dumps(d)
-    web.header('Cache-Control','no-cache')
-    web.header('Pragma','no-cache')
-    web.header('Content-Type', 'application/json')
-    return "%s(%s)"%(cbk,y)
+      y = json.dumps(d)
+      return "%s(%s)"%(cbk,y)
 
 if __name__ == '__main__':
   app.run(gzm)
