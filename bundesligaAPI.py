@@ -186,11 +186,11 @@ class BundesligaAPI:
     '''
     start = time.time()
     session=Session()
-    local_league = session.query(League).filter_by(shortname=league).first()
+    local_league = session.query(League).filter(League.year==season).filter_by(shortname=league).first()
     if not local_league:
       local_league = League(None,league,season)
     teams = local_league.teams
-    if len(teams) != 18:
+    if len(teams) < 18:# some seasons have strange 'teams' like 6. Platz Bundesliga
       print "Number of teams in %s for season %d is %d: UPDATING"%(league,season,len(teams))
       try:
         remote_teams = self.oldb.GetTeamsByLeagueSaison(league,season)
@@ -198,13 +198,32 @@ class BundesligaAPI:
         raise StandardError, "SOAP client could not complete request. Check parameters!"
       else:
         for t in remote_teams.Team:
-          shortcut = None
-          if t.teamID in shortcuts:
-            shortcut = shortcuts[t.teamID]
-          team = session.merge(Team(t.teamID,t.teamName.encode('utf-8'),t.teamIconURL,shortcut))
-          team.leagues.append(local_league)
-        session.commit()
+          if not t.teamIconURL and t.teamID > 250:
+            print "Ignoring %s as it doesn't seem to be a real team"%(t.teamName.encode('utf-8'))
+          else:
+            shortcut = None
+            if t.teamID in shortcuts:
+              shortcut = shortcuts[t.teamID]
+            team = session.merge(Team(t.teamID,t.teamName.encode('utf-8'),t.teamIconURL,shortcut))
+            team.leagues.append(local_league)
+          session.commit()
+      teams = local_league.teams
     else:
+      print "Checking if any of the existing teams is missing a shortcut"
+      for t in teams:
+        if not t.shortcut:
+          print "Yep...%s is missing a shortcut... checking if it has since been added..."%t.name.encode('utf-8')
+          if shortcuts.has_key(t.id):
+            print "Yep... seems to be in shortcuts as %s"%shortcuts[t.id]
+            t.shortcut = shortcuts[t.id]
+          else:
+            print "No... you should add a shortcut for team %s (teamID %d) to bundesligaHelpers::shortcuts"%(t.name.encode('utf-8'),t.id)
+        else:
+          print "Yep...%d has shortcut %s...checking if it is still ok..."%(t.id,t.shortcut)
+          if t.shortcut != shortcuts[t.id]:
+            print "No...%s is the new shortcut...updating..."%shortcuts[t.id]
+            t.shortcut = shortcuts[t.id]
+      session.commit()
       print "There are 18 teams. Everything ok..."
     finish = time.time()
     print "<Running method getTeams() took %f seconds>"%(finish-start)
