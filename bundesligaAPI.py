@@ -58,6 +58,34 @@ class BundesligaAPI:
     rd = (goals,goalindex)
     return rd
 
+  def localCacheValid(self,league=None,season=None):
+    '''Check to see if the local cache is behind openligadb.de.
+    '''
+    if not league:
+      league = DEFAULT_LEAGUE
+    if not season:
+      season = current_bundesliga_season()
+    session = Session()
+    print league,season
+    try:
+      remote_tstamp = self.oldb.GetLastChangeDateByLeagueSaison(league,season)
+    except InvocationError:
+      print "SOAP Error for league %s season %s?"%(str(league),str(season))
+      return False
+    else:
+      last_match_change = session.query(Match.mtime).order_by(Match.mtime.desc()).first()
+      last_matchday_change = session.query(Matchday.mtime).order_by(Matchday.mtime.desc()).first()
+      last_goal_change = session.query(Goal.mtime).order_by(Goal.mtime.desc()).first()
+      if not last_match_change or not last_matchday_change or not last_goal_change:
+        print "None objects returned when querying mtimes for match, matchday, goal"
+        return False
+      elif last_match_change.mtime < remote_tstamp or last_matchday_change.mtime < remote_tstamp or last_goal_change.mtime < remote_tstamp:
+        print "Local data exists but at least one required table is out of date"
+        return False
+      else:
+        print "Local data exists and is up to date"
+        return True
+
   def getMatchdataByLeagueSeason(self,league,season,client_tstamp=None):
     '''Return a dictionary holding data for matches returned for an entire
        season where the keys of the dictionary are the matchdays. The values
@@ -70,25 +98,12 @@ class BundesligaAPI:
       print "client_tstamp %s is not a datetime object...ignoring"%client_tstamp
       client_tstamp = None
     session=Session()
-    update_required = False
     remote_tstamp = self.oldb.GetLastChangeDateByLeagueSaison(league,season)
-    last_match_change = session.query(Match.mtime).order_by(Match.mtime.desc()).first()
-    last_matchday_change = session.query(Matchday.mtime).order_by(Matchday.mtime.desc()).first()
-    last_goal_change = session.query(Goal.mtime).order_by(Goal.mtime.desc()).first()
-    if not last_match_change or not last_matchday_change or not last_goal_change:
-      print "No local data available for %s %d. Performing update..."%(league,season)
-      update_required = True
-    elif last_match_change.mtime < remote_tstamp or last_matchday_change.mtime < remote_tstamp or last_goal_change.mtime < remote_tstamp:
-      print "Local data appears to be outdated. Performing update of %s %d"%(league,season)
-      update_required = True
-    else:
-      print "Local data for %s %d appears to be up to date"%(league,season)
-    if update_required:
+    if not self.localCacheValid(league,season):
       local_league = session.query(League).filter_by(shortname=league).first()
       if not local_league:
         local_league = League(None,league,season)
       remote_matchdata = self.oldb.GetMatchdataByLeagueSaison(league,season)
-      
       for m in remote_matchdata.Matchdata:
           md = session.query(Matchday).filter_by(matchdayNum='%d'%m.groupOrderID).first()
           if not md:
@@ -104,16 +119,8 @@ class BundesligaAPI:
             viewers = 0
           match = session.merge(Match(m.matchID,m.matchDateTime,
                                   endTime,m.matchIsFinished,m.pointsTeam1,m.pointsTeam2,viewers))
-          if m.idTeam1 in shortcuts.keys():
-            shortcut1 = shortcuts[m.idTeam1]
-          else:
-            shortcut1 = None
-          if m.idTeam2 in shortcuts.keys():
-            shortcut2 = shortcuts[m.idTeam2]
-          else:
-            shortcut2 = None
-          t1 = session.merge(Team(m.idTeam1,m.nameTeam1.encode('utf-8'),m.iconUrlTeam1,shortcut1))
-          t2 = session.merge(Team(m.idTeam2,m.nameTeam2.encode('utf-8'),m.iconUrlTeam2,shortcut2))
+          t1 = session.merge(Team(m.idTeam1,m.nameTeam1.encode('utf-8'),m.iconUrlTeam1))
+          t2 = session.merge(Team(m.idTeam2,m.nameTeam2.encode('utf-8'),m.iconUrlTeam2))
           match.teams.append(t1)
           match.teams.append(t2)
           if t1 not in local_league.teams:
@@ -212,28 +219,11 @@ class BundesligaAPI:
           if not t.teamIconURL and t.teamID > 250:
             print "Ignoring %s as it doesn't seem to be a real team"%(t.teamName.encode('utf-8'))
           else:
-            shortcut = None
-            if t.teamID in shortcuts:
-              shortcut = shortcuts[t.teamID]
-            team = session.merge(Team(t.teamID,t.teamName.encode('utf-8'),t.teamIconURL,shortcut))
+            team = session.merge(Team(t.teamID,t.teamName.encode('utf-8'),t.teamIconURL))
             team.leagues.append(local_league)
           session.commit()
       teams = local_league.teams
     else:
-      print "Checking if any of the existing teams is missing a shortcut"
-      for t in teams:
-        if not t.shortcut:
-          print "Yep...%s is missing a shortcut... checking if it has since been added..."%t.name.encode('utf-8')
-          if shortcuts.has_key(t.id):
-            print "Yep... seems to be in shortcuts as %s"%shortcuts[t.id]
-            t.shortcut = shortcuts[t.id]
-          else:
-            print "No... you should add a shortcut for team %s (teamID %d) to bundesligaHelpers::shortcuts"%(t.name.encode('utf-8'),t.id)
-        else:
-          print "Yep...%d has shortcut %s...checking if it is still ok..."%(t.id,t.shortcut)
-          if t.shortcut != shortcuts[t.id]:
-            print "No...%s is the new shortcut...updating..."%shortcuts[t.id]
-            t.shortcut = shortcuts[t.id]
       session.commit()
       print "There are 18 teams. Everything ok..."
     finish = time.time()
