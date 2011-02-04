@@ -74,14 +74,16 @@ application = app.wsgifunc()
 api = BundesligaAPI()
 
 @background
-def fillDB(league,season):
-  print "Entered fillDB()"
-  time.sleep(5)
-  print "Woke up after 5 secs..."
-  time.sleep(3)
-  print "Woke up after 3 secs..."
-  return 0
- 
+def fillDB(league,season,tstamp=None):
+  try:
+    sq = time.time()
+    data = api.getMatchdataByLeagueSeason(league,season,tstamp)
+    eq = time.time()
+  except AlreadyUpToDate,e:
+    raise
+  else:
+    pass
+
 class worker:
   def GET(self):
     env = web.ctx.env
@@ -257,7 +259,7 @@ class getData:
         return "%s(%s)"%(cbk,y)
     else:
       print "Starting background task..."
-      fillDB(league,season)
+      fillDB(league,season,tstamp)
       d = {'cmd':cmd,'invocationError':'noLocalCache'}
       return "%s(%s)"%(cbk,json.dumps(d))
 
