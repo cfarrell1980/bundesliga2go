@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from OpenLigaDB import OpenLigaDB
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import and_,or_,not_
 from bundesligaORM import *
 from bundesligaHelpers import shortcuts,tstamp_to_md5
 from suds import WebFault
@@ -47,8 +48,20 @@ class BundesligaAPI:
     #Match object is already readily available at the time the goals are returned
     if not isinstance(tstamp,datetime):
       raise TypeError, "tstamp must be a datetime.datetime type!"
+    if not league:
+      league = DEFAULT_LEAGUE
+    if not season:
+      season = current_bundesliga_season()
+    if not self.localCacheValid(league,season):
+      print "Local cache is not valid. Need to run getData(%s,%d)"%(league,season)
+      try:
+        d = self.getMatchdataByLeagueSeason(league,season)
+      except Exception,e:
+        print e
+      else:
+        print "Retrieved data"
     session = Session()
-    updates = session.query(Match).join(Goal).join(Matchday).join(League).filter(League.year==season).filter(Match.isFinished==True).filter(Match.startTime >= tstamp).all()
+    updates = session.query(Match).join(Goal).join(Matchday).join(League).filter(and_(League.year==season,Match.isFinished==True)).filter(or_(Match.startTime >= tstamp,and_(Match.startTime <= tstamp,Match.endTime >= tstamp))).all()
     goals = {}
     goalindex = {}
     for match in updates:
@@ -66,13 +79,18 @@ class BundesligaAPI:
     if not season:
       season = current_bundesliga_season()
     session = Session()
-    print league,season
+    print "Checking local cache for %s %d"%(league,season)
     try:
       remote_tstamp = self.oldb.GetLastChangeDateByLeagueSaison(league,season)
-    except InvocationError:
+    except Exception,e:
+      print e
       print "SOAP Error for league %s season %s?"%(str(league),str(season))
       return False
     else:
+      local_league=session.query(League).filter(and_(League.year==season,League.shortname==league)).first()
+      if not local_league:
+        print "No locally stored league for %s %d"%(league,season)
+        return False
       last_match_change = session.query(Match.mtime).order_by(Match.mtime.desc()).first()
       last_matchday_change = session.query(Matchday.mtime).order_by(Matchday.mtime.desc()).first()
       last_goal_change = session.query(Goal.mtime).order_by(Goal.mtime.desc()).first()
@@ -108,7 +126,7 @@ class BundesligaAPI:
           md = session.query(Matchday).filter_by(matchdayNum='%d'%m.groupOrderID).first()
           if not md:
             md = Matchday(m.groupOrderID,m.groupName.encode('utf-8'))
-            session.add(md)
+          session.add(md)
           local_league.matchdays.append(md)
           # realistic default = 45+3+15+45+3?
           d = timedelta(minutes=111)
@@ -156,14 +174,20 @@ class BundesligaAPI:
       print "done...now returning the data..."
       local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
     else:
+      #q  = session.query(League).filter(and_(League.year==season,League.shortname==league))
+      q = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league)
       if client_tstamp:
         if client_tstamp > last_match_change.mtime and client_tstamp > last_matchday_change.mtime:# and client_tstamp > last_goal_change.mtime:
           print "Client tstamp: %s Match tstamp: %s Matchday tstamp: %s"%(client_tstamp,last_match_change.mtime,last_matchday_change.mtime)
           raise AlreadyUpToDate, "Client's timestamp indicates that client dataset is up to date"
         else: # no client tstamp was sent - this is fine, but we have to return all data
-          local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
+          #local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
+          #local_matchdata = session.query(Matchday).join(League).filter(and_(League.year==season,League.shortname==league)).all()
+          local_matchdata = q.first()
       else:
-        local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
+        #local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
+        #local_matchdata = session.query(Matchday).join(League).filter(and_(League.year==season,League.shortname==league)).all()
+        local_matchdata = q.first()
     return local_matchdata
 
   def getMatchdataByLeagueSeasonMatchday(self,league,season,matchday):

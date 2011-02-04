@@ -147,4 +147,5 @@ mapper(Goal,goal_table)
 
 mapper(Team, team_table,properties={'goals':relationship(Goal,backref='team')})
 
+
 metadata.create_all(engine)

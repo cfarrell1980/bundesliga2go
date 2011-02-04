@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
 import web,os,json,time,sys
+from web.background import background,backgrounder
 if len(sys.argv) == 2:
  if sys.argv[1] == '--apache':
   abspath = os.path.dirname(__file__)
@@ -72,6 +73,15 @@ application = app.wsgifunc()
 
 api = BundesligaAPI()
 
+@background
+def fillDB(league,season):
+  print "Entered fillDB()"
+  time.sleep(5)
+  print "Woke up after 5 secs..."
+  time.sleep(3)
+  print "Woke up after 3 secs..."
+  return 0
+ 
 class worker:
   def GET(self):
     env = web.ctx.env
@@ -144,34 +154,45 @@ class getUpdates:
     league = web.input(league=None)
     league = league.league
     if not league: league = DEFAULT_LEAGUE
+    cmd = current_bundesliga_matchday(league)
     season = web.input(season=None)
     season = season.season
-    if not season: season = current_bundesliga_season()
+    if not season:
+      season = current_bundesliga_season()
+    else:
+      try:
+        season = int(season)
+      except (TypeError,AttributeError):
+        print "Can't convert season %s into int"%season
+        season = current_bundesliga_season()
+      else: pass
     tstamp = web.input(tstamp=None)
     web.header('Content-Type','application/json')
     if tstamp.tstamp:
       try:
         tstamp = datetime.strptime(tstamp.tstamp,"%Y-%m-%dT%H:%M:%S")
       except (TypeError,ValueError):
-        d = {'invocationError':'invalid timestamp (%s)'%tstamp.tstamp}
+        d = {'invocationError':'invalid timestamp (%s)'%tstamp.tstamp,'cmd':cmd}
         return "%s(%s)"%(cbk,json.dumps(d))
       else:
         new_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         updates = api.getUpdates(tstamp,league,season)
-        rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1]}
+        rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1],'cmd':cmd}
         d = json.dumps(rd)
         return "%s(%s)"%(cbk,d)
     else:
-      d = {'invocationError':'no timestamp'}
+      d = {'invocationError':'no timestamp','cmd':cmd}
       return "%s(%s)"%(cbk,json.dumps(d))
 
 class getData:
+  @backgrounder
   def GET(self):
     cbk = web.input(callback=None)
     cbk = cbk.callback
     league = web.input(league=None)
     league = league.league
     if not league: league = DEFAULT_LEAGUE
+    cmd = current_bundesliga_matchday(league)
     season = web.input(season=None)
     if not season:
       print "season undefined..."
@@ -193,30 +214,34 @@ class getData:
         print "Could not format string %s as datetime. Using NoneType instead"%tstamp
       else:
         pass
-    try:
-      data = api.getMatchdataByLeagueSeason(league,season,tstamp)
-    except AlreadyUpToDate,e:
-      return "%s(%s)"%(cbk,json.dumps({'current':1}))
-    else:
-      matchdaycontainer = {} #hold matchdays
-      container = {}#hold matches by matchid
-      goalcontainer = {}
-      goalpointer = {}
-      for x in range(1,35):#prepare the matchday arrays
-        matchdaycontainer[x] = []
-      for md in data.matchdays:
-        matches = md.matches
-        for m in matches: # handle all matches in a matchday
-          goalpointer[m.id] = []
-          for g in m.goals:
-            if g.for_team_id:
-              teamID = g.for_team_id
-            else:
-              teamID = None
-            goalcontainer[g.id] = {'scorer':g.scorer,
+    if api.localCacheValid(league,season):
+      print "Local cache valid for %s %d"%(league,season)
+      try:
+        sq = time.time()
+        data = api.getMatchdataByLeagueSeason(league,season,tstamp)
+        eq = time.time()
+      except AlreadyUpToDate,e:
+        return "%s(%s)"%(cbk,json.dumps({'current':1,'cmd':cmd}))
+      else:
+        matchdaycontainer = {} #hold matchdays
+        container = {}#hold matches by matchid
+        goalcontainer = {}
+        goalpointer = {}
+        for x in range(1,35):#prepare the matchday arrays
+          matchdaycontainer[x] = []
+        for md in data.matchdays:
+          matches = md.matches
+          for m in matches: # handle all matches in a matchday
+            goalpointer[m.id] = []
+            for g in m.goals:
+              if g.for_team_id:
+                teamID = g.for_team_id
+              else:
+                teamID = None
+              goalcontainer[g.id] = {'scorer':g.scorer,
                         'minute':g.minute,'teamID':teamID,'og':g.ownGoal}
-            goalpointer[m.id].append(g.id)
-          container[m.id] = {'t1':m.teams[0].id,
+              goalpointer[m.id].append(g.id)
+            container[m.id] = {'t1':m.teams[0].id,
                      't2':m.teams[1].id,
                      'st':m.startTime.isoformat(),
                      'et':m.endTime.isoformat(),
@@ -225,11 +250,16 @@ class getData:
                      'p1':m.pointsTeam1,
                      'p2':m.pointsTeam2
                     }
-          matchdaycontainer[md.matchdayNum].append(m.id)
-      now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-      packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalpointer}
-      y = json.dumps(packdict)
-      return "%s(%s)"%(cbk,y)
+            matchdaycontainer[md.matchdayNum].append(m.id)
+        now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalpointer,'cmd':cmd}
+        y = json.dumps(packdict)
+        return "%s(%s)"%(cbk,y)
+    else:
+      print "Starting background task..."
+      fillDB(league,season)
+      d = {'cmd':cmd,'invocationError':'noLocalCache'}
+      return "%s(%s)"%(cbk,json.dumps(d))
 
 class getCurrentMatchday:
   '''
@@ -275,6 +305,7 @@ class getTeams:
     season = season.season
     if not league:
       league = DEFAULT_LEAGUE
+    cmd = current_bundesliga_matchday(league)
     if not season:
       season = current_bundesliga_season()
     else:
@@ -288,7 +319,7 @@ class getTeams:
     try:
       data = api.getTeams(league,season)
     except InvocationError:
-      d = json.dumps({'invocationError':'Season %d or League %s does not exist?'%(season,league)})
+      d = json.dumps({'invocationError':'Season %d or League %s does not exist?'%(season,league),'cmd':cmd})
       return "%s(%s)"%(cbk,d)
     else:
       d = {}
