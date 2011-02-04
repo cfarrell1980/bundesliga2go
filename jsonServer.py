@@ -253,28 +253,6 @@ class getCurrentMatchday:
     currentMatchDay = cursor.GetCurrentGroup(league)
     return "%s('cmd':'%s')"%(cbk,currentMatchDay.groupOrderID)
 
-class getCurrentMatchdayData:
-  def GET(self):
-    start = time.time()
-    cbk = web.input(callback=None)
-    cbk = cbk.callback
-    league = web.input(league=None)
-    league=league.league
-    if not league: league = DEFAULT_LEAGUE
-    matchday = web.input(matchday=None)
-    matchday = matchday.matchday
-    season = web.input(season=None)
-    season = season.season
-    if not season:
-      season = current_bundesliga_season()
-    cursor = OpenLigaDB()
-    if not matchday:
-      getMatchDay = cursor.GetCurrentGroup(league)
-      matchday = getMatchDay.groupOrderID
-    matchdayData = cursor.GetMatchdataByGroupLeagueSaison(matchday,league,season)
-    end = time.time()
-    print "Execution of getCurrentMatchdayData took %.2f"%(end-start)
-    return "%s(%s)"%(cbk,matchdayData.decode('utf-8'))
 
 class getTeams:
   '''This class enables the client to have speedy access to all the teams in a specified
@@ -315,9 +293,13 @@ class getTeams:
     else:
       d = {}
       for t in data:
+        if shortcuts.has_key(t.id):
+          scut = shortcuts[t.id]
+        else:
+          scut = None
         d[t.id] = {'name':t.name,
                  'icon':t.iconURL,
-                 'short':t.shortcut}
+                 'short':scut}
       y = json.dumps(d)
       return "%s(%s)"%(cbk,y)
 
