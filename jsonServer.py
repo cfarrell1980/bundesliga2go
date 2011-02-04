@@ -272,7 +272,6 @@ class getCurrentMatchdayData:
       getMatchDay = cursor.GetCurrentGroup(league)
       matchday = getMatchDay.groupOrderID
     matchdayData = cursor.GetMatchdataByGroupLeagueSaison(matchday,league,season)
-    print matchdayData
     end = time.time()
     print "Execution of getCurrentMatchdayData took %.2f"%(end-start)
     return "%s(%s)"%(cbk,matchdayData.decode('utf-8'))
@@ -297,10 +296,17 @@ class getTeams:
       league = DEFAULT_LEAGUE
     if not season:
       season = current_bundesliga_season()
+    else:
+      try:
+        season = int(season)
+      except (AttributeError,TypeError):
+        print "Could not convert season %s to int"%season
+        season = current_bundesliga_season()
+      else:
+        pass
     data = api.getTeams(league,season)
     d = {}
     for t in data:
-      print dir(t)
       d[t.id] = {'name':t.name,
                  'icon':t.iconURL,
                  'short':t.shortcut}
@@ -311,5 +317,5 @@ class getTeams:
     return "%s(%s)"%(cbk,y)
 
 if __name__ == '__main__':
-  app.run()
+  app.run(gzm)
 
