@@ -17,6 +17,17 @@ class AlreadyUpToDate(Exception):
   def __str__(self):
     return repr(self.value)
 
+class InvocationError(Exception):
+  '''If openligadb.de is given the wrong parameters for a particular query
+     or if it has no data for the query then a SOAP error occurs. Handle this!
+  '''
+  def __init__(self, value):
+    self.value = value
+
+  def __str__(self):
+    return repr(self.value)
+
+
 class BundesligaAPI:
 
   def __init__(self):
@@ -195,7 +206,7 @@ class BundesligaAPI:
       try:
         remote_teams = self.oldb.GetTeamsByLeagueSaison(league,season)
       except WebFault,e:
-        raise StandardError, "SOAP client could not complete request. Check parameters!"
+        raise InvocationError, "SOAP client could not complete request. Check parameters!"
       else:
         for t in remote_teams.Team:
           if not t.teamIconURL and t.teamID > 250:
