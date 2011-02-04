@@ -105,20 +105,18 @@ team_table = Table('team',metadata,
   Column('id',Integer,primary_key=True),
   Column('name',String),
   Column('iconURL',String),
-  Column('shortcut',String),
   Column('mtime',DateTime,default=now(),onupdate=now())
   )
 
 class Team(object):
-  def __init__(self,id,name,iconURL,shortcut):
+  def __init__(self,id,name,iconURL):
     self.id = id
     self.name = u"%s"%name.decode('utf-8')
     self.iconURL = iconURL
-    self.shortcut = shortcut
 
   def __repr__(self):
-    return "<Team('%d','%s','%s','%s')>"%(self.id,
-                  self.shortcut,self.iconURL,self.shortcut)
+    return "<Team('%d','%s','%s')>"%(self.id,
+                  self.name.encode('utf-8'),self.iconURL)
 
 teams_leagues = Table('teams_leagues', metadata,
   Column('team_id', Integer, ForeignKey('team.id')),
