@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
 import web,os,json,time,sys
-from web.background import background,backgrounder
+from background import background,backgrounder
 if len(sys.argv) == 2:
  if sys.argv[1] == '--apache':
   abspath = os.path.dirname(__file__)
@@ -74,15 +74,8 @@ application = app.wsgifunc()
 api = BundesligaAPI()
 
 @background
-def fillDB(league,season,tstamp=None):
-  try:
-    sq = time.time()
-    data = api.getMatchdataByLeagueSeason(league,season,tstamp)
-    eq = time.time()
-  except AlreadyUpToDate,e:
-    raise
-  else:
-    pass
+def fillDB(league,season):
+  data = api.setupLocal(league,season)
 
 class worker:
   def GET(self):
@@ -153,6 +146,16 @@ class getUpdates:
   def GET(self):
     cbk = web.input(callback=None)
     cbk = cbk.callback
+    matchday = web.input(matchday=None)
+    matchday = matchday.matchday
+    if matchday:
+      try:
+        matchday = int(matchday)
+      except:
+        print "Could not convert matchday to int...ignoring it"
+        matchday = None
+      else:
+        print "matchday converted to int %d"%matchday
     league = web.input(league=None)
     league = league.league
     if not league: league = DEFAULT_LEAGUE
@@ -178,7 +181,7 @@ class getUpdates:
         return "%s(%s)"%(cbk,json.dumps(d))
       else:
         new_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        updates = api.getUpdates(tstamp,league,season)
+        updates = api.getUpdates(tstamp,league,season,matchday)
         rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1],'cmd':cmd}
         d = json.dumps(rd)
         return "%s(%s)"%(cbk,d)
@@ -231,35 +234,31 @@ class getData:
         goalpointer = {}
         for x in range(1,35):#prepare the matchday arrays
           matchdaycontainer[x] = []
-        for md in data.matchdays:
-          matches = md.matches
-          for m in matches: # handle all matches in a matchday
-            goalpointer[m.id] = []
-            for g in m.goals:
-              if g.for_team_id:
-                teamID = g.for_team_id
-              else:
-                teamID = None
-              goalcontainer[g.id] = {'scorer':g.scorer,
-                        'minute':g.minute,'teamID':teamID,'og':g.ownGoal}
-              goalpointer[m.id].append(g.id)
-            container[m.id] = {'t1':m.teams[0].id,
-                     't2':m.teams[1].id,
-                     'st':m.startTime.isoformat(),
-                     'et':m.endTime.isoformat(),
-                     'fin':m.isFinished,
-                     'v':m.viewers,
-                     'p1':m.pointsTeam1,
-                     'p2':m.pointsTeam2
-                    }
-            matchdaycontainer[md.matchdayNum].append(m.id)
+        for m in data: # handle all matches in a matchday
+          goalpointer[m.id] = []
+          for g in m.goals:
+            if g.for_team_id:
+              teamID = g.for_team_id
+            else:
+              teamID = None
+            goalcontainer[g.id] = {'scorer':g.scorer,'pen':g.penalty,
+                      'minute':g.minute,'teamID':teamID,'og':g.ownGoal}
+            goalpointer[m.id].append(g.id)
+          container[m.id] = {'t1':m.teams[0].id,
+                   't2':m.teams[1].id,
+                   'st':m.startTime.isoformat(),
+                   'et':m.endTime.isoformat(),
+                   'fin':m.isFinished,
+                   'v':m.viewers,
+                  }
+          matchdaycontainer[m.matchday].append(m.id)
         now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalpointer,'cmd':cmd}
         y = json.dumps(packdict)
         return "%s(%s)"%(cbk,y)
     else:
       print "Starting background task..."
-      fillDB(league,season,tstamp)
+      fillDB(league,season)
       d = {'cmd':cmd,'invocationError':'noLocalCache'}
       return "%s(%s)"%(cbk,json.dumps(d))
 
