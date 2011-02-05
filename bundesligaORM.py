@@ -29,49 +29,31 @@ class League(object):
   def __repr__(self):
     return "<League('%s','%d')>"%(self.name,self.season)
 
-matchday_table = Table('matchday', metadata,
-  Column('id',Integer,primary_key=True),
-  Column('matchdayNum',Integer),
-  Column('description',String),
-  Column('league_id',Integer, ForeignKey('league.id')),
-  Column('mtime',DateTime,default=now(),onupdate=now())
-)
-
-
-class Matchday(object):
-  def __init__(self,matchdayNum,description):
-    self.matchdayNum = matchdayNum
-    self.description = description
-
-  def __repr__(self):
-    return "<Matchday('%s','%s')>"%(self.matchdayNum,
-      self.description)
-
 match_table = Table('match',metadata,
   Column('id', Integer, primary_key=True),
   Column('startTime', DateTime),
   Column('endTime', DateTime),
   Column('isFinished',Boolean),
-  Column('matchday_id', Integer, ForeignKey('matchday.id')),
+  Column('matchday', Integer),
   Column('viewers',Integer,default=0),
   Column('pointsTeam1',Integer,default=0),
   Column('pointsTeam2',Integer,default=0),
+  Column('league_id',Integer,ForeignKey('league.id')),
   Column('mtime', DateTime,default=now(),onupdate=now())
 )
 
 class Match(object):
-  def __init__(self,id,startTime,endTime,isFinished,pointsTeam1,pointsTeam2,viewers=0):
+  def __init__(self,id,matchday,startTime,endTime,isFinished,viewers=0):
     self.id = id
     self.startTime = startTime
     self.endTime = endTime
     self.isFinished = isFinished
     self.viewers = viewers
-    self.pointsTeam1 = pointsTeam1
-    self.pointsTeam2 = pointsTeam2
+    self.matchday = matchday
 
   def __repr__(self):
-    return "<Match('%d','%s','%s','%s','%d','%d','%d)>"%(self.id,self.startTime,
-      self.endTime,self.isFinished,self.viewers,self.pointsTeam1,self.pointsTeam2)
+    return "<Match('%d','%s','%s','%s','%d','%d')>"%(self.id,self.startTime,
+      self.endTime,self.isFinished,self.viewers,self.matchday)
 
 goal_table = Table('goal',metadata,
   Column('id', Integer, primary_key=True),
@@ -97,7 +79,7 @@ class Goal(object):
     self.ownGoal = og
 
   def __repr__(self):
-    return "<Goal('%d','%s','%s','%s')>"%(self.id,self.scorer,self.minute,self.penalty)
+    return "<Goal('%d','%s','%s','%s','%s')>"%(self.id,self.scorer,self.minute,self.penalty,self.ownGoal)
 
 team_table = Table('team',metadata,
   Column('id',Integer,primary_key=True),
@@ -128,10 +110,9 @@ teams_matches = Table('teams_matches', metadata,
   Column('mtime',DateTime,default=now(),onupdate=now())
 )
 
-
 mapper(League,league_table,properties={
   'teams': relationship(Team,secondary=teams_leagues,backref='leagues'),
-  'matchdays':relationship(Matchday,backref='league')
+  'matches':relationship(Match,backref='league')
 })
 
 mapper(Match,match_table,properties={
@@ -139,11 +120,8 @@ mapper(Match,match_table,properties={
   'goals':relationship(Goal,backref='match'),
 })
 
-mapper(Matchday,matchday_table,properties={'matches':relationship(Match,backref='matchday')})
-
 mapper(Goal,goal_table)
 
 mapper(Team, team_table,properties={'goals':relationship(Goal,backref='team')})
-
 
 metadata.create_all(engine)
