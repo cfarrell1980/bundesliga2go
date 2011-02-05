@@ -34,7 +34,7 @@ class BundesligaAPI:
   def __init__(self):
     self.oldb = OpenLigaDB()
 
-  def getUpdates(self,tstamp,league,season):
+  def getUpdates(self,tstamp,league,season,matchday=None):
     '''The client is sent a timestamp with each response. When the client makes the
        next request the client sends the same timestamp back to the server, which
        checks if any data need be returned to the client. This function queries the
@@ -55,13 +55,18 @@ class BundesligaAPI:
     if not self.localCacheValid(league,season):
       print "Local cache is not valid. Need to run getData(%s,%d)"%(league,season)
       try:
-        d = self.getMatchdataByLeagueSeason(league,season)
+        d = self.setupLocal(league,season)
       except Exception,e:
         print e
       else:
         print "Retrieved data"
     session = Session()
-    updates = session.query(Match).join(Goal).join(Matchday).join(League).filter(and_(League.year==season,Match.isFinished==True)).filter(or_(Match.startTime >= tstamp,and_(Match.startTime <= tstamp,Match.endTime >= tstamp))).all()
+    if not matchday:
+      updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,
+                or_(Match.startTime > tstamp,and_(Match.startTime < tstamp,Match.endTime > tstamp)))).all()
+    else:
+      updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,Match.matchday==matchday,
+                or_(Match.startTime > tstamp,and_(Match.startTime < tstamp,Match.endTime > tstamp)))).all()
     goals = {}
     goalindex = {}
     for match in updates:
@@ -70,6 +75,24 @@ class BundesligaAPI:
        goalindex[g.match.id] = [x.id for x in g.match.goals]
     rd = (goals,goalindex)
     return rd
+
+  def setupLocal(self,league,season):
+    '''If there is no local data available for a league/season then get it from
+       upstream and fill the database'''
+    session = Session()
+    print "creating local league object for %s %s"%(league,season)
+    l = League(league,season)
+    session.add(l)
+    print "getting upstream matchdata for %s %d. This could take a while..."%(league,season)
+    try:
+      remote = self.oldb.GetMatchdataByLeagueSaison(league,season)
+    except Exception,e:
+      print e
+      raise
+    else:
+      print "retrieved upstream data. Parsing..."
+      for m in remote.Matchdata:
+        self.mergeRemoteLocal(m)
 
   def localCacheValid(self,league=None,season=None):
     '''Check to see if the local cache is behind openligadb.de.
@@ -87,17 +110,19 @@ class BundesligaAPI:
       print "SOAP Error for league %s season %s?"%(str(league),str(season))
       return False
     else:
-      local_league=session.query(League).filter(and_(League.year==season,League.shortname==league)).first()
+      local_league=session.query(League).filter(and_(League.season==season,League.name==league)).first()
       if not local_league:
         print "No locally stored league for %s %d"%(league,season)
         return False
       last_match_change = session.query(Match.mtime).order_by(Match.mtime.desc()).first()
-      last_matchday_change = session.query(Matchday.mtime).order_by(Matchday.mtime.desc()).first()
       last_goal_change = session.query(Goal.mtime).order_by(Goal.mtime.desc()).first()
-      if not last_match_change or not last_matchday_change or not last_goal_change:
+      if not last_match_change or not last_goal_change:
         print "None objects returned when querying mtimes for match, matchday, goal"
         return False
-      elif last_match_change.mtime < remote_tstamp or last_matchday_change.mtime < remote_tstamp or last_goal_change.mtime < remote_tstamp:
+      elif last_match_change.mtime < remote_tstamp or last_goal_change.mtime < remote_tstamp:
+        print "Upstream tstamp: %s"%remote_tstamp
+        print "Match tstamp: %s"%last_match_change.mtime
+        print "Goal tstamp: %s"%last_goal_change.mtime
         print "Local data exists but at least one required table is out of date"
         return False
       else:
@@ -118,103 +143,36 @@ class BundesligaAPI:
     session=Session()
     remote_tstamp = self.oldb.GetLastChangeDateByLeagueSaison(league,season)
     if not self.localCacheValid(league,season):
-      local_league = session.query(League).filter_by(shortname=league).first()
-      if not local_league:
-        local_league = League(None,league,season)
-      remote_matchdata = self.oldb.GetMatchdataByLeagueSaison(league,season)
-      for m in remote_matchdata.Matchdata:
-          md = session.query(Matchday).filter_by(matchdayNum='%d'%m.groupOrderID).first()
-          if not md:
-            md = Matchday(m.groupOrderID,m.groupName.encode('utf-8'))
-          session.add(md)
-          local_league.matchdays.append(md)
-          # realistic default = 45+3+15+45+3?
-          d = timedelta(minutes=111)
-          endTime = m.matchDateTime+d
-          if m.NumberOfViewers:
-            viewers = m.NumberOfViewers
-          else:
-            viewers = 0
-          match = session.merge(Match(m.matchID,m.matchDateTime,
-                                  endTime,m.matchIsFinished,m.pointsTeam1,m.pointsTeam2,viewers))
-          t1 = session.merge(Team(m.idTeam1,m.nameTeam1.encode('utf-8'),m.iconUrlTeam1))
-          t2 = session.merge(Team(m.idTeam2,m.nameTeam2.encode('utf-8'),m.iconUrlTeam2))
-          match.teams.append(t1)
-          match.teams.append(t2)
-          if t1 not in local_league.teams:
-            local_league.teams.append(t1)
-          if t2 not in local_league.teams:
-            local_league.teams.append(t2)
-          if m.goals:
-            for aog in m.goals:
-              for gobj in aog:
-                if isinstance(gobj,list):
-                  for g in gobj:
-                   if hasattr(g,'goalGetterName'):
-                    gdata = session.merge(Goal(g.goalID,g.goalGetterName.encode('utf-8'),g.goalMatchMinute,
-                                    g.goalScoreTeam1,g.goalScoreTeam2,g.goalOwnGoal,g.goalPenalty))
-                    match.goals.append(gdata)
-          for goal in match.goals:# now try to find out what team scored. not easy from raw openligadb data
-            if match.goals.index(goal) == 0:#the first goal is easy
-              if match.goals[0].t1score == 1:
-                match.goals[0].for_team_id = match.teams[0].id
-              else:
-                match.goals[0].for_team_id = match.teams[1].id
-            else:#look to the last goal to see whose score increased
-              prev1 = match.goals[match.goals.index(goal)-1].t1score
-              prev2 = match.goals[match.goals.index(goal)-1].t2score
-              if match.goals[match.goals.index(goal)].t1score > prev1:
-                match.goals[match.goals.index(goal)].for_team_id = match.teams[0].id
-              else:
-                match.goals[match.goals.index(goal)].for_team_id = match.teams[1].id
-              
-          md.matches.append(match)
-      print "committing session..."
-      session.commit()
-      print "done...now returning the data..."
-      local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
+      self.setupLocal(league,season)
+    if client_tstamp:
+      q = session.query(Match).filter(and_(Match.league==league,Match.season==season,
+           or_(Match.startTime >= client_tstamp,and_(Match.startTime <= client_tstamp,Match.endTime >= client_tstamp))))
     else:
-      #q  = session.query(League).filter(and_(League.year==season,League.shortname==league))
-      q = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league)
-      if client_tstamp:
-        if client_tstamp > last_match_change.mtime and client_tstamp > last_matchday_change.mtime:# and client_tstamp > last_goal_change.mtime:
-          print "Client tstamp: %s Match tstamp: %s Matchday tstamp: %s"%(client_tstamp,last_match_change.mtime,last_matchday_change.mtime)
-          raise AlreadyUpToDate, "Client's timestamp indicates that client dataset is up to date"
-        else: # no client tstamp was sent - this is fine, but we have to return all data
-          #local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
-          #local_matchdata = session.query(Matchday).join(League).filter(and_(League.year==season,League.shortname==league)).all()
-          local_matchdata = q.first()
-      else:
-        #local_matchdata = session.query(League).filter(League.year=='%d'%season).filter(League.shortname=='%s'%league).one()
-        #local_matchdata = session.query(Matchday).join(League).filter(and_(League.year==season,League.shortname==league)).all()
-        local_matchdata = q.first()
+      q = session.query(Match).join(League).filter(and_(League.name==league,League.season==season))
+    local_matchdata = q.all()
     return local_matchdata
 
-  def getMatchdataByLeagueSeasonMatchday(self,league,season,matchday):
-    '''Return a dictionary holding data for the matchday for the given
-       season and league. The keys of the dictionary are the matchIDs
-       of the matches taking place. Thus, there should be 9 keys in any
-       dictionary returned from this method
-    '''
-    update_required = False
+  def updateMatchByID(self,matchID):
+    print "I've been asked to update matchID %d"%matchID
+    try:
+      print "Asking upstream for the most recent data for matchID %d"%matchID
+      remote = self.oldb.GetMatchByMatchID(matchID)
+    except:
+      raise
+    else:
+      print "Received upstream data...handing over to mergeRemoteLocal()"
+      self.mergeRemoteLocal(remote)
+
+  def getMatchesByMatchday(self,league,season,matchday):
     session = Session()
-    remote_tstamp = self.oldb.GetLastChangeDateByGroupLeagueSaison(matchday,league,season)
-    local_tstamp = session.query(Matchday.mtime).order_by(Matchday.mtime.desc()).first()
-    if not local_tstamp:
-      print "No local data available. Update required..."
-      update_required = True
-    else:
-      if local_tstamp.mtime < remote_tstamp:
-        print "Local data available but out of date. Update required..."
-        update_required = True
-      else:
-        print "Local data available is up to date. No update required..."
-    if update_required:
-      remote_data = self.oldb.GetMatchdataByGroupLeagueSaison(matchday,league,season)
-      print remote_data
-    else:
-      local_data = session.query(Matchday).filter(Matchday.matchdayNum==matchday).all()
-    
+    matches = session.query(Match).join(League).filter(and_(League.name==league,League.season==season,
+                    Match.matchday==matchday)).all()
+    return matches
+
+  def updateMatchday(self,league,season,matchday):
+    for match in self.getMatchesByMatchday(league,season,matchday):
+      print "Updating matchID %d"%match.id
+      self.updateMatchByID(match.id)
 
   def getMatchdataByMatchID(self,matchID):
     pass
@@ -253,4 +211,60 @@ class BundesligaAPI:
     finish = time.time()
     print "<Running method getTeams() took %f seconds>"%(finish-start)
     return teams
-          
+
+  def localMatchdayValid(self,league,season,matchday):
+    '''Check if a particular matchday is up to date. Useful to call when the match is actually
+       running and is a good candidate to run before updating the local matchdays'''
+    session = Session()
+    lastlocal = session.query(Match.mtime).join(League).filter(and_(League.season==season,
+           League.name==league,Match.matchday==matchday)).order_by(Match.mtime.desc()).first()
+    lastremote = self.oldb.GetLastChangeDateByGroupLeagueSaison(matchday,league,season)
+    if lastremote > lastlocal[0]:
+      return False
+    else:
+      return True
+         
+  def mergeRemoteLocal(self,m):
+    print "I've been asked to merge data for matchID %d"%m.matchID
+    session = Session()
+    l = session.merge(League(m.leagueShortcut,int(m.leagueSaison)))
+    d = timedelta(minutes=115) # estimate when the match will end
+    estEnd = m.matchDateTime+d
+    if m.NumberOfViewers:
+      viewers = m.NumberOfViewers
+    else:
+      viewers = 0
+    match = session.merge(Match(m.matchID,m.groupOrderID,m.matchDateTime,estEnd,m.matchIsFinished,viewers))
+    t1 = session.merge(Team(m.idTeam1,m.nameTeam1.encode('utf-8'),m.iconUrlTeam1))
+    t2 = session.merge(Team(m.idTeam2,m.nameTeam2.encode('utf-8'),m.iconUrlTeam2))
+    match.teams.append(t1)
+    match.teams.append(t2)
+    l.teams.append(t1)
+    l.teams.append(t2)
+    t1.leagues.append(l)
+    t2.leagues.append(l)
+    l.matches.append(match)
+    print "Finished parsing the matches. Now parsing the upstream goaldata..."
+    for goals in m.goals:
+      for goal in goals:
+        for goalobj in goal:
+          if hasattr(goalobj,'goalID'):
+            if hasattr(goalobj,'goalGetterName'):
+              scorer = goalobj.goalGetterName.encode('utf-8')
+            else:
+              scorer = u'Unknown'
+            localGoal = session.merge(Goal(goalobj.goalID,scorer,
+                            goalobj.goalMatchMinute,goalobj.goalScoreTeam1,goalobj.goalScoreTeam2,
+                            goalobj.goalOwnGoal,goalobj.goalPenalty,))
+            match.goals.append(localGoal)
+    for goal in match.goals:# now try to find out what team scored. not easy from raw openligadb data
+      if match.goals.index(goal) == 0:#the first goal is easy
+        if match.goals[0].t1score == 1:
+          match.goals[0].for_team_id = match.teams[0].id
+        else:
+          match.goals[0].for_team_id = match.teams[1].id
+      else:#look to the last goal to see whose score increased
+        prev1 = match.goals[match.goals.index(goal)-1].t1score
+        prev2 = match.goals[match.goals.index(goal)-1].t2score
+    print "Committing the session..."
+    session.commit()
