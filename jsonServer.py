@@ -143,6 +143,7 @@ class getGoals:
     return json.dumps({'name':'Ciaran','job':'Bundespresident'})
 
 class getUpdates:
+  @backgrounder
   def GET(self):
     cbk = web.input(callback=None)
     cbk = cbk.callback
@@ -174,6 +175,12 @@ class getUpdates:
     tstamp = web.input(tstamp=None)
     web.header('Content-Type','application/json')
     new_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    if not api.localLeagueSeason(league,season):
+      # do this in background thread
+      print "Starting background task to fill database"
+      fillDB(league,season)
+      d = {'cmd':cmd,'invocationError':'noLocalCache'}
+      return "%s(%s)"%(cbk,json.dumps(d))
     if tstamp.tstamp:
       try:
         tstamp = datetime.strptime(tstamp.tstamp,"%Y-%m-%dT%H:%M:%S")
@@ -186,8 +193,8 @@ class getUpdates:
         d = json.dumps(rd)
         return "%s(%s)"%(cbk,d)
     else:
-      if not matchday:
-        d = {'invocationError':'no timestamp','cmd':cmd}
+      if not matchday:#TODO: decide whether to return all season data here...
+        d = {'invocationError':'no timestamp,no matchday','cmd':cmd}
         return "%s(%s)"%(cbk,json.dumps(d))
       else:
         updates = api.getUpdates(league,season,tstamp=None,matchday=matchday)

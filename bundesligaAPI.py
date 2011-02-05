@@ -262,6 +262,8 @@ class BundesligaAPI:
               scorer = goalobj.goalGetterName.encode('utf-8')
             else:
               scorer = u'Unknown'
+            if goalobj.goalPenalty != True: #sometimes null sometimes False
+              penalty = False
             localGoal = session.merge(Goal(goalobj.goalID,scorer,
                             goalobj.goalMatchMinute,goalobj.goalScoreTeam1,goalobj.goalScoreTeam2,
                             goalobj.goalOwnGoal,goalobj.goalPenalty,))
