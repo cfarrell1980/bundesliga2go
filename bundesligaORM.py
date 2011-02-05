@@ -16,20 +16,18 @@ def now():
 
 league_table = Table('league', metadata,
   Column('id', Integer, primary_key=True),
-  Column('shortname', String),
-  Column('fullname', String),
-  Column('year', Integer),
+  Column('name', String),
+  Column('season', Integer),
   Column('mtime',DateTime,default=now(), onupdate=now())
 )
 
 class League(object):
-  def __init__(self,fullname,shortname,year):
-    self.fullname = fullname
-    self.shortname = shortname
-    self.year = year
+  def __init__(self,name,season):
+    self.name = name
+    self.season = season
 
   def __repr__(self):
-    return "<League('%s','%s','%d')>"%(self.fullname,self.shortname,self.year)
+    return "<League('%s','%d')>"%(self.name,self.season)
 
 matchday_table = Table('matchday', metadata,
   Column('id',Integer,primary_key=True),
