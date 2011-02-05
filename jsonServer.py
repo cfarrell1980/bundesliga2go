@@ -173,6 +173,7 @@ class getUpdates:
       else: pass
     tstamp = web.input(tstamp=None)
     web.header('Content-Type','application/json')
+    new_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     if tstamp.tstamp:
       try:
         tstamp = datetime.strptime(tstamp.tstamp,"%Y-%m-%dT%H:%M:%S")
@@ -180,14 +181,21 @@ class getUpdates:
         d = {'invocationError':'invalid timestamp (%s)'%tstamp.tstamp,'cmd':cmd}
         return "%s(%s)"%(cbk,json.dumps(d))
       else:
-        new_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        updates = api.getUpdates(tstamp,league,season,matchday)
+        updates = api.getUpdates(league,season,tstamp=tstamp,matchday=matchday)
         rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1],'cmd':cmd}
         d = json.dumps(rd)
         return "%s(%s)"%(cbk,d)
     else:
-      d = {'invocationError':'no timestamp','cmd':cmd}
-      return "%s(%s)"%(cbk,json.dumps(d))
+      if not matchday:
+        d = {'invocationError':'no timestamp','cmd':cmd}
+        return "%s(%s)"%(cbk,json.dumps(d))
+      else:
+        updates = api.getUpdates(league,season,tstamp=None,matchday=matchday)
+        rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1],'cmd':cmd}
+        d = json.dumps(rd)
+        return "%s(%s)"%(cbk,d)
+
+
 
 class getData:
   @backgrounder
