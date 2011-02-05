@@ -34,7 +34,17 @@ class BundesligaAPI:
   def __init__(self):
     self.oldb = OpenLigaDB()
 
-  def getUpdates(self,tstamp,league,season,matchday=None):
+  def localLeagueSeason(self,league,season):
+    session=Session()
+    l = session.query(League).filter(and_(League.name==league,League.season==season)).first()
+    print l
+    print type(l)
+    if not l:
+      return False
+    else:
+      return l
+
+  def getUpdates(self,league,season,tstamp=None,matchday=None):
     '''The client is sent a timestamp with each response. When the client makes the
        next request the client sends the same timestamp back to the server, which
        checks if any data need be returned to the client. This function queries the
@@ -42,31 +52,31 @@ class BundesligaAPI:
        arrived since the client's timestamp. Only such updates are sent back to the
        client
     '''
-    #TODO: it is possible that something will change in the Match object - e.g. the Match
-    #field isFinished will change from False to True. This is currently not taken care of
-    #by the getUpdates method, even though it would be relatively trivial given that the
-    #Match object is already readily available at the time the goals are returned
     if not isinstance(tstamp,datetime):
-      raise TypeError, "tstamp must be a datetime.datetime type!"
+      print "tstamp must be a datetime.datetime type - ignoring it..."
     if not league:
       league = DEFAULT_LEAGUE
     if not season:
       season = current_bundesliga_season()
-    if not self.localCacheValid(league,season):
-      print "Local cache is not valid. Need to run getData(%s,%d)"%(league,season)
-      try:
-        d = self.setupLocal(league,season)
-      except Exception,e:
-        print e
-      else:
-        print "Retrieved data"
+    l = self.localLeagueSeason(league,season)
+    if not l:
+      print "No league/season data for %s %d. Running setupLocal()"%(league,season)
+      self.setupLocal(league,season)
+    else:
+      print "Have league/season data for %s %d..."%(league,season)
     session = Session()
     if not matchday:
-      updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,
+        if tstamp:
+          updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,
                 or_(Match.startTime > tstamp,and_(Match.startTime < tstamp,Match.endTime > tstamp)))).all()
+        else:
+          updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league)).all()
     else:
-      updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,Match.matchday==matchday,
+      if tstamp:
+        updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,Match.matchday==matchday,
                 or_(Match.startTime > tstamp,and_(Match.startTime < tstamp,Match.endTime > tstamp)))).all()
+      else:
+        updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,Match.matchday==matchday)).all()
     goals = {}
     goalindex = {}
     for match in updates:
@@ -171,7 +181,6 @@ class BundesligaAPI:
 
   def updateMatchday(self,league,season,matchday):
     for match in self.getMatchesByMatchday(league,season,matchday):
-      print "Updating matchID %d"%match.id
       self.updateMatchByID(match.id)
 
   def getMatchdataByMatchID(self,matchID):
@@ -258,13 +267,18 @@ class BundesligaAPI:
                             goalobj.goalOwnGoal,goalobj.goalPenalty,))
             match.goals.append(localGoal)
     for goal in match.goals:# now try to find out what team scored. not easy from raw openligadb data
-      if match.goals.index(goal) == 0:#the first goal is easy
+      cur_idx = match.goals.index(goal)
+      if cur_idx == 0:#the first goal is easy
         if match.goals[0].t1score == 1:
           match.goals[0].for_team_id = match.teams[0].id
         else:
           match.goals[0].for_team_id = match.teams[1].id
       else:#look to the last goal to see whose score increased
-        prev1 = match.goals[match.goals.index(goal)-1].t1score
-        prev2 = match.goals[match.goals.index(goal)-1].t2score
+        prev1 = match.goals[cur_idx-1].t1score
+        prev2 = match.goals[cur_idx-1].t2score
+        if match.goals[cur_idx].t1score > prev1:
+          match.goals[cur_idx].for_team_id = match.teams[0].id
+        else:
+          match.goals[cur_idx].for_team_id = match.teams[1].id
     print "Committing the session..."
     session.commit()
