@@ -76,13 +76,22 @@ class BundesligaAPI:
     goals = {}
     goalindex = {}
     for match in updates:
-      if len(match.goals):
-        for g in match.goals:
-          goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty,'ownGoal':g.ownGoal,'teamID':g.for_team_id}
-          goalindex[g.match.id] = [x.id for x in g.match.goals]
       if match.isFinished:
-        if not goalindex.has_key(match.id) and match.isFinished:
-          goalindex[match.id] = [None]
+        if len(match.goals):
+          for g in match.goals:
+            goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty,'ownGoal':g.ownGoal,'teamID':g.for_team_id}
+          goalindex[match.id] = [x.id for x in match.goals]
+          goalindex[match.id].append(True)
+        else:
+          goalindex[match.id] = [None,True]
+      else:
+        if len(match.goals):
+          for g in match.goals:
+            goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty,'ownGoal':g.ownGoal,'teamID':g.for_team_id}
+          goalindex[match.id] = [x.id for x in match.goals]
+          goalindex[match.id].append(False)
+        else:
+          goalindex[match.id] = [False]
     rd = (goals,goalindex)
     return rd
 
@@ -120,12 +129,24 @@ class BundesligaAPI:
     goals = {}
     goalindex = {}
     for match in updates:
-      for g in match.goals:
-       goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty,'ownGoal':g.ownGoal,'teamID':g.for_team_id}
-       goalindex[g.match.id] = [x.id for x in g.match.goals]
       if match.isFinished:
-        if not goalindex.has_key(match.id) and match.isFinished:
-          goalindex[match.id] = [None]
+        if len(match.goals):
+          for g in match.goals:
+            goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty,'ownGoal':g.ownGoal,'teamID':g.for_team_id}
+          goalindex[match.id] = [x.id for x in match.goals]
+          goalindex[match.id].append(True)
+        else:
+          goalindex[match.id] = [None,True]
+      else:
+        if len(match.goals):
+          for g in match.goals:
+            goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty,'ownGoal':g.ownGoal,'teamID':g.for_team_id}
+          goalindex[match.id] = [x.id for x in match.goals]
+          goalindex[match.id].append(False)
+        else:
+          print match.startTime
+          goalindex[match.id] = [False]
+
     rd = (goals,goalindex)
     return rd
 
@@ -182,7 +203,7 @@ class BundesligaAPI:
         print "Local data exists and is up to date"
         return True
 
-  def getMatchdataByLeagueSeason(self,league,season,client_tstamp=None):
+  def getMatchdataByLeagueSeason(self,league,season):
     '''Return a dictionary holding data for matches returned for an entire
        season where the keys of the dictionary are the matchdays. The values
        are dictionaries containing the matchdata. If the client's tstamp is
@@ -190,18 +211,12 @@ class BundesligaAPI:
        if the client's tstamp indicates that the client's dataset is already
        up to date, then to save bandwidth we return an empty set
     '''
-    if not isinstance(client_tstamp,datetime):
-      print "client_tstamp %s is not a datetime object...ignoring"%client_tstamp
-      client_tstamp = None
     session=Session()
     remote_tstamp = self.oldb.GetLastChangeDateByLeagueSaison(league,season)
     if not self.localCacheValid(league,season):
+      # this could take a while - raise a StaleData?
       self.setupLocal(league,season)
-    if client_tstamp:
-      q = session.query(Match).filter(and_(Match.league==league,Match.season==season,
-           or_(Match.startTime >= client_tstamp,and_(Match.startTime <= client_tstamp,Match.endTime >= client_tstamp))))
-    else:
-      q = session.query(Match).join(League).filter(and_(League.name==league,League.season==season))
+    q = session.query(Match).join(League).filter(and_(League.name==league,League.season==season))
     local_matchdata = q.all()
     return local_matchdata
 

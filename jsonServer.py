@@ -263,23 +263,39 @@ class getData:
         matchdaycontainer = {} #hold matchdays
         container = {}#hold matches by matchid
         goalcontainer = {}
-        goalpointer = {}
+        goalindex = {}
+        unfinished = 0
         for x in range(1,35):#prepare the matchday arrays
           matchdaycontainer[x] = []
         for m in data: # handle all matches in a matchday
-          goalpointer[m.id] = []
-          if len(m.goals):
-            for g in m.goals:
-              if g.for_team_id:
-                teamID = g.for_team_id
-              else:
-                teamID = None
-              goalcontainer[g.id] = {'scorer':g.scorer,'pen':g.penalty,
+          goalindex[m.id] = []
+          if m.isFinished:
+            if len(m.goals):
+              for g in m.goals:
+                if g.for_team_id:
+                  teamID = g.for_team_id
+                else:
+                  teamID = None
+                goalcontainer[g.id] = {'scorer':g.scorer,'pen':g.penalty,
                       'minute':g.minute,'teamID':teamID,'og':g.ownGoal}
-              goalpointer[m.id].append(g.id)
-          else:
-            if m.isFinished:
-              goalpointer[m.id] = [None]
+                goalindex[m.id].append(g.id)
+              goalindex[m.id].append(True) # match is finished
+            else: # no goals, match is finished
+              goalindex[m.id] = [None,True]
+          else: # match is not finished
+            unfinished += 1
+            if len(m.goals):
+              for g in m.goals:
+                if g.for_team_id:
+                  teamID = g.for_team_id
+                else:
+                  teamID = None
+                goalcontainer[g.id] = {'scorer':g.scorer,'pen':g.penalty,
+                      'minute':g.minute,'teamID':teamID,'og':g.ownGoal}
+                goalindex[m.id].append(g.id)
+              goalindex[m.id].append(False) # match is finished
+            else: # no goals, match is not finished
+              goalindex[m.id] = [False]
           container[m.id] = {'t1':m.teams[0].id,
                    't2':m.teams[1].id,
                    'st':m.startTime.isoformat(),
@@ -288,8 +304,9 @@ class getData:
                    'v':m.viewers,
                   }
           matchdaycontainer[m.matchday].append(m.id)
-        packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalpointer,'cmd':cmd}
+        packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalindex,'cmd':cmd}
         y = json.dumps(packdict)
+        print "%d matches not yet played"%unfinished
         return "%s(%s)"%(cbk,y)
     else:
       print "Starting background task..."
