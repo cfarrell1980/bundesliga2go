@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import and_,or_,not_
 from bundesligaORM import *
 from bundesligaHelpers import shortcuts,tstamp_to_md5
+from bundesligaLogger import logger
 from suds import WebFault
 import time
 from datetime import datetime,timedelta
@@ -58,23 +59,23 @@ class BundesligaAPI:
     '''Rather than rewriting the entire database for a league and season ask
        upstream for only enough data to sync the local database.'''
     if not league:
-      print "no league sent. using default..."
+      logger.info("no league sent. using default...")
       league = DEFAULT_LEAGUE
     if not season:
-      print "no season sent. using default..."
+      logger.info("no season sent. using default...")
       season = current_bundesliga_season()
     # now get matchIDs from league,season where match not over
     session = Session()
     now = datetime.now() # no point in updating the future
     l = session.query(League).filter(and_(League.season==season,League.name==league)).first()
     if not l:
-      print "No local cache for league %s season %d. Running setupLocal()..."%(league,season)
+      logger.info("No local cache for league %s season %d. Running setupLocal()..."%(league,season))
       self.setupLocal(league,season)
     matches = session.query(Match.id).join(League).filter(and_(League.season==season,\
                 League.name==league,Match.isFinished==False,Match.startTime <= now)).all()
-    print "%d matches in update window..."%len(matches)
+    logger.info("%d matches in update window..."%len(matches))
     for matchID in matches:
-      print "updating matchID %d..."%matchID
+      logger.info("updating matchID %d..."%matchID)
       self.updateMatchByID(matchID)
 
   def getUpdatesByTstamp(self,league,season,tstamp):
