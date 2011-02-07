@@ -18,6 +18,18 @@ class AlreadyUpToDate(Exception):
   def __str__(self):
     return repr(self.value)
 
+class StaleData(Exception):
+  '''Raise this exception to let the calling script know that it has been 
+     detected that the local dataset is stale and that an update is requested
+     from upstream. Let the calling script decide on whether or not to
+     immediately perform the update (e.g. in background thread)
+  '''
+  def __init__(self, value):
+    self.value = value
+
+  def __str__(self):
+    return repr(self.value)
+
 class InvocationError(Exception):
   '''If openligadb.de is given the wrong parameters for a particular query
      or if it has no data for the query then a SOAP error occurs. Handle this!
@@ -43,6 +55,37 @@ class BundesligaAPI:
       return False
     else:
       return l
+
+  def getUpdatesByTstamp(self,league,season,tstamp):
+    if not league:
+      league = DEFAULT_LEAGUE
+    if not season:
+      season = current_bundesliga_season()
+    if not tstamp:
+      tstamp = datetime.now()
+    print "Looking for updates for %s %d since %s"%(league,season,tstamp)
+    l = self.localLeagueSeason(league,season)
+    if not l:
+      print "No league/season data for %s %d. Running setupLocal()"%(league,season)
+      raise StaleData,"No league/season data for %s %d. Try running setupLocal()"%(league,season)
+    # now get anything that has happened since client's tstamp
+    session = Session()
+    now = datetime.now()
+    updates = session.query(Match).join(League).filter(and_(League.season==season,\
+                 League.name==league,and_(Match.startTime<=now,and_(Match.endTime >= tstamp,Match.endTime <= now)))).all()
+    goals = {}
+    goalindex = {}
+    for match in updates:
+      if len(match.goals):
+        for g in match.goals:
+          goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty,'ownGoal':g.ownGoal,'teamID':g.for_team_id}
+          goalindex[g.match.id] = [x.id for x in g.match.goals]
+      if match.isFinished:
+        if not goalindex.has_key(match.id) and match.isFinished:
+          goalindex[match.id] = [None]
+    rd = (goals,goalindex)
+    return rd
+
 
   def getUpdatesByMatchday(self,league,season,matchday=None):
     '''Client sends a league, season and matchday. All of these values can be empty
@@ -259,7 +302,7 @@ class BundesligaAPI:
               scorer = goalobj.goalGetterName.encode('utf-8')
             else:
               scorer = u'Unknown'
-            if goalobj.goalPenalty != True: #sometimes null sometimes False
+            if goalobj.goalPenalty == None or goalobj.goalPenalty == False: #sometimes null sometimes False
               penalty = False
             localGoal = session.merge(Goal(goalobj.goalID,scorer,
                             goalobj.goalMatchMinute,goalobj.goalScoreTeam1,goalobj.goalScoreTeam2,

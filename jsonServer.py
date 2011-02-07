@@ -42,7 +42,7 @@ import web
 import hashlib
 from datetime import datetime
 from bundesligaHelpers import *
-from bundesligaAPI import BundesligaAPI,AlreadyUpToDate,InvocationError
+from bundesligaAPI import BundesligaAPI,AlreadyUpToDate,InvocationError,StaleData
 from OpenLigaDB import OpenLigaDB
 from paste.gzipper import middleware as gzm
 
@@ -62,7 +62,8 @@ urls = (
   '/seasondata','seasonData',
   '/goals','getGoals',
   '/getUpdatesByMatchday','getUpdatesByMatchday',
-  '/getUpdates','getUpdatesByMatchday',
+  '/getUpdates','getUpdatesByTstamp',
+  '/getUpdatesByTstamp','getUpdatesByTstamp',
   '/getData','getData'
 )
 
@@ -143,6 +144,47 @@ class getGoals:
     print web.ctx.headers
     return json.dumps({'name':'Ciaran','job':'Bundespresident'})
 
+class getUpdatesByTstamp:
+  @backgrounder
+  def GET(self):
+    cbk = web.input(callback=None)
+    cbk = cbk.callback
+    tstamp = web.input(tstamp=None)
+    tstamp = tstamp.tstamp
+    league = web.input(league=None)
+    league = league.league
+    if not league: league = DEFAULT_LEAGUE
+    cmd = current_bundesliga_matchday(league)
+    season = web.input(season=None)
+    season = season.season
+    web.header('Content-Type','application/json')
+    new_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    if not season:
+      season = current_bundesliga_season()
+    else:
+      try:
+        season = int(season)
+      except:
+        print "Could not convert season %s into int"%season
+      else:
+       print "Converted season into int(%d)"%season
+    try:
+      tstamp = datetime.strptime(tstamp,"%Y-%m-%dT%H:%M:%S")
+    except:
+      print "Could not parse tstamp %s into 'Y-m-dTH:M:S'"%tstamp
+      return "%s({'invocationError':'invalid_tstamp'})"%cbk
+    else:
+      try:
+        updates = api.getUpdatesByTstamp(league,season,tstamp)
+      except StaleData,e:
+        fillDB(league,season)
+        d = {'cmd':cmd,'error':'noLocalCache'}
+        return "%s(%s)"%(cbk,json.dumps(d))
+      else:
+        rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1],'cmd':cmd}
+        d = json.dumps(rd)
+        return "%s(%s)"%(cbk,d)
+
 class getUpdatesByMatchday:
   @backgrounder
   def GET(self):
@@ -179,14 +221,12 @@ class getUpdatesByMatchday:
       # do this in background thread
       print "Starting background task to fill database"
       fillDB(league,season)
-      d = {'cmd':cmd,'invocationError':'noLocalCache'}
+      d = {'cmd':cmd,'error':'noLocalCache'}
       return "%s(%s)"%(cbk,json.dumps(d))
     updates = api.getUpdatesByMatchday(league,season,matchday=matchday)
     rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1],'cmd':cmd}
     d = json.dumps(rd)
     return "%s(%s)"%(cbk,d)
-
-
 
 class getData:
   @backgrounder
