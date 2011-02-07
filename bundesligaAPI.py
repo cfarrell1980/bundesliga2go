@@ -123,6 +123,9 @@ class BundesligaAPI:
       for g in match.goals:
        goals[g.id] = {'scorer':g.scorer.encode('utf-8'),'minute':g.minute,'penalty':g.penalty,'ownGoal':g.ownGoal,'teamID':g.for_team_id}
        goalindex[g.match.id] = [x.id for x in g.match.goals]
+      if match.isFinished:
+        if not goalindex.has_key(match.id) and match.isFinished:
+          goalindex[match.id] = [None]
     rd = (goals,goalindex)
     return rd
 
