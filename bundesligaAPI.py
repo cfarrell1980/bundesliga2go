@@ -66,6 +66,10 @@ class BundesligaAPI:
     # now get matchIDs from league,season where match not over
     session = Session()
     now = datetime.now() # no point in updating the future
+    l = session.query(League).filter(and_(League.season==season,League.name==league)).first()
+    if not l:
+      print "No local cache for league %s season %d. Running setupLocal()..."%(league,season)
+      self.setupLocal(league,season)
     matches = session.query(Match.id).join(League).filter(and_(League.season==season,\
                 League.name==league,Match.isFinished==False,Match.startTime <= now)).all()
     print "%d matches in update window..."%len(matches)
