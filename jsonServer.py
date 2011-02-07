@@ -67,8 +67,6 @@ urls = (
   '/getData','getData'
 )
 
-DEFAULT_LEAGUE = 'bl1'
-
 #app = web.application(urls,globals(),autoreload=True)
 app = web.application(urls, globals(), autoreload=False)
 application = app.wsgifunc()

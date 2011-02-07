@@ -49,12 +49,29 @@ class BundesligaAPI:
   def localLeagueSeason(self,league,season):
     session=Session()
     l = session.query(League).filter(and_(League.name==league,League.season==season)).first()
-    print l
-    print type(l)
     if not l:
       return False
     else:
       return l
+
+  def updateLocalCache(self,league,season):
+    '''Rather than rewriting the entire database for a league and season ask
+       upstream for only enough data to sync the local database.'''
+    if not league:
+      print "no league sent. using default..."
+      league = DEFAULT_LEAGUE
+    if not season:
+      print "no season sent. using default..."
+      season = current_bundesliga_season()
+    # now get matchIDs from league,season where match not over
+    session = Session()
+    now = datetime.now() # no point in updating the future
+    matches = session.query(Match.id).join(League).filter(and_(League.season==season,\
+                League.name==league,Match.isFinished==False,Match.startTime <= now)).all()
+    print "%d matches in update window..."%len(matches)
+    for matchID in matches:
+      print "updating matchID %d..."%matchID
+      self.updateMatchByID(matchID)
 
   def getUpdatesByTstamp(self,league,season,tstamp):
     if not league:

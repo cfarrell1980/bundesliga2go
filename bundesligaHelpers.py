@@ -33,6 +33,8 @@ from datetime import datetime
 from OpenLigaDB import OpenLigaDB
 import hashlib,json,os,sys
 
+DEFAULT_LEAGUE = 'bl1'
+
 if os.environ.has_key('TMPDIR'):
   LocalStorage = os.path.join(os.environ['TMPDIR'],'bundesligaMobile')
 else:
