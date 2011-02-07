@@ -61,7 +61,8 @@ urls = (
   '/w','worker',
   '/seasondata','seasonData',
   '/goals','getGoals',
-  '/getUpdates','getUpdates',
+  '/getUpdatesByMatchday','getUpdatesByMatchday',
+  '/getUpdates','getUpdatesByMatchday',
   '/getData','getData'
 )
 
@@ -142,7 +143,7 @@ class getGoals:
     print web.ctx.headers
     return json.dumps({'name':'Ciaran','job':'Bundespresident'})
 
-class getUpdates:
+class getUpdatesByMatchday:
   @backgrounder
   def GET(self):
     cbk = web.input(callback=None)
@@ -172,7 +173,6 @@ class getUpdates:
         print "Can't convert season %s into int"%season
         season = current_bundesliga_season()
       else: pass
-    tstamp = web.input(tstamp=None)
     web.header('Content-Type','application/json')
     new_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     if not api.localLeagueSeason(league,season):
@@ -181,26 +181,10 @@ class getUpdates:
       fillDB(league,season)
       d = {'cmd':cmd,'invocationError':'noLocalCache'}
       return "%s(%s)"%(cbk,json.dumps(d))
-    if tstamp.tstamp:
-      try:
-        tstamp = datetime.strptime(tstamp.tstamp,"%Y-%m-%dT%H:%M:%S")
-      except (TypeError,ValueError):
-        d = {'invocationError':'invalid timestamp (%s)'%tstamp.tstamp,'cmd':cmd}
-        return "%s(%s)"%(cbk,json.dumps(d))
-      else:
-        updates = api.getUpdates(league,season,tstamp=tstamp,matchday=matchday)
-        rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1],'cmd':cmd}
-        d = json.dumps(rd)
-        return "%s(%s)"%(cbk,d)
-    else:
-      if not matchday:#TODO: decide whether to return all season data here...
-        d = {'invocationError':'no timestamp,no matchday','cmd':cmd}
-        return "%s(%s)"%(cbk,json.dumps(d))
-      else:
-        updates = api.getUpdates(league,season,tstamp=None,matchday=matchday)
-        rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1],'cmd':cmd}
-        d = json.dumps(rd)
-        return "%s(%s)"%(cbk,d)
+    updates = api.getUpdatesByMatchday(league,season,matchday=matchday)
+    rd = {'tstamp':new_stamp,'goalobjects':updates[0],'goalindex':updates[1],'cmd':cmd}
+    d = json.dumps(rd)
+    return "%s(%s)"%(cbk,d)
 
 
 

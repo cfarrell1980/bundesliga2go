@@ -44,39 +44,36 @@ class BundesligaAPI:
     else:
       return l
 
-  def getUpdates(self,league,season,tstamp=None,matchday=None):
-    '''The client is sent a timestamp with each response. When the client makes the
-       next request the client sends the same timestamp back to the server, which
-       checks if any data need be returned to the client. This function queries the
-       middleware database with the client's timestamp to obtain matchdata that 
-       arrived since the client's timestamp. Only such updates are sent back to the
-       client
+  def getUpdatesByMatchday(self,league,season,matchday=None):
+    '''Client sends a league, season and matchday. All of these values can be empty
+       or None. If the values are empty or none, we choose defaults. If the client
+       sends a matchday (valid matchdays are between 1 and 34 inclusive) then we only
+       check for updates for that particular matchday. If no matchday is sent then we
+       check for updates for current matchday.
     '''
-    if not isinstance(tstamp,datetime):
-      print "tstamp must be a datetime.datetime type - ignoring it..."
     if not league:
       league = DEFAULT_LEAGUE
     if not season:
       season = current_bundesliga_season()
+    if not matchday:
+      matchday = current_bundesliga_matchday()
+      print "No matchday sent. Using current bundesliga matchday which is %d"%matchday
+    else:
+      if matchday not in range(1,35):
+        matchday = current_bundesliga_matchday()
+        print "Invalid matchday sent (not in range(1,35)). Using current bundesliga matchday which is %d"%matchday
     l = self.localLeagueSeason(league,season)
     if not l:
       print "No league/season data for %s %d. Running setupLocal()"%(league,season)
       self.setupLocal(league,season)
     else:
       print "Have league/season data for %s %d..."%(league,season)
+    #check validity of local cache for matchday
+    if not self.localMatchdayValid(league,season,matchday):
+      print "Local data for matchday %d no valid. Updating..."%matchday
+      self.updateMatchday(league,season,matchday)
     session = Session()
-    if not matchday:
-        if tstamp:
-          updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,
-                or_(Match.startTime > tstamp,and_(Match.startTime < tstamp,Match.endTime > tstamp)))).all()
-        else:
-          updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league)).all()
-    else:
-      if tstamp:
-        updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,Match.matchday==matchday,
-                or_(Match.startTime > tstamp,and_(Match.startTime < tstamp,Match.endTime > tstamp)))).all()
-      else:
-        updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,Match.matchday==matchday)).all()
+    updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,Match.matchday==matchday)).all()
     goals = {}
     goalindex = {}
     for match in updates:
