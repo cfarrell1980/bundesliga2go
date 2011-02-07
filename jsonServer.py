@@ -237,6 +237,7 @@ class getData:
     league = league.league
     if not league: league = DEFAULT_LEAGUE
     cmd = current_bundesliga_matchday(league)
+    now = datetime.now().strftime("%Y-%m-%dT%H:%M%S")
     season = web.input(season=None)
     if not season:
       print "season undefined..."
@@ -249,23 +250,15 @@ class getData:
         print "Can't convert season %s into int"%season
         season = current_bundesliga_season()
       else: pass
-    tstamp = web.input(tstamp=None)
     web.header('Content-Type','application/json')
-    if tstamp.tstamp:
-      try:
-        tstamp = datetime.strptime(tstamp.tstamp,"%Y-%m-%dT%H:%M:%S.%f")
-      except (TypeError,ValueError):
-        print "Could not format string %s as datetime. Using NoneType instead"%tstamp
-      else:
-        pass
     if api.localCacheValid(league,season):
       print "Local cache valid for %s %d"%(league,season)
       try:
         sq = time.time()
-        data = api.getMatchdataByLeagueSeason(league,season,tstamp)
+        data = api.getMatchdataByLeagueSeason(league,season)
         eq = time.time()
       except AlreadyUpToDate,e:
-        return "%s(%s)"%(cbk,json.dumps({'current':1,'cmd':cmd}))
+        return "%s(%s)"%(cbk,json.dumps({'current':1,'cmd':cmd,'tstamp':now}))
       else:
         matchdaycontainer = {} #hold matchdays
         container = {}#hold matches by matchid
@@ -275,14 +268,18 @@ class getData:
           matchdaycontainer[x] = []
         for m in data: # handle all matches in a matchday
           goalpointer[m.id] = []
-          for g in m.goals:
-            if g.for_team_id:
-              teamID = g.for_team_id
-            else:
-              teamID = None
-            goalcontainer[g.id] = {'scorer':g.scorer,'pen':g.penalty,
+          if len(m.goals):
+            for g in m.goals:
+              if g.for_team_id:
+                teamID = g.for_team_id
+              else:
+                teamID = None
+              goalcontainer[g.id] = {'scorer':g.scorer,'pen':g.penalty,
                       'minute':g.minute,'teamID':teamID,'og':g.ownGoal}
-            goalpointer[m.id].append(g.id)
+              goalpointer[m.id].append(g.id)
+          else:
+            if m.isFinished:
+              goalpointer[m.id] = [None]
           container[m.id] = {'t1':m.teams[0].id,
                    't2':m.teams[1].id,
                    'st':m.startTime.isoformat(),
@@ -291,7 +288,6 @@ class getData:
                    'v':m.viewers,
                   }
           matchdaycontainer[m.matchday].append(m.id)
-        now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalpointer,'cmd':cmd}
         y = json.dumps(packdict)
         return "%s(%s)"%(cbk,y)
