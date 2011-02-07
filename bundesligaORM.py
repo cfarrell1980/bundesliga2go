@@ -36,24 +36,26 @@ match_table = Table('match',metadata,
   Column('isFinished',Boolean),
   Column('matchday', Integer),
   Column('viewers',Integer,default=0),
-  Column('pointsTeam1',Integer,default=0),
-  Column('pointsTeam2',Integer,default=0),
+  Column('pt1',Integer,default=0),
+  Column('pt2',Integer,default=0),
   Column('league_id',Integer,ForeignKey('league.id')),
   Column('mtime', DateTime,default=now(),onupdate=now())
 )
 
 class Match(object):
-  def __init__(self,id,matchday,startTime,endTime,isFinished,viewers=0):
+  def __init__(self,id,matchday,startTime,endTime,isFinished,pt1,pt2,viewers=0):
     self.id = id
     self.startTime = startTime
     self.endTime = endTime
     self.isFinished = isFinished
     self.viewers = viewers
     self.matchday = matchday
+    self.pt1 = pt1
+    self.pt2 = pt2
 
   def __repr__(self):
-    return "<Match('%d','%s','%s','%s','%d','%d')>"%(self.id,self.startTime,
-      self.endTime,self.isFinished,self.viewers,self.matchday)
+    return "<Match('%d','%s','%s','%s','%d','%d','%d','%d')>"%(self.id,self.startTime,
+      self.endTime,self.isFinished,self.viewers,self.matchday,self.pt1,self.pt2)
 
 goal_table = Table('goal',metadata,
   Column('id', Integer, primary_key=True),

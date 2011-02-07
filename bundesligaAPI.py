@@ -301,7 +301,8 @@ class BundesligaAPI:
       viewers = m.NumberOfViewers
     else:
       viewers = 0
-    match = session.merge(Match(m.matchID,m.groupOrderID,m.matchDateTime,estEnd,m.matchIsFinished,viewers))
+    match = session.merge(Match(m.matchID,m.groupOrderID,m.matchDateTime,estEnd,m.matchIsFinished,\
+                           m.pointsTeam1,m.pointsTeam2,viewers))
     t1 = session.merge(Team(m.idTeam1,m.nameTeam1.encode('utf-8'),m.iconUrlTeam1))
     t2 = session.merge(Team(m.idTeam2,m.nameTeam2.encode('utf-8'),m.iconUrlTeam2))
     match.teams.append(t1)

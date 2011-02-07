@@ -301,6 +301,8 @@ class getData:
                    'st':m.startTime.isoformat(),
                    'et':m.endTime.isoformat(),
                    'fin':m.isFinished,
+                   'pt1':m.pt1,
+                   'pt2':m.pt2,
                    'v':m.viewers,
                   }
           matchdaycontainer[m.matchday].append(m.id)
