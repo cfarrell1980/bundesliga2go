@@ -43,12 +43,15 @@ import hashlib
 from datetime import datetime
 from bundesligaHelpers import *
 from bundesligaAPI import BundesligaAPI,AlreadyUpToDate,InvocationError,StaleData
+from bundesligaLogger import logger
 from OpenLigaDB import OpenLigaDB
 from paste.gzipper import middleware as gzm
 
+logger.info("jsonServer - starting WSGI JSON server")
 render_in_context = web.template.render('templates/', base='layout')
 render = web.template.render('templates/')
 web.config.debug = False
+logger.info("Server is running in debug modus? %s"%web.config.debug)
 
 urls = (
   '/test','test',
@@ -75,6 +78,7 @@ api = BundesligaAPI()
 
 @background
 def fillDB(league,season):
+  logger.info("fillDB - background function called with params league=%s season=%d"%(str(league),str(season)))
   data = api.setupLocal(league,season)
 
 class worker:
@@ -163,13 +167,13 @@ class getUpdatesByTstamp:
       try:
         season = int(season)
       except:
-        print "Could not convert season %s into int"%season
+        logger.info("getUpdatesByTstamp::GET - could not convert season %s into int"%season)
       else:
-       print "Converted season into int(%d)"%season
+       logger.info("getUpdatesByTstamp::GET - converted season into int(%d)"%season)
     try:
       tstamp = datetime.strptime(tstamp,"%Y-%m-%dT%H:%M:%S")
     except:
-      print "Could not parse tstamp %s into 'Y-m-dTH:M:S'"%tstamp
+      logger.info("getUpdatesByTstamp::GET - could not parse tstamp %s into 'Y-m-dTH:M:S'"%tstamp)
       return "%s({'invocationError':'invalid_tstamp'})"%cbk
     else:
       try:
@@ -194,10 +198,10 @@ class getUpdatesByMatchday:
       try:
         matchday = int(matchday)
       except:
-        print "Could not convert matchday to int...ignoring it"
+        logger.info("getUpdatesByMatchday::GET - could not convert matchday to int...ignoring it")
         matchday = None
       else:
-        print "matchday converted to int %d"%matchday
+        logger.info("getUpdatesByMatchday::GET - matchday converted to int %d"%matchday)
     league = web.input(league=None)
     league = league.league
     if not league: league = DEFAULT_LEAGUE
@@ -210,14 +214,13 @@ class getUpdatesByMatchday:
       try:
         season = int(season)
       except (TypeError,AttributeError):
-        print "Can't convert season %s into int"%season
+        logger.info("getUpdatesByTstamp::GET - can't convert season %s into int"%season)
         season = current_bundesliga_season()
       else: pass
     web.header('Content-Type','application/json')
     new_stamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     if not api.localLeagueSeason(league,season):
       # do this in background thread
-      print "Starting background task to fill database"
       fillDB(league,season)
       d = {'cmd':cmd,'error':'noLocalCache'}
       return "%s(%s)"%(cbk,json.dumps(d))
@@ -229,6 +232,7 @@ class getUpdatesByMatchday:
 class getData:
   @backgrounder
   def GET(self):
+    s1 = time.time()
     cbk = web.input(callback=None)
     cbk = cbk.callback
     league = web.input(league=None)
@@ -238,81 +242,79 @@ class getData:
     now = datetime.now().strftime("%Y-%m-%dT%H:%M%S")
     season = web.input(season=None)
     if not season:
-      print "season undefined..."
+      logger.info("getData::GET - season undefined...")
       season = current_bundesliga_season()
     else:
-      print "trying to use client defined season %s"%season.season
+      logger.info("getData::GET - trying to use client defined season %s"%season.season)
       try:
         season = int(season.season)
       except TypeError:
-        print "Can't convert season %s into int"%season
+        logger.info("getData::GET - can't convert season %s into int"%season)
         season = current_bundesliga_season()
       else: pass
     web.header('Content-Type','application/json')
-    if api.localCacheValid(league,season):
-      print "Local cache valid for %s %d"%(league,season)
-      try:
-        sq = time.time()
-        data = api.getMatchdataByLeagueSeason(league,season)
-        eq = time.time()
-      except AlreadyUpToDate,e:
-        return "%s(%s)"%(cbk,json.dumps({'current':1,'cmd':cmd,'tstamp':now}))
-      else:
-        matchdaycontainer = {} #hold matchdays
-        container = {}#hold matches by matchid
-        goalcontainer = {}
-        goalindex = {}
-        unfinished = 0
-        for x in range(1,35):#prepare the matchday arrays
-          matchdaycontainer[x] = []
-        for m in data: # handle all matches in a matchday
-          goalindex[m.id] = []
-          if m.isFinished:
-            if len(m.goals):
-              for g in m.goals:
-                if g.for_team_id:
-                  teamID = g.for_team_id
-                else:
-                  teamID = None
-                goalcontainer[g.id] = {'scorer':g.scorer,'pen':g.penalty,
-                      'minute':g.minute,'teamID':teamID,'og':g.ownGoal}
-                goalindex[m.id].append(g.id)
-              goalindex[m.id].append(True) # match is finished
-            else: # no goals, match is finished
-              goalindex[m.id] = [None,True]
-          else: # match is not finished
-            unfinished += 1
-            if len(m.goals):
-              for g in m.goals:
-                if g.for_team_id:
-                  teamID = g.for_team_id
-                else:
-                  teamID = None
-                goalcontainer[g.id] = {'scorer':g.scorer,'pen':g.penalty,
-                      'minute':g.minute,'teamID':teamID,'og':g.ownGoal}
-                goalindex[m.id].append(g.id)
-              goalindex[m.id].append(False) # match is finished
-            else: # no goals, match is not finished
-              goalindex[m.id] = [False]
-          container[m.id] = {'t1':m.teams[0].id,
-                   't2':m.teams[1].id,
-                   'st':m.startTime.isoformat(),
-                   'et':m.endTime.isoformat(),
-                   'fin':m.isFinished,
-                   'pt1':m.pt1,
-                   'pt2':m.pt2,
-                   'v':m.viewers,
-                  }
-          matchdaycontainer[m.matchday].append(m.id)
-        packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalindex,'cmd':cmd}
-        y = json.dumps(packdict)
-        print "%d matches not yet played"%unfinished
-        return "%s(%s)"%(cbk,y)
+    s2 = time.time()
+    t1 = s2-s1
+    logger.info("getData::GET - parsing incoming request took %f seconds. Now starting work..."%t1)
+    try:
+      data = api.getMatchdataByLeagueSeason(league,season)
+    except AlreadyUpToDate,e:
+      return "%s(%s)"%(cbk,json.dumps({'current':1,'cmd':cmd,'tstamp':now}))
     else:
-      print "Starting background task..."
-      fillDB(league,season)
-      d = {'cmd':cmd,'invocationError':'noLocalCache'}
-      return "%s(%s)"%(cbk,json.dumps(d))
+      s3 = time.time()
+      matchdaycontainer = {} #hold matchdays
+      container = {}#hold matches by matchid
+      goalcontainer = {}
+      goalindex = {}
+      unfinished = 0
+      for x in range(1,35):#prepare the matchday arrays
+        matchdaycontainer[x] = []
+      for m in data: # handle all matches in a matchday
+        goalindex[m.id] = []
+        if m.isFinished:
+          if len(m.goals):
+            for g in m.goals:
+              if g.for_team_id:
+                teamID = g.for_team_id
+              else:
+                teamID = None
+              goalcontainer[g.id] = {'scorer':g.scorer,'pen':g.penalty,
+                    'minute':g.minute,'teamID':teamID,'og':g.ownGoal}
+              goalindex[m.id].append(g.id)
+            goalindex[m.id].append(True) # match is finished
+          else: # no goals, match is finished
+            goalindex[m.id] = [None,True]
+        else: # match is not finished
+          unfinished += 1
+          if len(m.goals):
+            for g in m.goals:
+              if g.for_team_id:
+                teamID = g.for_team_id
+              else:
+                teamID = None
+              goalcontainer[g.id] = {'scorer':g.scorer,'pen':g.penalty,
+                    'minute':g.minute,'teamID':teamID,'og':g.ownGoal}
+              goalindex[m.id].append(g.id)
+            goalindex[m.id].append(False) # match is finished
+          else: # no goals, match is not finished
+            goalindex[m.id] = [False]
+        container[m.id] = {'t1':m.teams[0].id,
+                 't2':m.teams[1].id,
+                 'st':m.startTime.isoformat(),
+                 'et':m.endTime.isoformat(),
+                 'fin':m.isFinished,
+                 'pt1':m.pt1,
+                 'pt2':m.pt2,
+                 'v':m.viewers,
+                }
+        matchdaycontainer[m.matchday].append(m.id)
+      s4 = time.time()
+      t2 = s4-s3
+      logger.info("getData::GET - parsing data returned from API took %f seconds. Now returning data to client"%t2)
+      packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalcontainer,'goalindex':goalindex,'cmd':cmd}
+      y = json.dumps(packdict)
+      logger.info("getData::GET - %d matches not yet played"%unfinished)
+      return "%s(%s)"%(cbk,y)
 
 class getCurrentMatchday:
   '''
@@ -365,7 +367,7 @@ class getTeams:
       try:
         season = int(season)
       except (AttributeError,TypeError):
-        print "Could not convert season %s to int"%season
+        logger.info("getTeams::GET - could not convert season %s to int"%season)
         season = current_bundesliga_season()
       else:
         pass
@@ -388,5 +390,12 @@ class getTeams:
       return "%s(%s)"%(cbk,y)
 
 if __name__ == '__main__':
-  app.run(gzm)
+  try:
+    logger.info("jsonServer - server is listening...")
+    app.run(gzm)
+  except KeyboardInterrupt:
+    logger.info("jsonServer - caught keyboard interrupt. Server will exit...")
+    sys.exit(0)
+  else:
+    pass
 

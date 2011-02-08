@@ -228,13 +228,21 @@ class BundesligaAPI:
        if the client's tstamp indicates that the client's dataset is already
        up to date, then to save bandwidth we return an empty set
     '''
+    s = time.time()
     session=Session()
     remote_tstamp = self.oldb.GetLastChangeDateByLeagueSaison(league,season)
-    if not self.localCacheValid(league,season):
-      # this could take a while - raise a StaleData?
-      self.setupLocal(league,season)
+    logger.info("getMatchdataByLeagueSeason - upstream tstamp for league=%s season=%s is %s"%(league,str(season),remote_tstamp))
+    # TODO: decide if these lines can stay commented out. If the partialSync script is run by cron
+    # then we have reason to expect that the local cache will be always valid
+    #if not self.localCacheValid(league,season):
+    #  logger.info("getMatchdataByLeagueSeason - local cache not valid. Need to run setupLocal")
+    #  self.setupLocal(league,season)
     q = session.query(Match).join(League).filter(and_(League.name==league,League.season==season))
     local_matchdata = q.all()
+    e = time.time()
+    t = e-s
+    logger.info("getMatchdataByLeagueSeason - found %d match data objects for league=%s \
+season=%s. Took %f seconds"%(len(local_matchdata),league,str(season),t))
     return local_matchdata
 
   def updateMatchByID(self,matchID):
@@ -274,7 +282,7 @@ class BundesligaAPI:
       local_league = League(None,league,season)
     teams = local_league.teams
     if len(teams) < 18:# some seasons have strange 'teams' like 6. Platz Bundesliga
-      print "Number of teams in %s for season %d is %d: UPDATING"%(league,season,len(teams))
+      logger.info("getTeams - number of teams in %s for season %d is %d: UPDATING"%(league,season,len(teams)))
       try:
         remote_teams = self.oldb.GetTeamsByLeagueSaison(league,season)
       except WebFault,e:
@@ -282,7 +290,7 @@ class BundesligaAPI:
       else:
         for t in remote_teams.Team:
           if not t.teamIconURL and t.teamID > 250:
-            print "Ignoring %s as it doesn't seem to be a real team"%(t.teamName.encode('utf-8'))
+            logger.info("getTeams - ignoring %s as it doesn't seem to be a real team"%(t.teamName.encode('utf-8')))
           else:
             team = session.merge(Team(t.teamID,t.teamName.encode('utf-8'),t.teamIconURL))
             team.leagues.append(local_league)
@@ -290,9 +298,7 @@ class BundesligaAPI:
       teams = local_league.teams
     else:
       session.commit()
-      print "There are 18 teams. Everything ok..."
     finish = time.time()
-    print "<Running method getTeams() took %f seconds>"%(finish-start)
     return teams
 
   def localMatchdayValid(self,league,season,matchday):
@@ -308,7 +314,6 @@ class BundesligaAPI:
       return True
          
   def mergeRemoteLocal(self,m):
-    print "I've been asked to merge data for matchID %d"%m.matchID
     session = Session()
     l = session.merge(League(m.leagueShortcut,int(m.leagueSaison)))
     d = timedelta(minutes=115) # estimate when the match will end
@@ -328,7 +333,6 @@ class BundesligaAPI:
     t1.leagues.append(l)
     t2.leagues.append(l)
     l.matches.append(match)
-    print "Finished parsing the matches. Now parsing the upstream goaldata..."
     for goals in m.goals:
       for goal in goals:
         for goalobj in goal:
@@ -357,5 +361,4 @@ class BundesligaAPI:
           match.goals[cur_idx].for_team_id = match.teams[0].id
         else:
           match.goals[cur_idx].for_team_id = match.teams[1].id
-    print "Committing the session..."
     session.commit()
