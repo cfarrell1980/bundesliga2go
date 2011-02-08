@@ -59,23 +59,23 @@ class BundesligaAPI:
     '''Rather than rewriting the entire database for a league and season ask
        upstream for only enough data to sync the local database.'''
     if not league:
-      logger.info("no league sent. using default...")
+      logger.info("updateLocalCache - no league sent. using default...")
       league = DEFAULT_LEAGUE
     if not season:
-      logger.info("no season sent. using default...")
+      logger.info("updateLocalCache - no season sent. using default...")
       season = current_bundesliga_season()
     # now get matchIDs from league,season where match not over
     session = Session()
     now = datetime.now() # no point in updating the future
     l = session.query(League).filter(and_(League.season==season,League.name==league)).first()
     if not l:
-      logger.info("No local cache for league %s season %d. Running setupLocal()..."%(league,season))
+      logger.info("updateLocalCache - no local cache for league %s season %d. Running setupLocal()..."%(league,season))
       self.setupLocal(league,season)
     matches = session.query(Match.id).join(League).filter(and_(League.season==season,\
                 League.name==league,Match.isFinished==False,Match.startTime <= now)).all()
-    logger.info("%d matches in update window..."%len(matches))
+    logger.info("updateLocalCache - %d matches in update window..."%len(matches))
     for matchID in matches:
-      logger.info("updating matchID %d..."%matchID)
+      logger.info("updateLocalCache - updating matchID %d..."%matchID)
       self.updateMatchByID(matchID)
 
   def getUpdatesByTstamp(self,league,season,tstamp):
@@ -85,10 +85,10 @@ class BundesligaAPI:
       season = current_bundesliga_season()
     if not tstamp:
       tstamp = datetime.now()
-    print "Looking for updates for %s %d since %s"%(league,season,tstamp)
+    logger.info("getUpdatesByTstamp - looking for updates for %s %d since %s"%(league,season,tstamp))
     l = self.localLeagueSeason(league,season)
     if not l:
-      print "No league/season data for %s %d. Running setupLocal()"%(league,season)
+      logger.info("getUpdatesByTstamp - no league/season data for %s %d. Running setupLocal()"%(league,season))
       raise StaleData,"No league/season data for %s %d. Try running setupLocal()"%(league,season)
     # now get anything that has happened since client's tstamp
     session = Session()
@@ -131,20 +131,20 @@ class BundesligaAPI:
       season = current_bundesliga_season()
     if not matchday:
       matchday = current_bundesliga_matchday()
-      print "No matchday sent. Using current bundesliga matchday which is %d"%matchday
+      logger.info("getUpdatesByMatchday - no matchday sent. Using current bundesliga matchday which is %d"%matchday)
     else:
       if matchday not in range(1,35):
         matchday = current_bundesliga_matchday()
-        print "Invalid matchday sent (not in range(1,35)). Using current bundesliga matchday which is %d"%matchday
+        logger.info("getUpdatesByMatchday - invalid matchday sent (not in range(1,35)). Using current bundesliga matchday which is %d"%matchday)
     l = self.localLeagueSeason(league,season)
     if not l:
-      print "No league/season data for %s %d. Running setupLocal()"%(league,season)
+      logger.info("getUpdatesByMatch - no league/season data for %s %d. Running setupLocal()"%(league,season))
       self.setupLocal(league,season)
     else:
-      print "Have league/season data for %s %d..."%(league,season)
+      logger.info("getUpdatesByMatch - have league/season data for %s %d..."%(league,season))
     #check validity of local cache for matchday
     if not self.localMatchdayValid(league,season,matchday):
-      print "Local data for matchday %d no valid. Updating..."%matchday
+      logger.info("getUpdatesByMatch - local data for matchday %d no valid. Updating..."%matchday)
       self.updateMatchday(league,season,matchday)
     session = Session()
     updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,Match.matchday==matchday)).all()
@@ -166,7 +166,6 @@ class BundesligaAPI:
           goalindex[match.id] = [x.id for x in match.goals]
           goalindex[match.id].append(False)
         else:
-          print match.startTime
           goalindex[match.id] = [False]
 
     rd = (goals,goalindex)
@@ -176,17 +175,17 @@ class BundesligaAPI:
     '''If there is no local data available for a league/season then get it from
        upstream and fill the database'''
     session = Session()
-    print "creating local league object for %s %s"%(league,season)
+    logger.info("setupLocal - creating local league object for %s %s"%(league,season))
     l = League(league,season)
     session.add(l)
-    print "getting upstream matchdata for %s %d. This could take a while..."%(league,season)
+    logger.info("setupLocal - getting upstream matchdata for %s %d. This could take a while..."%(league,season))
     try:
       remote = self.oldb.GetMatchdataByLeagueSaison(league,season)
     except Exception,e:
-      print e
+      logger.info("setupLocal - pull from upstream failed because: %s"%str(e))
       raise
     else:
-      print "retrieved upstream data. Parsing..."
+      logger.info("setupLocal - retrieved upstream data. Parsing...")
       for m in remote.Matchdata:
         self.mergeRemoteLocal(m)
 
@@ -198,31 +197,27 @@ class BundesligaAPI:
     if not season:
       season = current_bundesliga_season()
     session = Session()
-    print "Checking local cache for %s %d"%(league,season)
+    logger.info("localCacheValid - checking local cache for %s %d"%(league,season))
     try:
       remote_tstamp = self.oldb.GetLastChangeDateByLeagueSaison(league,season)
     except Exception,e:
-      print e
-      print "SOAP Error for league %s season %s?"%(str(league),str(season))
+      logger.info("localCacheValid - SOAP Error for league %s season %s?"%(str(league),str(season)))
       return False
     else:
       local_league=session.query(League).filter(and_(League.season==season,League.name==league)).first()
       if not local_league:
-        print "No locally stored league for %s %d"%(league,season)
+        logger.info("localCacheValid - no locally stored league for %s %d"%(league,season))
         return False
       last_match_change = session.query(Match.mtime).order_by(Match.mtime.desc()).first()
       last_goal_change = session.query(Goal.mtime).order_by(Goal.mtime.desc()).first()
       if not last_match_change or not last_goal_change:
-        print "None objects returned when querying mtimes for match, matchday, goal"
+        logger.info("localCacheValid - None objects returned when querying mtimes for match, matchday, goal")
         return False
       elif last_match_change.mtime < remote_tstamp or last_goal_change.mtime < remote_tstamp:
-        print "Upstream tstamp: %s"%remote_tstamp
-        print "Match tstamp: %s"%last_match_change.mtime
-        print "Goal tstamp: %s"%last_goal_change.mtime
-        print "Local data exists but at least one required table is out of date"
+        logger.info("localCacheValid - local data exists but at least one required table is out of date")
         return False
       else:
-        print "Local data exists and is up to date"
+        logger.info("localCacheValid - local data exists and is up to date")
         return True
 
   def getMatchdataByLeagueSeason(self,league,season):
@@ -243,14 +238,13 @@ class BundesligaAPI:
     return local_matchdata
 
   def updateMatchByID(self,matchID):
-    print "I've been asked to update matchID %d"%matchID
     try:
-      print "Asking upstream for the most recent data for matchID %d"%matchID
+      logger.info("updateMatchByID - asking upstream for the most recent data for matchID %d"%matchID)
       remote = self.oldb.GetMatchByMatchID(matchID)
     except:
       raise
     else:
-      print "Received upstream data...handing over to mergeRemoteLocal()"
+      logger.info("updateMatchByID - received upstream data...handing over to mergeRemoteLocal()")
       self.mergeRemoteLocal(remote)
 
   def getMatchesByMatchday(self,league,season,matchday):
