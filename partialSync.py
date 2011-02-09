@@ -1,16 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import time,json
+import time,json,datetime,os
 from bundesligaAPI import BundesligaAPI
+from bundesligaORM import *
 from OpenLigaDB import OpenLigaDB
+from sqlalchemy.sql import and_,or_,not_
 from bundesligaLogger import logger
 from bundesligaHelpers import DEFAULT_LEAGUE,current_bundesliga_season,current_bundesliga_matchday
 api = BundesligaAPI()
 cursor = OpenLigaDB()
 
 global qa,league,season
-qa = 'qa.json'
+qa = os.path.abspath(os.path.join(os.getcwd(),'qa.json'))
 league,season = DEFAULT_LEAGUE,current_bundesliga_season()
+rnow = datetime.datetime.now()
+if rnow.weekday() < 4: # less than Friday?
+  if os.path.isfile(qa):
+    mtime = os.stat(qa).st_mtime
+
+session = Session()
+logger.info("partialSync - checking if there is currently a match in progress for %s"%rnow)
+matches = session.query(Match).filter(and_(Match.startTime<=rnow,Match.endTime>=rnow)).all()
+if len(matches)==0:
+  logger.info("partialSync - currently no matches in progress")
+else:
+  logger.info("partialSync - currently %d matches in progress"%len(matches))
+  print "%d matches in progress. This should be handed of to a subcron job"%len(matches)
 
 # SYNC OPENLIGADB DATA TO LOCAL CACHE IF NECESSARY
 def doSync():

@@ -74,6 +74,7 @@ web.config.debug = False
 logger.info("Server is running in debug modus? %s"%web.config.debug)
 
 urls = (
+  '/','index',
   '/test','test',
   '/getTeams', 'getTeams',
   '/matchday','matchday',
@@ -89,7 +90,7 @@ urls = (
   '/getUpdatesByTstamp','getUpdatesByTstamp',
   '/getData','getData'
 )
-
+render = web.template.render('bundesliga/')
 #app = web.application(urls,globals(),autoreload=True)
 app = web.application(urls, globals(), autoreload=False)
 application = app.wsgifunc()
@@ -100,6 +101,10 @@ api = BundesligaAPI()
 def fillDB(league,season):
   logger.info("fillDB - background function called with params league=%s season=%d"%(str(league),str(season)))
   data = api.setupLocal(league,season)
+
+class index:
+  def GET(self):
+    return render.index()
 
 class worker:
   def GET(self):
