@@ -59,10 +59,16 @@ def json_serialize(obj):
 
 def current_bundesliga_matchday(league):
   '''The client needs to know what the current matchday is'''
-  fd = open("qa.json","r")
-  d = json.load(fd)
-  fd.close()
-  return int(d['cmd'])
+  try:
+    fd = open("qa.json","r")
+    d = json.load(fd)
+    fd.close()
+  except IOError:#file not there - probably on first run
+    cursor = OpenLigaDB()
+    x = cursor.GetCurrentGroupOrderID(league)
+    return x
+  else:
+    return int(d['cmd'])
 
 def current_bundesliga_season():
   ''' openligadb declares the year for any bundesliga season to be the

@@ -20,7 +20,7 @@ def doSync():
  e = time.time()
  took = e-s
  logger.info("partialSync - finished syncing. It took %f seconds"%took)
- return None
+ return True
 
 # GET CURRENT MATCHDAY FROM OPENLIGADB
 def doCmd():
@@ -45,6 +45,7 @@ was %s"%lmu.strftime("%Y-%m-%dT%H:%M:%S"))
 
 # WRITE THE VOLATILE STUFF TO A JSON FILE
 def doWrite(cmd,lmu):
+ qa = "qa.json"
  t1 = time.time()
  logger.info("partialSync - storing volatile data in a JSON file")
  qa_info = {'cmd':cmd,'lmu':lmu.strftime("%Y-%m-%dT%H:%M:%S")}

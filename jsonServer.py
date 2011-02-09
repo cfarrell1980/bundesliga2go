@@ -31,7 +31,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
-import web,os,json,time,sys
+import web,os,json,time,sys,contextlib,subprocess
 from background import background,backgrounder
 if len(sys.argv) == 2:
  if sys.argv[1] == '--apache':
@@ -41,12 +41,32 @@ if len(sys.argv) == 2:
 import web
 import hashlib
 from datetime import datetime
-from bundesligaHelpers import *
 from bundesligaAPI import BundesligaAPI,AlreadyUpToDate,InvocationError,StaleData
 from bundesligaLogger import logger
 from OpenLigaDB import OpenLigaDB
 from paste.gzipper import middleware as gzm
+from partialSync import doSync as init_sync
+from partialSync import doCmd as init_cmd
+from partialSync import doLmu as init_lmu
+from partialSync import doWrite as init_write
+logger.info("jsonServer - performing initial setup including syncing from upstream...")
+@contextlib.contextmanager
+def spin():
+   # see http://is.gd/AcCZFS
+   p = subprocess.Popen(['python', 'spinner.py'])
+   yield
+   p.terminate()
 
+def initSync():
+  with spin():
+    init_sync()
+print "Performing initial sync...".rstrip("\n")
+initSync()
+mycmd = init_cmd()
+mylmu = init_lmu()
+init_write(mycmd,mylmu)
+print
+from bundesligaHelpers import *
 logger.info("jsonServer - starting WSGI JSON server")
 render_in_context = web.template.render('templates/', base='layout')
 render = web.template.render('templates/')
@@ -235,11 +255,6 @@ class getUpdatesByMatchday:
     web.header('Content-Type','application/json')
     b2 = time.time()
     logger.info("getUpdatesByMatchday::GET - parsing request took %f seconds"%(b2-b1))
-    #if not api.localLeagueSeason(league,season):
-    #  logger.info("getUpdatesByMatchday::GET - no local league found for league=%s season=%s. Backgrounding..."%(league,season))
-    #  fillDB(league,season)
-    #  d = {'cmd':cmd,'error':'noLocalCache'}
-    #  return "%s(%s)"%(cbk,json.dumps(d))
     updates = api.getUpdatesByMatchday(league,season,matchday=matchday)
     rd = {'tstamp':new_stamp_s,'goalobjects':updates[0],'goalindex':updates[1],'cmd':cmd}
     d = json.dumps(rd)
