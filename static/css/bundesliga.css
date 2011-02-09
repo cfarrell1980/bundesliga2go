@@ -1,0 +1,98 @@
+.error {
+  color:#900000;
+  text-align:center;
+  font-weight:bold;
+}
+
+div.ui-page-active {
+  display:block!important;
+}
+
+#message {
+   display:none;
+   margin:10px;
+   padding:10px; 
+   border:3px solid red;
+   background-color:#fff; 
+   text-align:center;
+}
+
+.ui-btn-inner, .ui-btn-corner-all {
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px;
+}
+
+span.matchday {
+  display:inline-block;
+  left: 1px; 
+  max-height: 80px;
+  text-align:center;
+  vertical-align:50%; 
+  max-width: 80px; 
+  position: absolute; 
+  top: 0; 
+  height:76px; 
+  width:76px; 
+  margin-right: 150px;
+}
+
+#list h3.ui-li-heading, #list p.ui-li-desc {
+  margin-left:100px;
+}
+span.color-grey {
+  color:#aaa;
+}
+span.left {
+  float:left; 
+  clear:both; 
+  overflow:hidden;
+}
+
+span.right {
+  float:right; 
+  clear:both; 
+  overflow:hidden;
+}
+
+span.matchday {text-align:center;}
+span.matchday_border {
+  border:4px solid #a9a9a9; 
+  display:inline-block; 
+  height:58px; 
+  width:58px; 
+  padding:5px;
+  vertical-align:50%;
+}
+
+/* li.current_matchday { background-color:#0091ff; } */
+/* span.current_matchday { color:#0091ff; } */
+
+span.matchday_number {
+  font-size:44px; 
+  line-height:40px; 
+  display:inline-block;
+}
+
+span.matchday_text {
+  font-size:14px; 
+  line-height:14px; 
+  display:block;
+}
+
+span.leftSpan img, span.rightSpan img { margin:0 10px;  }
+img.game { 
+  position:static;   
+  display:inline;
+  vertical-align:top;
+  float:none;
+  margin-left:4px;
+}
+
+#list .ui-li-has-thumb, #list .ui-btn-inner { min-height: 20px; padding:5px 0;}
+#list div.ui-btn-inner { padding:5px 5px 5px 0; }
+span.leftSpan, span.rightSpan {white-space: pre-line; overflow:hidden; display:inline-block; width:50%; }
+span.leftSpan { float:left; text-align:left;}
+span.rightSpan { float:right; text-align:right;}
+
+
+

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bundesliga</title>
+  <script type="text/javascript" src="static/javascripts/jquery-1.4.3.min.js"></script>
+  <script type="text/javascript" src="static/javascripts/jquery.mobile-1.0a2.min.js"></script>
+
+  
+  <script type="text/javascript" src="static/javascripts/functions.js"></script>
+  <script type="text/javascript" src="static/javascripts/helpers.js"></script>
+  <script type="text/javascript" src="static/javascripts/bundesliga.js"></script>
+  
+  <link rel="stylesheet" href="static/css/jquery.mobile-1.0a2.min.css" />
+  <link rel="stylesheet" href="static/css/bundesliga.css" />
+
+  <link rel="apple-touch-icon" href="homeicon.png" />
+  <link rel="apple-touch-icon-precomposed" href="static/img/homeicon.png">
+  <link rel="apple-touch-startup-image" href="static/img/startup.png">
+
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta http-equiv="content-script-type" content="text/javascript">  
+
+  <script type="text/javascript" >
+    function hide(){
+      jQuery.mobile.pageLoading(true);
+    }
+
+    function initNavbar() {
+      var id = ['#prevMatchday', '#nextMatchday'];
+      for(var i=0; i<id.length; i++) {
+	jQuery(id[i]).live('click tap', function(event) {
+	  event.preventDefault();
+	  jQuery.mobile.pageLoading();
+	  setTimeout("hide()",500);
+
+	  var matchday = parseInt(jQuery('#navbar>h2').text());
+
+	  if(jQuery(this).attr('id') == 'prevMatchday') {
+	    matchday--;
+	  } else {
+	    matchday++;
+	  }
+
+    	  var teams = getMatchesByMatchdayID(matchday);
+	  renderMatchDay(matchday, teams)
+	});
+      }
+    }
+
+    jQuery(document).ready(function() {
+      initNavbar();
+      jQuery('#clear').click(function(){
+        console.log("RESET LS")
+        localStorage.clear();
+      });
+
+      jQuery('a.back').live('click', function() {
+	console.log("GO BACK");
+// 	jQuery.mobile.changePage(jQuery('#home'));
+      });      
+    })
+  </script>
+
+</head>
+<body>
+
+  <div data-role="page" id="home"> 
+    <div id="homeHeader" data-role="header">
+      <h2>Bundesliga 2011</h2>
+    </div> 
+     <div id="navbar" data-role="header" class="ui-bar-d ui-header"><!--matchday with arrows--></div>
+    
+    <div id="message"><button id="clear">Clear</button></div>
+    
+
+    <div id="homeBody" data-role="content" class="ui-body">
+      <div id="scroller">
+	<ul id="list" data-role="listview" role="listbox"  data-theme="c" data-dividertheme="d" data-inset="false"><!--AJAX--></ul>
+      </div>
+    </div> <!--BODY-->
+
+    <div data-role="footer" role="banner">
+      <h1 class="ui-title" tabindex="0" role="heading" aria-level="1">Fullscreen fixed footer</h1>
+    </div> <!--FOOTER-->
+  </div> <!--HOME PAGE-->
+</body>
+</html>
