@@ -301,7 +301,7 @@ season=%s. Took %f seconds"%(len(local_matchdata),league,str(season),t))
     '''
     start = time.time()
     session=Session()
-    local_league = session.query(League).filter(League.year==season).filter_by(shortname=league).first()
+    local_league = session.query(League).filter(League.season==season).filter_by(shortname=league).first()
     if not local_league:
       local_league = League(None,league,season)
     teams = local_league.teams
