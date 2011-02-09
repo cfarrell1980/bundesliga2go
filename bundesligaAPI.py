@@ -143,9 +143,9 @@ class BundesligaAPI:
     else:
       logger.info("getUpdatesByMatch - have league/season data for %s %d..."%(league,season))
     #check validity of local cache for matchday
-    if not self.localMatchdayValid(league,season,matchday):
-      logger.info("getUpdatesByMatch - local data for matchday %d no valid. Updating..."%matchday)
-      self.updateMatchday(league,season,matchday)
+    #if not self.localMatchdayValid(league,season,matchday):
+    #  logger.info("getUpdatesByMatch - local data for matchday %d no valid. Updating..."%matchday)
+    #  self.updateMatchday(league,season,matchday)
     session = Session()
     updates = session.query(Match).join(League).filter(and_(League.season==season,League.name==league,Match.matchday==matchday)).all()
     goals = {}
@@ -270,6 +270,30 @@ season=%s. Took %f seconds"%(len(local_matchdata),league,str(season),t))
 
   def getGoalsByMatchID(self,matchID):
     pass
+
+  def getGoalsByLeagueSeason(self,league,season):
+    '''Return a tuple containing a dictionary of goal objects where the keys are
+       the goalIDs. The second element in the tuple is a dictionary where the 
+       keys are matchIDs and the values are lists containing pointers to the goalID
+    '''
+    logger.info("getGoalsByLeagueSeason called with league=%s and season=%d"%(league,season))
+    s = time.time()
+    now = datetime.now()
+    session = Session()
+    g = session.query(Goal).join(Match).join(League).filter(and_(League.season==season,
+                            League.name==league)).all()
+    goalindex,goalobjects = {},{}
+    logger.info("getGoalsByLeagueSeason - found %d goal objects for league %s season %d"%(len(g),league,season))
+    for goal in g:
+      if not goalindex.has_key(goal.match.id):
+        goalindex[goal.match.id] = []
+      goalobjects[goal.id] = {'scorer':goal.scorer.encode('utf-8'),'minute':goal.minute,
+                              'penalty':goal.penalty,'ownGoal':goal.ownGoal,'teamID':goal.for_team_id}
+      goalindex[goal.match.id].append(goal.id)
+    e = time.time()
+    total = e-s
+    logger.info("getGoalsByLeagueSeason - finished in %f seconds"%total)
+    return (goalobjects,goalindex)
 
   def getTeams(self,league,season):
     '''Return a dictionary holding data for the teams in a given 
