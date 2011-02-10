@@ -3,12 +3,7 @@
 <head>
   <title>Bundesliga</title>
   <script type="text/javascript" src="static/javascripts/jquery-1.4.3.min.js"></script>
-  <script type="text/javascript" src="static/javascripts/jquery.mobile-1.0a2.min.js"></script>
-  
-  <script type="text/javascript" src="static/javascripts/functions.js"></script>
-  <script type="text/javascript" src="static/javascripts/helpers.js"></script>
-  <script type="text/javascript" src="static/javascripts/bundesliga.js"></script>
-  
+  <script type="text/javascript" src="static/javascripts/jquery.mobile-1.0a2.min.js"></script>  
   <link rel="stylesheet" href="static/css/jquery.mobile-1.0a2.min.css" />
   <link rel="stylesheet" href="static/css/bundesliga.css" />
   <link href="static/favicon.ico" rel="icon" type="image/x-icon" />
@@ -21,48 +16,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta http-equiv="content-script-type" content="text/javascript">  
-
-  <script type="text/javascript" >
-    function hide(){
-      jQuery.mobile.pageLoading(true);
-    }
-
-    function initNavbar() {
-      var id = ['#prevMatchday', '#nextMatchday'];
-      for(var i=0; i<id.length; i++) {
-	jQuery(id[i]).live('click tap', function(event) {
-	  event.preventDefault();
-	  jQuery.mobile.pageLoading();
-	  setTimeout("hide()",500);
-
-	  var matchday = parseInt(jQuery('#navbar>h2').text());
-
-	  if(jQuery(this).attr('id') == 'prevMatchday') {
-	    matchday--;
-	  } else {
-	    matchday++;
-	  }
-
-    	  var teams = getMatchesByMatchdayID(matchday);
-	  renderMatchDay(matchday, teams)
-	});
-      }
-    }
-
-    jQuery(document).ready(function() {
-      initNavbar();
-      jQuery('#clear').click(function(){
-        console.log("RESET LS")
-        localStorage.clear();
-      });
-
-      jQuery('a.back').live('click', function() {
-	console.log("GO BACK");
-// 	jQuery.mobile.changePage(jQuery('#home'));
-      });      
-    })
-  </script>
-
 </head>
 <body>
 
@@ -86,4 +39,8 @@
     </div> <!--FOOTER-->
   </div> <!--HOME PAGE-->
 </body>
+
+  <script type="text/javascript" src="static/javascripts/functions.js"></script>
+  <script type="text/javascript" src="static/javascripts/helpers.js"></script>
+  <script type="text/javascript" src="static/javascripts/bundesliga.js"></script>
 </html>

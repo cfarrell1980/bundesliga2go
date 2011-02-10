@@ -1,3 +1,4 @@
+var DEBUG = true;
 //LOGGER
 function log(object, inspect) {
   if(DEBUG) { 
@@ -11,20 +12,42 @@ function log(object, inspect) {
   }
 }
 
+//TODO: Replace the jsonp call with CORS ajax call
+
+//DON'T FORGET TO CHANGE THE URL!!!
+
+var teamsURL = 'http://192.168.178.35:8080/getTeams'
+var dataURL= 'http://192.168.178.35:8080/getData'
+
 //GET TEAMS DATA FROM SERVER
-function getTeams(url) {
-  log("DEBUG: GET TEAMS FROM " + url);
+function getTeamsData() {
+  console.log("DON'T FORGET TO CHANGE THE URL!!!");
+  log("DEBUG: GET TEAMS FROM");
   $.ajax({
-    url: url,
+    url: teamsURL,
+    cache: false,
+    async: false,
     dataType: 'jsonp',
-    success: saveTeams
+    success: getAllData
+  });
+}
+
+//GET ALL DATA FROM SERVER
+function getAllData(data) {
+  saveTeams(data)
+  log("DEBUG: GET ALL DATA FROM");
+  $.ajax({
+    url: dataURL,
+//     cache: false,
+//     async: false,
+    dataType: 'jsonp',
+    success: saveData
   });
 }
 
 //SAVE TEAMS DATA FROM SERVER
 function saveTeams(data) {
   log("DEBUG: SAVE TEAMS DATA");
-
   var teams = new Array();
   for(var id in data) {
     teams.push(id);
@@ -32,29 +55,18 @@ function saveTeams(data) {
       localStorage.setItem('team'+id, JSON.stringify(data[id]));
     }
   }  
-  
-  localStorage.setItem('teams_data', 'true');
   localStorage.setItem('teams', JSON.stringify(teams));
-  
-  log("DEBUG: SAVE TEAMS DATA IS FINISHED");
 }
-
-//GET ALL DATA FROM SERVER
-function getRemoteData(url) {
-  log("DEBUG: GET ALL DATA FROM " + url);
-  $.ajax({
-    url: url,
-      dataType: 'jsonp',
-      success: saveData
-  });
-  
-  return 'finished';
-}
-
 
 //SAVE ALL DATA FROM SERVER
 function saveData(data) {
   log("DEBUG: SAVE ALL DATA");
+  if(data.cmd) {
+    for(var matchdayID in data.matchdays) {
+      localStorage.setItem('lastKnownMatchday', JSON.stringify(data.cmd));
+    }
+  }
+  
   if(data.matchdays) {
     for(var matchdayID in data.matchdays) {
       localStorage.setItem('matchday'+matchdayID, JSON.stringify(data.matchdays[matchdayID]));
@@ -78,9 +90,8 @@ function saveData(data) {
       localStorage.setItem('goalobject'+goalID, JSON.stringify(data.goalobjects[goalID]));
     }
   }
-  
-  localStorage.setItem('all_data', 'true');
-  log("DEBUG: SAVE ALL DATA IS FINISHED");
+
+  renderMatchDay(data.cmd, getMatchesByMatchdayID(data.cmd));
 }
 
 //GET UPDATES FROM SERVER
@@ -126,4 +137,3 @@ function getTeamDataByTeamID(id) {
   log("INFO: GET TEAM DATA BY TEAM ID " + id);
   return JSON.parse(localStorage.getItem('team' + id));
 }
-
