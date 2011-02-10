@@ -82,7 +82,7 @@ urls = (
   '/checkMD5','checkMD5',
   '/cmd','getCurrentMatchday',
   '/currentMatchDayData','getCurrentMatchdayData',
-  '/w','worker',
+  '/w','getGoals',
   '/seasondata','seasonData',
   '/goals','getGoals',
   '/getUpdatesByMatchday','getUpdatesByMatchday',
@@ -101,6 +101,62 @@ api = BundesligaAPI()
 def fillDB(league,season):
   logger.info("fillDB - background function called with params league=%s season=%d"%(str(league),str(season)))
   data = api.setupLocal(league,season)
+
+def parseRequestFundamentals():
+  cbk = web.input(callback=None)
+  cbk = cbk.callback
+  league = web.input(league=None)
+  league = league.league
+  if not league: league = DEFAULT_LEAGUE
+  cmd = current_bundesliga_matchday(league)
+  now = datetime.now().strftime("%Y-%m-%dT%H:%M%S")
+  season = web.input(season=None)
+  if not season:
+    logger.info("getData::GET - season undefined...")
+    season = current_bundesliga_season()
+  else:
+    logger.info("getData::GET - trying to use client defined season %s"%season.season)
+    try:
+      season = int(season.season)
+    except TypeError:
+      logger.info("getData::GET - can't convert season %s into int"%season)
+      season = current_bundesliga_season()
+    else: pass
+  return (cbk,league,season)
+
+
+def getDataFromAPI(league,season):
+  '''Because we have to respond with the same data to various calls (sometimes GET sometimes POST)
+     it is better to refactor the actual retrieval of data to a separate function
+  '''
+  try:
+    data = api.getMatchdataByLeagueSeason(league,season)
+  except AlreadyUpToDate,e:
+    return json.dumps({'current':1,'cmd':cmd,'tstamp':now})
+  else:
+    matchdaycontainer = {} #hold matchdays
+    container = {}#hold matches by matchid
+    for x in range(1,35):#prepare the matchday arrays
+      matchdaycontainer[x] = []
+    for m in data: # handle all matches in a matchday
+      container[m.id] = {'t1':m.teams[0].id,
+               't2':m.teams[1].id,
+               'st':m.startTime.isoformat(),
+               'et':m.endTime.isoformat(),
+               'fin':m.isFinished,
+               'pt1':m.pt1,
+               'pt2':m.pt2,
+               'v':m.viewers,
+              }
+      matchdaycontainer[m.matchday].append(m.id)
+  goals = api.getGoalsByLeagueSeason(league,season)
+  goalobjects,goalindex = goals[0],goals[1]
+  now = datetime.now().strftime("%Y-%m-%dT%H:%M%S")
+  cmd = current_bundesliga_matchday(league)
+  packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalobjects,'goalindex':goalindex,'cmd':cmd}
+  y = json.dumps(packdict)
+  return y
+
 
 class index:
   def GET(self):
@@ -129,6 +185,7 @@ class worker:
 
 class getGoals:
   def GET(self):
+    logger.info('getGoals::GET - called')
     cbk = web.input(callback=None)
     cbk = cbk.callback
     matchID = web.input(matchID=None)
@@ -144,8 +201,7 @@ class getGoals:
         return "%s(%s)"%(cbk,str(json.dumps(goals)))
 
   def POST(self):
-    for x in web.ctx.env.keys():
-      print "%s %s"%(x,web.ctx.env[x])
+    logger.info('getGoals::POST - called')
     cursor = OpenLigaDB()
     web.header('Content-Type','application/json')
     web.header("Access-Control-Allow-Origin", "*")
@@ -154,21 +210,19 @@ class getGoals:
     matchday = d[0].split("=")[1]
     league = d[1].split("=")[1]
     season = d[2].split("=")[1]
-    new_matchday_data = cursor.GetMatchdataByGroupLeagueSaison(matchday,league,season)
-    x = matchdata_to_py(new_matchday_data)
-    retobj = {'matchdata':x,'matchday':matchday}
-    y = str(json.dumps(retobj))
-    print "%s %s %s"%(matchday,league,season)
-    return y
+    #new_matchday_data = cursor.GetMatchdataByGroupLeagueSaison(matchday,league,season)
+    #x = matchdata_to_py(new_matchday_data)
+    retobj = {'matchdata':'foo','matchday':'bar'}
+    return json.dumps(retobj)
 
   def OPTIONS(self):
+    logger.info('getGoals::OPTIONS - called')
     web.header('Content-Type','application/json')
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "POST,OPTIONS");
     web.header("Access-Control-Allow-Headers", "Content-Type");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
-    print web.ctx.headers
     return json.dumps({'name':'Ciaran','job':'Bundespresident'})
 
 class getUpdatesByTstamp:
@@ -269,64 +323,43 @@ class getUpdatesByMatchday:
     return "%s(%s)"%(cbk,d)
 
 class getData:
-  @backgrounder
-  def GET(self):
-    s1 = time.time()
-    cbk = web.input(callback=None)
-    cbk = cbk.callback
-    league = web.input(league=None)
-    league = league.league
-    if not league: league = DEFAULT_LEAGUE
-    cmd = current_bundesliga_matchday(league)
-    now = datetime.now().strftime("%Y-%m-%dT%H:%M%S")
-    season = web.input(season=None)
-    if not season:
-      logger.info("getData::GET - season undefined...")
+  def OPTIONS(self):
+    logger.info('getData::OPTIONS - called')
+    web.header('Content-Type','application/json')
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "POST,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def POST(self):
+    web.header("Access-Control-Allow-Origin", "*")
+    try:
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
+      league = DEFAULT_LEAGUE
       season = current_bundesliga_season()
     else:
-      logger.info("getData::GET - trying to use client defined season %s"%season.season)
-      try:
-        season = int(season.season)
-      except TypeError:
-        logger.info("getData::GET - can't convert season %s into int"%season)
-        season = current_bundesliga_season()
-      else: pass
+      pass
+    y = getDataFromAPI(league,season)
     web.header('Content-Type','application/json')
-    s2 = time.time()
-    t1 = s2-s1
-    logger.info("getData::GET - parsing incoming request took %f seconds. Now starting work..."%t1)
+    return "%s(%s)"%(cbk,y)
+
+  @backgrounder
+  def GET(self):
     try:
-      data = api.getMatchdataByLeagueSeason(league,season)
-    except AlreadyUpToDate,e:
-      return "%s(%s)"%(cbk,json.dumps({'current':1,'cmd':cmd,'tstamp':now}))
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
+      league = DEFAULT_LEAGUE
+      season = current_bundesliga_season()
     else:
-      s3 = time.time()
-      matchdaycontainer = {} #hold matchdays
-      container = {}#hold matches by matchid
-      for x in range(1,35):#prepare the matchday arrays
-        matchdaycontainer[x] = []
-      for m in data: # handle all matches in a matchday
-        container[m.id] = {'t1':m.teams[0].id,
-                 't2':m.teams[1].id,
-                 'st':m.startTime.isoformat(),
-                 'et':m.endTime.isoformat(),
-                 'fin':m.isFinished,
-                 'pt1':m.pt1,
-                 'pt2':m.pt2,
-                 'v':m.viewers,
-                }
-        matchdaycontainer[m.matchday].append(m.id)
-      s4 = time.time()
-      t2 = s4-s3
-      goals = api.getGoalsByLeagueSeason(league,season)
-      goalobjects,goalindex = goals[0],goals[1]
-      logger.info("getData::GET - parsing data returned from API took %f seconds. Now returning data to client"%t2)
-      packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalobjects,'goalindex':goalindex,'cmd':cmd}
-      y = json.dumps(packdict)
-      se = time.time()
-      tot = se-s1
-      logger.info("getData::GET - running the function took %f seconds"%tot)
-      return "%s(%s)"%(cbk,y)
+      pass
+    y = getDataFromAPI(league,season)
+    web.header('Content-Type','application/json')
+    return "%s(%s)"%(cbk,y)
 
 class getCurrentMatchday:
   '''
