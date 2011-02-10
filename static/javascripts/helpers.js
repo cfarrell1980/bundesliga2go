@@ -56,10 +56,10 @@ function renderMatchDay(matchdayID, matches) {
       '<span class="leftSpan">' +
       '<img class="game" src="static/logos/' + t1.icon.split('/').pop() + '">' +
       '&nbsp;<span class="game_text">'+ t1.short + '</span>' +	
-	checkPoints(match.fin, match.p1, 'team1') +
+	checkPoints(match.fin, match.pt1, 'team1') +
       '</span>' + 
       '<span class="rightSpan">' +
-	checkPoints(match.fin, match.p2, 'team2') +
+	checkPoints(match.fin, match.pt2, 'team2') +
       '<span class="game_text">'+ t2.short + '</span>' + 
       '<img class="game" src="static/logos/' + t2.icon.split('/').pop() + '">' +
       '</span>' +
@@ -94,11 +94,11 @@ function renderGames(matchID, match, t1, t2) {
 		'<li>POINTS:</li>' +
 		'<li>' +
 		'<img class="game" src="static/logos/' + t1.icon.split('/').pop() + '">' + t1.short + 
-		'<span style="float:right;">' + match.p1 + '</span>' +
+		'<span style="float:right;">' + match.pt1 + '</span>' +
 		'</li>' +
 		'<li>' +
 		'<img class="game" src="static/logos/' + t2.icon.split('/').pop() + '">' + t2.short + 
-		'<span style="float:right;">' + match.p2 + '</span>' +
+		'<span style="float:right;">' + match.pt2 + '</span>' +
 		'</li>' +
 		'</ul>' +
 	      '</div>' +
