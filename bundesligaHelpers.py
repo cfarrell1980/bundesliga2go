@@ -62,14 +62,19 @@ def remote_cmd(league):
   x = cursor.GetCurrentGroupOrderID(league)
   return x
 
-def write_cmd(cmd):
+def write_cmd(cmd,league=None,season=None):
+  if not league: league = DEFAULT_LEAGUE
+  if not season: season = current_bundesliga_season()
   try:
     fd = open("qa.json","r")
     d = json.load(fd)
     fd.close()
   except IOError:
+    cursor = OpenLigaDB()
     fd = open("qa.json","w")
+    d={}
     d['cmd'] = cmd
+    d['lmu'] = cursor.GetLastChangeDateByLeagueSaison(league,season).strftime("%Y-%m-%dT%H:%M:%S") 
     json.dump(d,fd)
     fd.close()
   else:
