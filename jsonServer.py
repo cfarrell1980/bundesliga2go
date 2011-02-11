@@ -394,28 +394,15 @@ class getTeams:
     '''
     Return all the teams for specified league and year. Defaults to Bundesliga 1 for 
     the current season'''
-    cbk = web.input(callback=None)
-    league = web.input(league=None)
-    season = web.input(season=None)
-    cbk = cbk.callback
-    league = league.league
-    #web.header('Cache-Control','no-cache')
-    #web.header('Pragma','no-cache')
-    web.header('Content-Type', 'application/json')
-    season = season.season
-    if not league:
+    try:
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
       league = DEFAULT_LEAGUE
-    cmd = current_bundesliga_matchday(league)
-    if not season:
       season = current_bundesliga_season()
     else:
-      try:
-        season = int(season)
-      except (AttributeError,TypeError):
-        logger.info("getTeams::GET - could not convert season %s to int"%season)
-        season = current_bundesliga_season()
-      else:
-        pass
+      pass
+    cmd = current_bundesliga_matchday(league)
     try:
       data = api.getTeams(league,season)
     except InvocationError:
@@ -431,7 +418,7 @@ class getTeams:
         d[t.id] = {'name':t.name,
                  'icon':t.iconURL,
                  'short':scut}
-      y = json.dumps(d)
+      y = json.dumps({'cmd':cmd,'teams':d})
       return "%s(%s)"%(cbk,y)
 
 if __name__ == '__main__':

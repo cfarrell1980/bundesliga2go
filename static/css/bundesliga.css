@@ -17,6 +17,7 @@ div.ui-page-active {
    text-align:center;
 }
 
+
 .ui-btn-inner, .ui-btn-corner-all {
   -moz-border-radius:3px;
   -webkit-border-radius:3px;
@@ -90,9 +91,33 @@ img.game {
 
 #list .ui-li-has-thumb, #list .ui-btn-inner { min-height: 20px; padding:5px 0;}
 #list div.ui-btn-inner { padding:5px 5px 5px 0; }
+#navbar .ui-btn-inner { padding:5px 30px 5px 30px; }
 span.leftSpan, span.rightSpan {white-space: pre-line; overflow:hidden; display:inline-block; width:50%; }
 span.leftSpan { float:left; text-align:left;}
 span.rightSpan { float:right; text-align:right;}
+
+.sprite-1_FC_Kaiserslautern{ background-position: 0 0; width: 20px; height: 20px; } 
+.sprite-1_FC_Koeln{ background-position: 0 -70px; width: 20px; height: 20px; } 
+.sprite-1_FC_Nuernberg{ background-position: 0 -140px; width: 20px; height: 20px; } 
+.sprite-1_FSV_Mainz_05{ background-position: 0 -210px; width: 20px; height: 20px; } 
+.sprite-Bayer_Leverkusen{ background-position: 0 -280px; width: 20px; height: 20px; } 
+.sprite-Bayern_Muenchen{ background-position: 0 -350px; width: 20px; height: 20px; } 
+.sprite-Bor_Moenchengladbach{ background-position: 0 -420px; width: 20px; height: 20px; } 
+.sprite-Borussia_Dortmund{ background-position: 0 -490px; width: 20px; height: 20px; } 
+.sprite-Eintracht_Frankfurt{ background-position: 0 -560px; width: 20px; height: 20px; } 
+.sprite-FC_Schalke_04{ background-position: 0 -630px; width: 20px; height: 20px; } 
+.sprite-FC_St_Pauli{ background-position: 0 -700px; width: 20px; height: 20px; } 
+.sprite-Hamburger_SV{ background-position: 0 -770px; width: 20px; height: 20px; } 
+.sprite-Hannover_96{ background-position: 0 -840px; width: 20px; height: 20px; } 
+.sprite-SC_Freiburg{ background-position: 0 -910px; width: 20px; height: 20px; } 
+.sprite-TSG_Hoffenheim{ background-position: 0 -980px; width: 20px; height: 20px; } 
+.sprite-VfB_Stuttgart{ background-position: 0 -1050px; width: 20px; height: 20px; } 
+.sprite-VfL_Wolfsburg{ background-position: 0 -1120px; width: 20px; height: 20px; } 
+.sprite-werder_bremen{ background-position: 0 -1190px; width: 20px; height: 20px; } 
+
+span.game {
+   background: url(csg-4d54498834307.png) no-repeat top left;
+}
 
 
 
