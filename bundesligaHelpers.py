@@ -63,13 +63,20 @@ def remote_cmd(league):
   return x
 
 def write_cmd(cmd):
-  fd = open("qa.json","r")
-  d = json.load(fd)
-  fd.close()
-  fd = open("qa.json","w")
-  d['cmd'] = cmd
-  json.dump(d,fd)
-  fd.close()
+  try:
+    fd = open("qa.json","r")
+    d = json.load(fd)
+    fd.close()
+  except IOError:
+    fd = open("qa.json","w")
+    d['cmd'] = cmd
+    json.dump(d,fd)
+    fd.close()
+  else:
+    fd = open("qa.json","w")
+    d['cmd'] = cmd
+    json.dump(d,fd)
+    fd.close()
 
 def current_bundesliga_matchday(league,force_update=False):
   '''The client needs to know what the current matchday is'''
