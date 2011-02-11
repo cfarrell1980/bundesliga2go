@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 var DEBUG = true;
 var teamsURL = 'http://paddy.suse.de:8080/getTeams'
 var dataURL= 'http://paddy.suse.de:8080/getData'
