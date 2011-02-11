@@ -24,13 +24,14 @@ function getTeams(url) {
 //SAVE TEAMS DATA FROM SERVER
 function saveTeams(data) {
   log("DEBUG: SAVE TEAMS DATA");
-
   var teams = new Array();
-  for(var id in data) {
-    teams.push(id);
-    for(var value in data[id]) {
-      localStorage.setItem('team'+id, JSON.stringify(data[id]));
-    }
+  localStorage.setItem('cmd',data['cmd']);
+  for(var id in data['teams']) {
+    teams.push(data['teams'][id]);
+    //for(var value in data['teams'][id]) {
+    //  localStorage.setItem('team'+id, JSON.stringify(data['team'][id]));
+    //}
+    localStorage.setItem('team'+id,JSON.stringify(data['teams'][id]));
   }  
   
   localStorage.setItem('teams_data', 'true');

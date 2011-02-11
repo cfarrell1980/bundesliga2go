@@ -2,7 +2,7 @@ var DEBUG = true;
 var teamsURL = 'http://paddy.suse.de:8080/getTeams'
 var dataURL= 'http://paddy.suse.de:8080/getData'
 
-var cmd = '20'
+//var cmd = '20'
 
 //localStorage.clear();
 
@@ -17,6 +17,9 @@ jQuery(document).ready(function() {
       console.time('rebder')
       getTeams(teamsURL);
       getRemoteData(dataURL);
-      renderMatchDay('20', getMatchesByMatchdayID('20'));
+      console.log("Getting cmd from localstorage");
+      var cmd = localStorage.getItem('cmd');
+      console.log("Done... cmd is"+cmd+"!");
+      renderMatchDay(cmd, getMatchesByMatchdayID(cmd));
       console.timeEnd('rebder')
     });
