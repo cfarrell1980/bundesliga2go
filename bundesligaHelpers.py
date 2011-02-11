@@ -57,18 +57,38 @@ def json_serialize(obj):
     #raise TypeError(repr(obj)+" is not JSON serializable")
     return str(obj)
 
-def current_bundesliga_matchday(league):
+def remote_cmd(league):
+  cursor = OpenLigaDB()
+  x = cursor.GetCurrentGroupOrderID(league)
+  return x
+
+def write_cmd(cmd):
+  fd = open("qa.json","r")
+  d = json.load(fd)
+  fd.close()
+  fd = open("qa.json","w")
+  d['cmd'] = cmd
+  json.dump(d,fd)
+  fd.close()
+
+def current_bundesliga_matchday(league,force_update=False):
   '''The client needs to know what the current matchday is'''
-  try:
-    fd = open("qa.json","r")
-    d = json.load(fd)
-    fd.close()
-  except IOError:#file not there - probably on first run
-    cursor = OpenLigaDB()
-    x = cursor.GetCurrentGroupOrderID(league)
-    return x
+  if force_update:
+    cmd = remote_cmd(league)
+    write_cmd(cmd)
+    return cmd
   else:
-    return int(d['cmd'])
+    try:
+      fd = open("qa.json","r")
+      d = json.load(fd)
+      fd.close()
+    except IOError:#file not there - probably on first run
+      cursor = OpenLigaDB()
+      x = cursor.GetCurrentGroupOrderID(league)
+      write_cmd(x)
+      return x
+    else:
+      return int(d['cmd'])
 
 def current_bundesliga_season():
   ''' openligadb declares the year for any bundesliga season to be the

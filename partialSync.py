@@ -41,7 +41,7 @@ def doSync():
 def doCmd():
  logger.info("partialSync - now looking for the current matchday upstream")
  s1 = time.time()
- cmd = current_bundesliga_matchday(league)
+ cmd = current_bundesliga_matchday(league,force_update=True)
  s2 = time.time()
  t1=s2-s1
  logger.info("partialSync - current matchday is %d according to openliga.db. \
