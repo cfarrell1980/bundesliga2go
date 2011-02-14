@@ -241,8 +241,7 @@ class BundesligaAPI:
     local_matchdata = q.all()
     e = time.time()
     t = e-s
-    logger.info("getMatchdataByLeagueSeason - found %d match data objects for league=%s \
-season=%s. Took %f seconds"%(len(local_matchdata),league,str(season),t))
+    logger.info("getMatchdataByLeagueSeason - found %d match data objects for league=%s,season=%s. Took %f seconds"%(len(local_matchdata),league,str(season),t))
     return local_matchdata
 
   def updateMatchByID(self,matchID):
