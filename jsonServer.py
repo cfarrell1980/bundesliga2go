@@ -345,7 +345,7 @@ class getData:
       pass
     y = getDataFromAPI(league,season)
     web.header('Content-Type','application/json')
-    return "%s(%s)"%(cbk,y)
+    return json.dumps(y)
 
   @backgrounder
   def GET(self):
