@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import time,json,datetime,os
+cron = False
+import time,json,datetime,os,sys
+if len(sys.argv) == 2:
+ if sys.argv[1] == '--cron':
+   cron = True
 from bundesligaAPI import BundesligaAPI
 from bundesligaORM import *
 from OpenLigaDB import OpenLigaDB
@@ -72,6 +76,8 @@ def doWrite(cmd,lmu):
  logger.info("partialSync - dumped volatile data to JSON file. Took %f seconds"%t)
 
 if __name__ == '__main__':
+  if cron:
+    logger.info("partialSync - called by cron")
   t1 = time.time()
   doSync()
   cmd = doCmd()
