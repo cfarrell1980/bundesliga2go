@@ -63,6 +63,7 @@ def remote_cmd(league):
   return x
 
 def write_qa(cmd,lmu=None,league=None,season=None):
+  cmd = int(cmd)
   cursor = OpenLigaDB()
   if not league: league = DEFAULT_LEAGUE
   if not season: season = current_bundesliga_season()
@@ -88,12 +89,12 @@ def write_qa(cmd,lmu=None,league=None,season=None):
       logger.info('write_qa - existing_cmd is %d'%d['cmd'])
     else:
       existing_cmd = 0
-    logger.info("write_qa - checking if send cmd %d is greater than existing cmd %d"%(int(cmd),existing_cmd))
-    if int(cmd) > existing_cmd:
-      logger.info("write_qa - new cmd %d is greater than existing cmd %d"%(int(cmd),existing_cmd))
+    logger.info("write_qa - checking if send cmd %d is greater than existing cmd %d"%(cmd,existing_cmd))
+    if cmd > existing_cmd:
+      logger.info("write_qa - upstream cmd %d is greater than existing cmd %d"%(existing_cmd,cmd))
       d['cmd'] = cmd
     else:
-      logger.info("write_qa - existing cmd %d is greater than upstream cmd %d. Not touching existing one..."%(existing_cmd,int(cmd)))
+      logger.info("write_qa - upstream cmd %d is not greater than existing cmd %d. Not touching existing one..."%(cmd,existing_cmd))
     d['lmu'] = lmu
     fd = open("qa.json","w")
     json.dump(d,fd)
