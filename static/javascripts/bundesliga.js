@@ -1,9 +1,9 @@
 var DEBUG = true;
-var teamsURL = 'http://paddy.suse.de:8080/getTeams'
-var dataURL= 'http://paddy.suse.de:8080/getData'
+// var teamsURL = 'http://paddy.suse.de:8080/getTeams'
+// var dataURL= 'http://paddy.suse.de:8080/getData'
 
 //var cmd = '20'
-//localStorage.clear();
+// localStorage.clear();
 
 jQuery(document).ready(function() {
   //localStorage.clear();

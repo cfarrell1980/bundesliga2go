@@ -29,6 +29,7 @@ function getTeamsData() {
     async: false,
     dataType: 'jsonp',
     success: getAllData
+//     success: getAllDataCORS
   });
 }
 
@@ -38,11 +39,45 @@ function getAllData(data) {
   log("DEBUG: GET ALL DATA FROM");
   $.ajax({
     url: dataURL,
-//     cache: false,
-//     async: false,
     dataType: 'jsonp',
     success: saveData
   });
+}
+
+// var dataURL= 'http://paddy.suse.de:8080/getData'
+function getAllDataCORS(data) {
+  saveTeams(data)
+  log("DEBUG: GET ALL DATA FROM");
+  
+//   var url = "http://paddy.suse.de:8080/w"
+  var xhr = new XMLHttpRequest();
+  var params = "matchday=1&league=bl1&season=2010";
+  
+  if(xhr) {    
+    xhr.open('POST', dataURL, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.send(params);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4) {
+        if (xhr.status == 200) {
+//           postMessage("finished");
+//           postMessage(xhr.responseText);
+          var soll = JSON.parse(xhr.responseText.substr(3, xhr.responseText.length-2));
+//           soll = right(xhr.responseText, len(xhr.responseText) - 1)
+//           console.log(soll)
+//         var json = substr(1, xhr.responseText.length-1);
+        console.log(soll)
+        saveData(soll)
+        
+        } else {
+          postMessage("Invocation Errors Occured");
+        }
+      } else {
+        console.log(xhr.readyState);
+      }
+    }
+  }
 }
 
 //SAVE TEAMS DATA FROM SERVER
@@ -138,4 +173,19 @@ function getTeamsForMatch(id) {
 function getTeamDataByTeamID(id) {
   log("INFO: GET TEAM DATA BY TEAM ID " + id);
   return JSON.parse(localStorage.getItem('team' + id));
+}
+
+function getGoalsByMatchID(id) {
+//   log("INFO: GET GOALS DATA BY MATCH ID " + 'goal' + id);
+//   console.log(JSON.parse(localStorage.getItem('goal' + id)))
+  if('goal' + id in localStorage) {
+    return JSON.parse(localStorage.getItem('goal' + id));
+  } else {
+    return false;
+  }
+}
+
+function getGoalObjectByID(id) {
+//   log("INFO: GET GOAL BY ID " + 'goalobject' + id);
+  return JSON.parse(localStorage.getItem('goalobject' + id));
 }

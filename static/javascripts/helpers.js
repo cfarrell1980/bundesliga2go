@@ -75,27 +75,77 @@ function renderMatchDay(matchdayID, matches) {
 
 function renderGames(matchID, match, t1, t2) {
   var games='';
+//   games +='<div data-role="page" id="' + matchID + '">' +
+// 	    '<div data-role="header">' +
+// 	      '<h2>' + t1.short + ' vs ' + t2.short +'</h2>' +
+// 	      '<a href="#home" class="ui-btn-left" data-icon="arrow-l">zuück</a>' +
+// 	    '</div>' +
+// 	    
+// 	    '<div data-role="content" class="ui-body">' +
+// 	      '<ul id="list' + matchID + '" data-role="listview" role="listbox" data-theme="c" ata-dividertheme="b" data-inset="true">' +
+// 	      '<li>POINTS:</li>' +
+// 	      '<li>' +
+// 	      '<img class="game" src="static/logos/' + t1.icon.split('/').pop() + '">' + t1.short + 
+// 	      '<span style="float:right;">' + match.pt1 + '</span>' +
+// 	      '</li>' +
+// 	      '<li>' +
+// 	      '<img class="game" src="static/logos/' + t2.icon.split('/').pop() + '">' + t2.short + 
+// 	      '<span style="float:right;">' + match.pt2 + '</span>' +
+// 	      '</li>' +
+// 	      '</ul>' +
+// 	    '</div>' +
+// 	    '<div id="homeFooter" data-role="footer"><h2>FOOTER</h2></div>' +
+// 	  '</div>';
+      
+  console.log("MatchID " + matchID)
+  console.log("Goals " + getGoalsByMatchID(matchID))
+  var goalsIndex = getGoalsByMatchID(matchID);
   games +='<div data-role="page" id="' + matchID + '">' +
-	    '<div data-role="header">' +
-	      '<h2>' + t1.short + ' vs ' + t2.short +'</h2>' +
-	      '<a href="#home" class="ui-btn-left" data-icon="arrow-l">zuück</a>' +
-	    '</div>' +
-	    
-	    '<div data-role="content" class="ui-body">' +
-	      '<ul id="list' + matchID + '" data-role="listview" role="listbox" data-theme="c" ata-dividertheme="b" data-inset="true">' +
-	      '<li>POINTS:</li>' +
-	      '<li>' +
-	      '<img class="game" src="static/logos/' + t1.icon.split('/').pop() + '">' + t1.short + 
-	      '<span style="float:right;">' + match.pt1 + '</span>' +
-	      '</li>' +
-	      '<li>' +
-	      '<img class="game" src="static/logos/' + t2.icon.split('/').pop() + '">' + t2.short + 
-	      '<span style="float:right;">' + match.pt2 + '</span>' +
-	      '</li>' +
-	      '</ul>' +
-	    '</div>' +
-	    '<div id="homeFooter" data-role="footer"><h2>FOOTER</h2></div>' +
-	  '</div>';
+  '<div data-role="header">' +
+  '<h2>' + t1.short + ' : ' + t2.short + '</h2>' +
+  '<a href="#home" class="ui-btn-left" data-icon="arrow-l">zuück</a>' +
+  '</div>' +
+  '<div id="list' + matchID + '" data-role="content" class="ui-body">' 
+//   '<div id="list' + matchID + '" data-role="content" class="ui-body">' +
+//   '<ul id="list' + matchID + '" data-role="listview" role="listbox" data-theme="c" data-dividertheme="b" data-inset="false">' +
+//   '<li style="text-align:center;">' + t1.name + ' : ' + t2.name + '</li>' +
+//   '<li>22 Spieltag</li> </ul></br>';
+  
+  if(goalsIndex !=false) {
+    
+//   }
+    for(i=0; i<goalsIndex.length; i++) {
+      
+      games += '<ul data-width="50%" data-role="listview" role="listbox" data-theme="c" data-dividertheme="b" data-inset="true">' 
+      var goals = getGoalObjectByID(goalsIndex[i])
+      games += '<li  data-role="list-divider">Goal ' + parseInt(i+1) + '</li>';
+      games += '<li data-theme="b">Team: ' + getTeamDataByTeamID(goals.teamID).name  + '</li>';
+      games += '<li>Scorer: ' + goals.scorer  + '</li>';
+      games += '<li>Minute: ' + goals.minute  + '</li>';
+      games += '</ul>';  
+    }
+    
+    
+//       var goals = [];
+//       goals = getGoalObjectByID(goalsIndex[goal]);
+//       console.log(goals)
+//       for(i=0; i<goals.length; i++) {
+//         
+
+//       }
+//     }
+  } else {
+    games += '<li>Spiel findet am xx.xx.xxxx statt</li>';
+  }
+  
+  games +=
+  
+  '</div>' +
+  '<div id="homeFooter" data-role="footer"><h2>FOOTER</h2></div>' +
+  '</div>';    
+  for(goal in goalsIndex) {
+    console.log(goalsIndex[goal]);
+  }
 
   $(games).insertAfter('#home');
   $('#'+matchID).hide();
