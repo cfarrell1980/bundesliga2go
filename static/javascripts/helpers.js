@@ -102,9 +102,6 @@ function renderGames(matchID, match, t1, t2) {
   '</div>' +
   '<div id="homeFooter" data-role="footer"><h2>FOOTER</h2></div>' +
   '</div>';    
-  for(goal in goalsIndex) {
-    console.log(goalsIndex[goal]);
-  }
 
   $(games).insertAfter('#home');
   $('#'+matchID).hide();

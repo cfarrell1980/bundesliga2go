@@ -1,47 +1,49 @@
-var url = "http://paddy.suse.de:8080/w"
-var invocation = new XMLHttpRequest();
-var params = "matchday=1&league=bl1&season=2010";
+importScripts('/static/javascripts/functions.js');
 
-function callOtherDomain(){
-  if(invocation) {    
-    invocation.open('POST', url, true);
-    invocation.setRequestHeader('Content-Type', 'application/json');
-    invocation.onreadystatechange = updateUI;
-    invocation.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    invocation.send(params);
-  }
-}
+var xhr = new XMLHttpRequest();
 
-function updateUI(evtXHR) {
-  if (invocation.readyState == 4) {
-    if (invocation.status == 200) {
-      postMessage("finished");
-      postMessage(invocation.responseText);
-    } else {
-      postMessage("Invocation Errors Occured");
-    }
-  } else {
-    postMessage(invocation.readyState);
-  }
-}
-
-onmessage = function(event) {
-  var data = event.data;
-  if(data == "start") {
-    callOtherDomain();    
-  } else {
-    postMessage("ERROR");
-  }
-}
-
-function sleep(milliseconds) {
-  var start = new Date().getTime();
+function XHRrequest(url, params){
+  params == '#'? data = ' ' : data = params
   
-  for (var i = 0; i < 1e7; i++) {
-    if ((new Date().getTime() - start) > milliseconds){
-      break;
+  if(xhr) {    
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.send(data);
+    
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4) {
+	if (xhr.status == 200) {
+// 	  saveData(JSON.parse(xhr.responseText));
+// 	  postMessage("finished");
+	  postMessage(xhr.responseText);
+	} else {
+	  postMessage("Invocation Errors Occured");
+	}
+      } else {
+	postMessage("wait");
+      }
     }
   }
 }
 
-
+self.addEventListener('message', function(e) {
+  var data = e.data;
+  switch (data.get) {
+    case 'teams':
+      var url = 'http://paddy.suse.de:8080/getTeams'
+      var url = '/patch_updates/show_summary?background=true';
+      XHRrequest(url, data.params);
+      break;
+    case 'data':
+      var url = 'http://paddy.suse.de:8080/getData'
+      XHRrequest(url, data.params);
+      break;
+    case 'updates':
+      var url = 'http://paddy.suse.de:8080/getUpdatesByTstamp'
+      XHRrequest(url, data.params);
+      break;
+    default:
+      self.postMessage('Unknown command: ' + data.msg);
+  };
+}, false);

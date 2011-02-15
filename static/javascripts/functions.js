@@ -46,44 +46,44 @@ function getAllData(data) {
 }
 
 //TODO: add web worker detection and move getAllDataCORS() to web worker
+var dataURL= 'http://paddy.suse.de:8080/getData'
 function getAllDataCORS(data) {
   //TODO: remove inline CSS!!!
   $('#list').html('<li style="display:block; padding:50px 0px; text-align:center;"><img src="static/img/spinner.gif" style="vertical-align:middle"><span style=" vertical-align:middle; font-size:22px;"> loading data, please wait ...</span></li>');
   saveTeams(data)
-  
   log("DEBUG: GET ALL DATA FROM");
   
-//   var url = "http://paddy.suse.de:8080/w"
-  var xhr = new XMLHttpRequest();
-  var params = "";
-  
-  if(xhr) {    
-    xhr.open('POST', dataURL, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.send(params);
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState == 4) {
-        if (xhr.status == 200) {
-          saveData(JSON.parse(xhr.responseText))
-        } else {
-          console.error("Invocation Errors Occured");
-        }
-      } 
-    }
+  if(typeof(Worker) == 'undefined') {
+    log("AJAX call in main thread");
+    XHRRequest(dataURL, '#');
+  } else {
+    log("AJAX call in separate thread (Web Workers)");
+    var worker = new Worker("/static/javascripts/worker.js");
+    worker.postMessage({'get': 'data', 'params': '#'});
+//     worker.postMessage({'get': 'updates', 'params': 'tstamp=2011-11-10T15:10:10'});
+    
+    worker.onmessage = function(event) {
+      if(event.data != "wait") {
+	log("save data from worker")
+	saveData(JSON.parse(event.data));
+      } else {
+	log("worker said " + event.data)
+      }
+    };
   }
 }
+
+
 
 //SAVE TEAMS DATA FROM SERVER
 function saveTeams(data) {
   log("DEBUG: SAVE TEAMS DATA");
+  console.log(data.cmd);
+  
   var teams = new Array();
   localStorage.setItem('cmd',data['cmd']);
   for(var id in data['teams']) {
     teams.push(data['teams'][id]);
-    //for(var value in data['teams'][id]) {
-    //  localStorage.setItem('team'+id, JSON.stringify(data['team'][id]));
-    //}
     localStorage.setItem('team'+id,JSON.stringify(data['teams'][id]));
   }  
   localStorage.setItem('teams', JSON.stringify(teams));
@@ -122,6 +122,7 @@ function saveData(data) {
     }
   }
 
+  log("DEBUG: RENDER MACTH DAY");
   renderMatchDay(data.cmd, getMatchesByMatchdayID(data.cmd));
 }
 
@@ -138,40 +139,39 @@ function getUpdates(url, tstamp) {
 
 //SAVE UPDATES FROM SERVER
 function saveUpdates(data) {
-  log("DEBUG: SAVE UPDATES");
+//   log("DEBUG: SAVE UPDATES");
 }
 
 function getMatchesByMatchdayID(id) {
-  log("INFO: GET TEAMS BY MATCHDAYID " + id);
+  //log("INFO: GET TEAMS BY MATCHDAYID " + id);
   return JSON.parse(localStorage.getItem('matchday'+id));
 }
 
 function getMatchByID(id) {
-  log("INFO: GET TEAMS BY MATCH ID " + id);
+  //log("INFO: GET TEAMS BY MATCH ID " + id);
   return JSON.parse(localStorage.getItem('match'+id));
 }
  
 function getTeamsForMatch(id) {
-  log("INFO: GET TEAMS BY MATCHDAYID " + id);
-  try {
+//   log("INFO: GET TEAMS BY MATCHDAYID " + id);
+//   try {
     var temp = JSON.parse(localStorage.getItem('match' + id));
     var teams  = [];
     teams.push(temp.t1);
     teams.push(temp.t2);
     return teams;
-  } catch(err) {
-    log("ERROR: " + err);
-  }
+//   } catch(err) {
+//     log("ERROR: " + err);
+//   }
 }
 
 function getTeamDataByTeamID(id) {
-  log("INFO: GET TEAM DATA BY TEAM ID " + id);
+  //log("INFO: GET TEAM DATA BY TEAM ID " + id);
   return JSON.parse(localStorage.getItem('team' + id));
 }
 
 function getGoalsByMatchID(id) {
 //   log("INFO: GET GOALS DATA BY MATCH ID " + 'goal' + id);
-//   console.log(JSON.parse(localStorage.getItem('goal' + id)))
   if('goal' + id in localStorage) {
     return JSON.parse(localStorage.getItem('goal' + id));
   } else {
