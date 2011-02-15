@@ -10,7 +10,8 @@ from bundesligaORM import *
 from OpenLigaDB import OpenLigaDB
 from sqlalchemy.sql import and_,or_,not_
 from bundesligaLogger import logger
-from bundesligaHelpers import DEFAULT_LEAGUE,current_bundesliga_season,current_bundesliga_matchday
+from bundesligaHelpers import write_qa,DEFAULT_LEAGUE,current_bundesliga_matchday
+from bundesligaHelpers import current_bundesliga_season
 api = BundesligaAPI()
 cursor = OpenLigaDB()
 
@@ -64,13 +65,9 @@ was %s"%lmu.strftime("%Y-%m-%dT%H:%M:%S"))
 
 # WRITE THE VOLATILE STUFF TO A JSON FILE
 def doWrite(cmd,lmu):
- qa = "qa.json"
  t1 = time.time()
  logger.info("partialSync - storing volatile data in a JSON file")
- qa_info = {'cmd':cmd,'lmu':lmu.strftime("%Y-%m-%dT%H:%M:%S")}
- fd = open(qa,'w')
- json.dump(qa_info,fd)
- fd.close()
+ write_qa(cmd,lmu=lmu)
  t2 = time.time()
  t = t2-t1
  logger.info("partialSync - dumped volatile data to JSON file. Took %f seconds"%t)
