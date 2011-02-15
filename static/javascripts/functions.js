@@ -16,8 +16,9 @@ function log(object, inspect) {
 
 //DON'T FORGET TO CHANGE THE URL!!!
 
-var teamsURL = 'http://192.168.178.35:8080/getTeams'
-var dataURL= 'http://192.168.178.35:8080/getData'
+// var teamsURL = 'http://192.168.178.35:8080/getTeams'
+// var dataURL= 'http://192.168.178.35:8080/getData'
+// var dataURL= 'http://paddy.suse.de:8080/getData'
 
 //GET TEAMS DATA FROM SERVER
 function getTeamsData() {
@@ -28,8 +29,8 @@ function getTeamsData() {
     cache: false,
     async: false,
     dataType: 'jsonp',
-    success: getAllData
-//     success: getAllDataCORS
+//     success: getAllData
+    success: getAllDataCORS
   });
 }
 
@@ -44,14 +45,17 @@ function getAllData(data) {
   });
 }
 
-// var dataURL= 'http://paddy.suse.de:8080/getData'
+//TODO: add web worker detection and move getAllDataCORS() to web worker
 function getAllDataCORS(data) {
+  //TODO: remove inline CSS!!!
+  $('#list').html('<li style="display:block; padding:50px 0px; text-align:center;"><img src="static/img/spinner.gif" style="vertical-align:middle"><span style=" vertical-align:middle; font-size:22px;"> loading data, please wait ...</span></li>');
   saveTeams(data)
+  
   log("DEBUG: GET ALL DATA FROM");
   
 //   var url = "http://paddy.suse.de:8080/w"
   var xhr = new XMLHttpRequest();
-  var params = "matchday=1&league=bl1&season=2010";
+  var params = "";
   
   if(xhr) {    
     xhr.open('POST', dataURL, true);
@@ -61,21 +65,11 @@ function getAllDataCORS(data) {
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
         if (xhr.status == 200) {
-//           postMessage("finished");
-//           postMessage(xhr.responseText);
-          var soll = JSON.parse(xhr.responseText.substr(3, xhr.responseText.length-2));
-//           soll = right(xhr.responseText, len(xhr.responseText) - 1)
-//           console.log(soll)
-//         var json = substr(1, xhr.responseText.length-1);
-        console.log(soll)
-        saveData(soll)
-        
+          saveData(JSON.parse(xhr.responseText))
         } else {
-          postMessage("Invocation Errors Occured");
+          console.error("Invocation Errors Occured");
         }
-      } else {
-        console.log(xhr.readyState);
-      }
+      } 
     }
   }
 }
