@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from datetime import datetime
 from OpenLigaDB import OpenLigaDB
 import hashlib,json,os,sys
-
+from bundesligaLogger import logger
 DEFAULT_LEAGUE = 'bl1'
 
 if os.environ.has_key('TMPDIR'):
@@ -62,32 +62,53 @@ def remote_cmd(league):
   x = cursor.GetCurrentGroupOrderID(league)
   return x
 
-def write_cmd(cmd,league=None,season=None):
+def write_qa(cmd,lmu=None,league=None,season=None):
+  cursor = OpenLigaDB()
   if not league: league = DEFAULT_LEAGUE
   if not season: season = current_bundesliga_season()
+  if not lmu:
+    lmu = cursor.GetLastChangeDateByLeagueSaison(league,season).strftime("%Y-%m-%dT%H:%M:%S")
+  else:
+    if isinstance(lmu,datetime):
+      lmu = lmu.strftime("%Y-%m-%dT%H:%M:%S")
   try:
     fd = open("qa.json","r")
     d = json.load(fd)
     fd.close()
   except IOError:
-    cursor = OpenLigaDB()
     fd = open("qa.json","w")
     d={}
     d['cmd'] = cmd
-    d['lmu'] = cursor.GetLastChangeDateByLeagueSaison(league,season).strftime("%Y-%m-%dT%H:%M:%S") 
+    d['lmu'] = lmu
     json.dump(d,fd)
     fd.close()
   else:
+    if d.has_key('cmd'):
+      existing_cmd = int(d['cmd'])
+      logger.info('write_qa - existing_cmd is %d'%d['cmd'])
+    else:
+      existing_cmd = 0
+    logger.info("write_qa - checking if send cmd %d is greater than existing cmd %d"%(int(cmd),existing_cmd))
+    if int(cmd) > existing_cmd:
+      logger.info("write_qa - new cmd %d is greater than existing cmd %d"%(int(cmd),existing_cmd))
+      d['cmd'] = cmd
+    else:
+      logger.info("write_qa - existing cmd %d is greater than upstream cmd %d. Not touching existing one..."%(existing_cmd,int(cmd)))
+    d['lmu'] = lmu
     fd = open("qa.json","w")
-    d['cmd'] = cmd
     json.dump(d,fd)
     fd.close()
 
 def current_bundesliga_matchday(league,force_update=False):
-  '''The client needs to know what the current matchday is'''
+  '''The client needs to know what the current matchday is. Note that in
+     some circumstances upstream may set the current matchday to be less than
+     the most recent matchday. For example, if a match was cancelled and the
+     replay date of the match is post the the most current matchday, then for
+     the day that the match is being played, upstream may revert the matchday.
+  '''
   if force_update:
     cmd = remote_cmd(league)
-    write_cmd(cmd)
+    write_qa(cmd)
     return cmd
   else:
     try:
@@ -97,7 +118,7 @@ def current_bundesliga_matchday(league,force_update=False):
     except IOError:#file not there - probably on first run
       cursor = OpenLigaDB()
       x = cursor.GetCurrentGroupOrderID(league)
-      write_cmd(x)
+      write_qa(x)
       return x
     else:
       return int(d['cmd'])
