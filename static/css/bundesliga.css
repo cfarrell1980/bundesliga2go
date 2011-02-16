@@ -1,12 +1,5 @@
-.error {
-  color:#900000;
-  text-align:center;
-  font-weight:bold;
-}
-
-div.ui-page-active {
-  display:block!important;
-}
+.error { color:#900000; text-align:center; font-weight:bold; }
+div.ui-page-active { display:block!important; }
 
 #message {
    display:none;
@@ -17,11 +10,7 @@ div.ui-page-active {
    text-align:center;
 }
 
-
-.ui-btn-inner, .ui-btn-corner-all {
-  -moz-border-radius:3px;
-  -webkit-border-radius:3px;
-}
+.ui-btn-inner, .ui-btn-corner-all { -moz-border-radius:3px; -webkit-border-radius:3px; }
 
 span.matchday {
   display:inline-block;
@@ -37,23 +26,10 @@ span.matchday {
   margin-right: 150px;
 }
 
-#list h3.ui-li-heading, #list p.ui-li-desc {
-  margin-left:100px;
-}
-span.color-grey {
-  color:#aaa;
-}
-span.left {
-  float:left; 
-  clear:both; 
-  overflow:hidden;
-}
-
-span.right {
-  float:right; 
-  clear:both; 
-  overflow:hidden;
-}
+#list h3.ui-li-heading, #list p.ui-li-desc { margin-left:100px; }
+span.color-grey { color:#aaa; }
+span.left { float:left; clear:both; overflow:hidden; }
+span.right { float:right; clear:both; overflow:hidden; }
 
 span.matchday {text-align:center;}
 span.matchday_border {
@@ -65,59 +41,29 @@ span.matchday_border {
   vertical-align:50%;
 }
 
-/* li.current_matchday { background-color:#0091ff; } */
-/* span.current_matchday { color:#0091ff; } */
-
-span.matchday_number {
-  font-size:44px; 
-  line-height:40px; 
-  display:inline-block;
-}
-
-span.matchday_text {
-  font-size:14px; 
-  line-height:14px; 
-  display:block;
-}
-
-span.leftSpan img, span.rightSpan img { margin:0 10px;  }
-img.game { 
-  position:static;   
-  display:inline;
-  vertical-align:top;
-  float:none;
-  margin-left:4px;
-}
-
 #list .ui-li-has-thumb, #list .ui-btn-inner { min-height: 20px; padding:5px 0;}
 #list div.ui-btn-inner { padding:5px 5px 5px 0; }
 #navbar .ui-btn-inner { padding:5px 30px 5px 30px; }
-span.leftSpan, span.rightSpan {white-space: pre-line; overflow:hidden; display:inline-block; width:50%; }
-span.leftSpan { float:left; text-align:left;}
-span.rightSpan { float:right; text-align:right;}
 
-.sprite-1_FC_Kaiserslautern{ background-position: 0 0; width: 20px; height: 20px; } 
-.sprite-1_FC_Koeln{ background-position: 0 -70px; width: 20px; height: 20px; } 
-.sprite-1_FC_Nuernberg{ background-position: 0 -140px; width: 20px; height: 20px; } 
-.sprite-1_FSV_Mainz_05{ background-position: 0 -210px; width: 20px; height: 20px; } 
-.sprite-Bayer_Leverkusen{ background-position: 0 -280px; width: 20px; height: 20px; } 
-.sprite-Bayern_Muenchen{ background-position: 0 -350px; width: 20px; height: 20px; } 
-.sprite-Bor_Moenchengladbach{ background-position: 0 -420px; width: 20px; height: 20px; } 
-.sprite-Borussia_Dortmund{ background-position: 0 -490px; width: 20px; height: 20px; } 
-.sprite-Eintracht_Frankfurt{ background-position: 0 -560px; width: 20px; height: 20px; } 
-.sprite-FC_Schalke_04{ background-position: 0 -630px; width: 20px; height: 20px; } 
-.sprite-FC_St_Pauli{ background-position: 0 -700px; width: 20px; height: 20px; } 
-.sprite-Hamburger_SV{ background-position: 0 -770px; width: 20px; height: 20px; } 
-.sprite-Hannover_96{ background-position: 0 -840px; width: 20px; height: 20px; } 
-.sprite-SC_Freiburg{ background-position: 0 -910px; width: 20px; height: 20px; } 
-.sprite-TSG_Hoffenheim{ background-position: 0 -980px; width: 20px; height: 20px; } 
-.sprite-VfB_Stuttgart{ background-position: 0 -1050px; width: 20px; height: 20px; } 
-.sprite-VfL_Wolfsburg{ background-position: 0 -1120px; width: 20px; height: 20px; } 
-.sprite-werder_bremen{ background-position: 0 -1190px; width: 20px; height: 20px; } 
+span.left-column, span.right-column {white-space: pre-line; overflow:hidden; display:inline-block; width:50%; }
+span.left-column { float:left; text-align:left;} span.right-column { float:right; text-align:right;}
 
-span.game {
-   background: url(csg-4d54498834307.png) no-repeat top left;
-}
-
-
-
+span.icon { margin:0 10px; vertical-align:middle; line-height: 20px; border: 2px solid #cccccc; -moz-border-radius:50%; }
+span.icon-1_FC_Kaiserslautern{ background: url(../img/teams.png) no-repeat top left; background-position: 0 0; width: 20px; height: 20px; display:inline-block; } 
+span.icon-1_FC_Koeln{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -70px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-1_FC_Nuernberg{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -140px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-1_FSV_Mainz_05{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -210px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Bayer_Leverkusen{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -280px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Bayern_Muenchen{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -350px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Bor_Moenchengladbach{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -420px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Borussia_Dortmund{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -490px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Eintracht_Frankfurt{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -560px; width: 20px; height: 20px; display:inline-block;} 
+span.icon-FC_Schalke_04{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -630px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-FC_St_Pauli{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -700px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Hamburger_SV{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -770px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Hannover_96{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -840px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-SC_Freiburg{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -910px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-TSG_Hoffenheim{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -980px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-VfB_Stuttgart{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -1050px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-VfL_Wolfsburg{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -1120px; width: 20px; height: 20px; display:inline-block;} 
+span.icon-werder_bremen{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -1190px; width: 20px; height: 20px; display:inline-block;} 

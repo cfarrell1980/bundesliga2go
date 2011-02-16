@@ -22,21 +22,8 @@ function navbarMatchDay(matchdayID) {
   }
 }
 
-function checkPoints(finished, points, team) {
-  if(finished) { 
-    if(team == 'team1') {
-      return '<span class="right">' + points + '</span>';
-    } else {
-      return '<span class="left">:' + points + '</span>';
-    }
-  } else { 
-    if(team == 'team2') {
-      return '<span class="left color-grey">:0</span>'; 
-    } else {
-      return '<span class="right color-grey">0</span>'; 
-    }
-    
-  }
+function checkPoints(fin, pts) {
+  if(fin) { return '<b>' + pts + '</b>'; } else { return '<b class="color-grey">' + 0 + '</b>'; }
 }
 
 function renderMatchDay(matchdayID, matches) {
@@ -51,16 +38,16 @@ function renderMatchDay(matchdayID, matches) {
     
     list += '<li>' +
     '<a class="match_link" href="' + matches[i] + '">' +
-    '<span class="leftSpan">' +
-    '<img class="game" src="static/logos/' + t1.icon.split('/').pop() + '">' +
-    '&nbsp;<span class="game_text">'+ t1.short + '</span>' +	
-      checkPoints(match.fin, match.pt1, 'team1') +
-    '</span>' + 
-    '<span class="rightSpan">' +
-      checkPoints(match.fin, match.pt2, 'team2') +
-    '<span class="game_text">'+ t2.short + '</span>' + 
-    '<img class="game" src="static/logos/' + t2.icon.split('/').pop() + '">' +
-    '</span>' +
+      '<span class="left-column">' +
+      '<span class="icon icon-' + t1.icon.split('/').pop().split('.').shift() + '"></span>' +	
+      '<span class="">'+ t1.short + '</span>' +	
+      '<span class="right">' + checkPoints(match.fin, match.pt2) + ':</span>' +
+      '</span>' + 
+      '<span class="right-column">' +
+      '<span class="left">' + checkPoints(match.fin, match.pt2) + '</span>' +
+      '<span class="">'+ t2.short + '</span>' +	
+      '<span class="icon icon-' + t2.icon.split('/').pop().split('.').shift() + '"></span>' +	
+      '</span>' +
     '</a>' +
     '</li>';
     
