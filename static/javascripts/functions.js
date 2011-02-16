@@ -49,7 +49,7 @@ function getAllData(data) {
 var dataURL= 'http://paddy.suse.de:8080/getData'
 function getAllDataCORS(data) {
   //TODO: remove inline CSS!!!
-  $('#list').html('<li style="display:block; padding:50px 0px; text-align:center;"><img src="static/img/spinner.gif" style="vertical-align:middle"><span style=" vertical-align:middle; font-size:22px;"> loading data, please wait ...</span></li>');
+  $('#list').html('<li style="display:block; padding:50px 0px; text-align:center;"><img src="static/css/images/ajax-loader.png" style="vertical-align:middle"><span style=" vertical-align:middle; font-size:22px;"> loading data, please wait ...</span></li>');
   saveTeams(data)
   log("DEBUG: GET ALL DATA FROM");
   
@@ -72,8 +72,6 @@ function getAllDataCORS(data) {
     };
   }
 }
-
-
 
 //SAVE TEAMS DATA FROM SERVER
 function saveTeams(data) {
