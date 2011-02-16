@@ -60,7 +60,7 @@ function getAllDataCORS(data) {
     log("AJAX call in separate thread (Web Workers)");
     var worker = new Worker("/static/javascripts/worker.js");
     worker.postMessage({'get': 'data', 'params': '#'});
-//     worker.postMessage({'get': 'updates', 'params': 'tstamp=2011-11-10T15:10:10'});
+//     worker.postMessage({'get': 'updates', 'params': 'tstamp=2011-01-10T15:10:10'});
     
     worker.onmessage = function(event) {
       if(event.data != "wait") {
