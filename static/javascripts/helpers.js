@@ -79,7 +79,7 @@ function renderGames(matchID, match, t1, t2) {
   games +='<div data-role="page" id="' + matchID + '">' +
   '<div data-role="header">' +
   '<h2>' + t1.short + ' : ' + t2.short + '</h2>' +
-  '<a href="#home" class="ui-btn-left" data-icon="arrow-l">zuück</a>' +
+  '<a href="#home" class="ui-btn-left" data-icon="arrow-l">zurück</a>' +
   '</div>' +
   '<div id="list' + matchID + '" data-role="content" class="ui-body">' 
   
