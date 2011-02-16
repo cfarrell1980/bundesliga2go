@@ -162,70 +162,41 @@ class index:
   def GET(self):
     return render.index()
 
-class worker:
-  def GET(self):
-    env = web.ctx.env
-    print env
-    cbk = web.input(callback=None)
-    cbk = cbk.callback
-    d = {'hello':'world','env':'notimp'}
-    web.header('Cache-Control','no-cache')
-    web.header('Pragma','no-cache')
-    web.header('Content-Type','application/xml')
-    #return "%s(%s)"%(cbk,str(json.dumps(d)))
-
-    xml = '<?xml version=\"1.0\"?>\n'
-    xml += '<note>\n'
-    xml += '<to>Tove</to>\n'
-    xml += '<from>Jani</from>\n'
-    xml += '<heading>Reminder</heading>\n'
-    xml += "<body>Dont forget me this weekend</body>\n"
-    xml += "</note>\n"
-    return xml
-
-class getGoals:
-  def GET(self):
-    logger.info('getGoals::GET - called')
-    cbk = web.input(callback=None)
-    cbk = cbk.callback
-    matchID = web.input(matchID=None)
-    matchID = matchID.matchID
-    if not matchID:
-      return "%s()"%cbk
-    else:
-      try:
-        goals = getGoalsByMatchID(matchID)
-      except StandardError,e:
-        return"%s('invocationError':'%s')"%(cbk,str(e))
-      else:
-        return "%s(%s)"%(cbk,str(json.dumps(goals)))
-
-  def POST(self):
-    logger.info('getGoals::POST - called')
-    cursor = OpenLigaDB()
-    web.header('Content-Type','application/json')
-    web.header("Access-Control-Allow-Origin", "*")
-    matchday = web.input(matchday=None)
-    d = web.data().split("&")
-    matchday = d[0].split("=")[1]
-    league = d[1].split("=")[1]
-    season = d[2].split("=")[1]
-    #new_matchday_data = cursor.GetMatchdataByGroupLeagueSaison(matchday,league,season)
-    #x = matchdata_to_py(new_matchday_data)
-    retobj = {'matchdata':'foo','matchday':'bar'}
-    return json.dumps(retobj)
-
+class getUpdatesByTstamp:
   def OPTIONS(self):
-    logger.info('getGoals::OPTIONS - called')
+    logger.info('getUpdatesByTstamp::OPTIONS - called')
     web.header('Content-Type','application/json')
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "POST,OPTIONS");
     web.header("Access-Control-Allow-Headers", "Content-Type");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
-    return json.dumps({'name':'Ciaran','job':'Bundespresident'})
+    return None
 
-class getUpdatesByTstamp:
+  def POST(self):
+    web.header("Access-Control-Allow-Origin", "*")
+    try:
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
+      league = DEFAULT_LEAGUE
+      season = current_bundesliga_season()
+    else:
+      pass
+    tstamp = web.input(tstamp=None)
+    if not tstamp:
+      return json.dumps({'invocationError':'invalid_tstamp'})
+    else:
+      try:
+        tstamp = datetime.strptime(tstamp,"%Y-%m-%dT%H:%M:%S")
+      except:
+        return json.dumps({'invocationError':'invalid_tstamp'})
+      else:
+        pass
+    updates = api.getUpdatesByTstamp(league,season,tstamp)
+    web.header('Content-Type','application/json')
+    return json.dumps(updates)
+
   @backgrounder
   def GET(self):
     s1 = time.time()
