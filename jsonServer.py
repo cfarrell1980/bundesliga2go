@@ -174,6 +174,9 @@ class getUpdatesByTstamp:
     return None
 
   def POST(self):
+    logger.info('getUpdatesByTstamp::POST - called')
+    new_stamp = datetime.now()
+    new_stamp_s = new_stamp.strftime("%Y-%m-%dT%H:%M:%S")
     web.header("Access-Control-Allow-Origin", "*")
     try:
       cbk,league,season = parseRequestFundamentals()
@@ -183,7 +186,9 @@ class getUpdatesByTstamp:
       season = current_bundesliga_season()
     else:
       pass
+    cmd = current_bundesliga_matchday(league)
     tstamp = web.input(tstamp=None)
+    tstamp = tstamp.tstamp
     if not tstamp:
       return json.dumps({'invocationError':'invalid_tstamp'})
     else:
@@ -194,10 +199,11 @@ class getUpdatesByTstamp:
       else:
         pass
     updates = api.getUpdatesByTstamp(league,season,tstamp)
+    updates['tstamp'] = new_stamp_s
+    updates['cmd'] = cmd
     web.header('Content-Type','application/json')
     return json.dumps(updates)
 
-  @backgrounder
   def GET(self):
     s1 = time.time()
     cbk = web.input(callback=u'bundesliga2go')
@@ -241,7 +247,7 @@ class getUpdatesByTstamp:
       d = {'cmd':cmd,'error':'noLocalCache'}
       return "%s(%s)"%(cbk,json.dumps(d))
     else:
-      rd = {'tstamp':new_stamp_s,'goalobjects':updates[0],'goalindex':updates[1],'cmd':cmd}
+      rd = {'tstamp':new_stamp_s,'goalobjects':updates['goalobjects'],'goalindex':updates['goalindex'],'cmd':cmd}
       d = json.dumps(rd)
       s4 = time.time()
       t2 = s4-s3

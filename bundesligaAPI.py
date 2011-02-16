@@ -114,7 +114,7 @@ class BundesligaAPI:
           goalindex[match.id].append(False)
         else:
           goalindex[match.id] = [False]
-    rd = (goals,goalindex)
+    rd = {'goalobjects':goals,'goalindex':goalindex}
     return rd
 
 
@@ -168,7 +168,7 @@ class BundesligaAPI:
         else:
           goalindex[match.id] = [False]
 
-    rd = (goals,goalindex)
+    rd = {'goalobjects':goals,'goalindex':goalindex}
     return rd
 
   def setupLocal(self,league,season):
