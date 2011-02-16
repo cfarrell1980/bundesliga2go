@@ -292,7 +292,7 @@ class BundesligaAPI:
     e = time.time()
     total = e-s
     logger.info("getGoalsByLeagueSeason - finished in %f seconds"%total)
-    return (goalobjects,goalindex)
+    return {'goalobjects':goalobjects,'goalindex':goalindex}
 
   def getTeams(self,league,season):
     '''Return a dictionary holding data for the teams in a given 

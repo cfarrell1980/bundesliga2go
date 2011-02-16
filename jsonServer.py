@@ -88,7 +88,8 @@ urls = (
   '/getUpdatesByMatchday','getUpdatesByMatchday',
   '/getUpdates','getUpdatesByTstamp',
   '/getUpdatesByTstamp','getUpdatesByTstamp',
-  '/getData','getData'
+  '/getData','getData',
+  '/getGoals','getGoals'
 )
 render = web.template.render('bundesliga/')
 #app = web.application(urls,globals(),autoreload=True)
@@ -149,11 +150,11 @@ def getDataFromAPI(league,season):
                'v':m.viewers,
               }
       matchdaycontainer[m.matchday].append(m.id)
-  goals = api.getGoalsByLeagueSeason(league,season)
-  goalobjects,goalindex = goals[0],goals[1]
+  #goals = api.getGoalsByLeagueSeason(league,season)
+  #goalobjects,goalindex = goals[0],goals[1]
   now = datetime.now().strftime("%Y-%m-%dT%H:%M%S")
   cmd = current_bundesliga_matchday(league)
-  packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'goalobjects':goalobjects,'goalindex':goalindex,'cmd':cmd}
+  packdict = {'tstamp':now,'matches':container,'matchdays':matchdaycontainer,'cmd':cmd}
   y = json.dumps(packdict)
   return y
 
@@ -397,6 +398,48 @@ class getTeams:
                  'short':scut}
       y = json.dumps({'cmd':cmd,'teams':d})
       return "%s(%s)"%(cbk,y)
+
+class getGoals:
+  def OPTIONS(self):
+    logger.info('getGoals::OPTIONS - called')
+    web.header('Content-Type','application/json')
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "POST,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def POST(self):
+    logger.info('getGoals::POST - called')
+    new_stamp = datetime.now()
+    new_stamp_s = new_stamp.strftime("%Y-%m-%dT%H:%M:%S")
+    web.header("Access-Control-Allow-Origin", "*")
+    try:
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
+      league = DEFAULT_LEAGUE
+      season = current_bundesliga_season()
+    else:
+      pass
+    goals = api.getGoalsByLeagueSeason(league,season)
+    return json.dumps(goals)
+
+  def GET(self):
+    logger.info('getGoals::GET - called')
+    try:
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
+      league = DEFAULT_LEAGUE
+      season = current_bundesliga_season()
+    else:
+      pass
+    goals = api.getGoalsByLeagueSeason(league,season)
+    return "%s(%s)"%(cbk,json.dumps(goals))
+
+
 
 if __name__ == '__main__':
   try:
