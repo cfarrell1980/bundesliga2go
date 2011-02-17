@@ -102,6 +102,7 @@ function hideLoading(){
 function initNavbar() {
   var id = ['#prevMatchday', '#nextMatchday'];
   var matchday;
+  console.log("initNavbar")
   
   for (var i in id) {
     jQuery(id[i]).live('click tap', function(event) {
@@ -109,10 +110,10 @@ function initNavbar() {
       
       //TODO: if matchday > 34 switch to next season
       (jQuery(this).attr('id') == 'nextMatchday') ? matchday++ : matchday--;
+      console.log("initNavbar " + matchday)
       renderMatchDay(matchday, getMatchesByMatchdayID(matchday));
       jQuery.mobile.pageLoading();
-      setTimeout("hideLoading()",2000);
-      location.reload();
+      setTimeout("hideLoading()",500);
       return false;
     });
   }

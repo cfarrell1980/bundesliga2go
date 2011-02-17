@@ -27,13 +27,14 @@
 	  getTeamsData();
 	}
 
-	jQuery('#reset-storage').click(function() {
-	  log("Reseting Local Storage");
-	  localStorage.clear();
-	  jQuery.mobile.pageLoading();
-	  setTimeout("hideLoading()",500);
-	});
+      jQuery('#reset-storage').click(function() {
+	log("Reseting Local Storage");
+	localStorage.clear();
+	jQuery.mobile.pageLoading();
+	setTimeout("hideLoading()",500);
+	location.reload();
       });
+    });
     </script>
   </head>
   <body>
