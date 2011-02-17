@@ -70,12 +70,25 @@ function getMatchdaysData(data) {
 }
 
 //GET UPDATES FROM SERVER
-function getUpdates(url, tstamp) {
+function getGoals(url, tstamp) {
+  typeof(tstamp) != "undefined"? tstamp = tstamp : tstamp = '#';
+  
   log("DEBUG: GET UPDATES FROM " + url + " FOR TIMESTAMP " + tstamp);
-  $.ajax({
-    url: url,
-	 dataType: 'jsonp',
-	 data: 'tstamp=' + tstamp,
-	 success: saveUpdates
-  });
+  if(typeof(Worker) == 'undefined') {
+    log("AJAX call in main thread");
+    XHRRequest(goalsURL, tstamp);
+  } else {
+    log("AJAX call in separate thread (Web Workers)");
+    var worker = new Worker("/static/javascripts/worker.js");
+    worker.postMessage({'get': 'goals', 'params': tstamp});
+    
+    worker.onmessage = function(event) {
+      if(event.data != "wait") {
+	log("save data from worker")
+	saveGoals(JSON.parse(event.data));
+      } else {
+	log("worker said " + event.data)
+      }
+    };
+  }
 }
