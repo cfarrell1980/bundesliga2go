@@ -111,7 +111,8 @@ function initNavbar() {
       (jQuery(this).attr('id') == 'nextMatchday') ? matchday++ : matchday--;
       renderMatchDay(matchday, getMatchesByMatchdayID(matchday));
       jQuery.mobile.pageLoading();
-      setTimeout("hideLoading()",500);
+      setTimeout("hideLoading()",2000);
+      location.reload();
       return false;
     });
   }

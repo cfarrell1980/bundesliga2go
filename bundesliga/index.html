@@ -1,46 +1,64 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Bundesliga</title>
-  <script type="text/javascript" src="static/javascripts/jquery-1.5.min.js"></script>
-  <script type="text/javascript" src="static/javascripts/jquery.mobile-1.0a2.min.js"></script>  
-  <link rel="stylesheet" href="static/css/jquery.mobile-1.0a2.min.css" />
-  <link rel="stylesheet" href="static/css/bundesliga.css" />
-  <link href="static/favicon.ico" rel="icon" type="image/x-icon" />
-  <link rel="apple-touch-icon" href="homeicon.png" />
-  <link rel="apple-touch-icon-precomposed" href="static/img/homeicon.png">
-  <link rel="apple-touch-startup-image" href="static/img/startup.png">
+  <head>
+    <title>Bundesliga</title>
+    <script type="text/javascript" src="static/javascripts/jquery-1.5.min.js"></script>
+    <script type="text/javascript" src="static/javascripts/jquery.mobile-1.0a2.min.js"></script>  
+    <link rel="stylesheet" href="static/css/jquery.mobile-1.0a2.min.css" />
+    <link rel="stylesheet" href="static/css/bundesliga.css" />
+    <link href="static/favicon.ico" rel="icon" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="homeicon.png" />
+    <link rel="apple-touch-icon-precomposed" href="static/img/homeicon.png">
+    <link rel="apple-touch-startup-image" href="static/img/startup.png">
 
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta http-equiv="content-script-type" content="text/javascript">  
-</head>
-<body>
-
-  <div data-role="page" id="home"> 
-    <div id="homeHeader" data-role="header">
-      <h2>Bundesliga 2011</h2>
-    </div> 
-     <div id="navbar" data-role="header" class="ui-bar-d ui-header"><!--matchday with arrows--></div>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta http-equiv="content-script-type" content="text/javascript">  
     
-    <div id="message"><button id="clear">Clear</button></div>
-    
+    <script type="text/javascript">
+      jQuery(document).ready(function() {
+	initNavbar();  
+	if(localStorage['lastKnownMatchday']) {
+	  var cmd = localStorage['lastKnownMatchday'];
+	  renderMatchDay(cmd, getMatchesByMatchdayID(cmd));
+	} else {
+	  getTeamsData();
+	}
 
-    <div id="homeBody" data-role="content" class="ui-body">
-      <div id="scroller">
-	<ul id="list" data-role="listview" role="listbox"  data-theme="c" data-dividertheme="d" data-inset="false"><!--AJAX--></ul>
-      </div>
-    </div> <!--BODY-->
+	jQuery('#reset-storage').click(function() {
+	  log("Reseting Local Storage");
+	  localStorage.clear();
+	  jQuery.mobile.pageLoading();
+	  setTimeout("hideLoading()",500);
+	});
+      });
+    </script>
+  </head>
+  <body>
+    <div data-role="page" id="home"> 
+      <div id="homeHeader" data-role="header">
+	<h2>Bundesliga 2011</h2>
+      </div> 
+      <div id="navbar" data-role="header" class="ui-bar-d ui-header"><!--matchday with arrows--></div>
+      
+      <div id="message"><button id="clear">Clear</button></div>
+      
 
-    <div data-role="footer" role="banner">
-      <h1 class="ui-title" tabindex="0" role="heading" aria-level="1">Fullscreen fixed footer</h1>
-    </div> <!--FOOTER-->
-  </div> <!--HOME PAGE-->
-</body>
-  <script type="text/javascript" src="static/javascripts/xhr.js"></script>
-  <script type="text/javascript" src="static/javascripts/functions.js"></script>
-  <script type="text/javascript" src="static/javascripts/helpers.js"></script>
-  <script type="text/javascript" src="static/javascripts/bundesliga.js"></script>
+      <div id="homeBody" data-role="content" class="ui-body">
+	<div id="scroller">
+	  <ul id="list" data-role="listview" role="listbox"  data-theme="c" data-dividertheme="d" data-inset="false"><!--AJAX--></ul>
+	</div>
+      </div> <!--BODY-->
+
+      <div data-role="footer" role="banner">
+	<a id="reset-storage" href="#" data-role="button" data-theme="a" style="float:right;">Reset</a>
+      </div> <!--FOOTER-->
+    </div> <!--HOME PAGE-->
+  </body>
+
+  <script type="text/javascript" src="static/javascripts/data-sync.js"></script>
+  <script type="text/javascript" src="static/javascripts/data-processing.js"></script>
+  <script type="text/javascript" src="static/javascripts/data-rendering.js"></script>
 </html>

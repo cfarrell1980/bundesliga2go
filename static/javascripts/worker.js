@@ -1,5 +1,3 @@
-importScripts('/static/javascripts/functions.js');
-
 var xhr = new XMLHttpRequest();
 
 function XHRrequest(url, params){
@@ -14,8 +12,6 @@ function XHRrequest(url, params){
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
 	if (xhr.status == 200) {
-// 	  saveData(JSON.parse(xhr.responseText));
-// 	  postMessage("finished");
 	  postMessage(xhr.responseText);
 	} else {
 	  postMessage("Invocation Errors Occured");
@@ -32,11 +28,14 @@ self.addEventListener('message', function(e) {
   switch (data.get) {
     case 'teams':
       var url = 'http://paddy.suse.de:8080/getTeams'
-      var url = '/patch_updates/show_summary?background=true';
       XHRrequest(url, data.params);
       break;
     case 'data':
       var url = 'http://paddy.suse.de:8080/getData'
+      XHRrequest(url, data.params);
+      break;
+    case 'goals':
+      var url = 'http://paddy.suse.de:8080/getGoals'
       XHRrequest(url, data.params);
       break;
     case 'updates':

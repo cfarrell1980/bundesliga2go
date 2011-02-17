@@ -1,4 +1,9 @@
 var DEBUG = true;
+
+// var dataURL= 'http://paddy.suse.de:8080/getData';
+// var teamsURL = 'http://paddy.suse.de:8080/getTeams';
+// var goalsURL= 'http://paddy.suse.de:8080/getGoals';
+
 //LOGGER
 function log(object, inspect) {
   if(DEBUG) { 
@@ -12,66 +17,60 @@ function log(object, inspect) {
   }
 }
 
-//TODO: Replace the jsonp call with CORS ajax call
-
 //DON'T FORGET TO CHANGE THE URL!!!
-
 // var teamsURL = 'http://192.168.178.35:8080/getTeams'
 // var dataURL= 'http://192.168.178.35:8080/getData'
-// var dataURL= 'http://paddy.suse.de:8080/getData'
+// var goalsURL= 'http://192.168.178.35:8080/getGoals'
 
 //GET TEAMS DATA FROM SERVER
-function getTeamsData() {
-  console.log("DON'T FORGET TO CHANGE THE URL!!!");
-  log("DEBUG: GET TEAMS FROM");
-  $.ajax({
-    url: teamsURL,
-    cache: false,
-    async: false,
-    dataType: 'jsonp',
-//     success: getAllData
-    success: getAllDataCORS
-  });
-}
+// function getTeamsData() {
+//   console.log("DON'T FORGET TO CHANGE THE URL!!!");
+//   log("DEBUG: GET TEAMS FROM");
+//   $.ajax({
+//     url: teamsURL,
+//     cache: false,
+//     async: false,
+//     dataType: 'jsonp',
+//     success: getMatchdaysData;
+//   });
+// }
 
 //GET ALL DATA FROM SERVER
-function getAllData(data) {
-  saveTeams(data)
-  log("DEBUG: GET ALL DATA FROM");
-  $.ajax({
-    url: dataURL,
-    dataType: 'jsonp',
-    success: saveData
-  });
-}
+// function getAllData(data) {
+//   saveTeams(data)
+//   log("DEBUG: GET ALL DATA FROM");
+//   $.ajax({
+//     url: dataURL,
+//     dataType: 'jsonp',
+//     success: saveData
+//   });
+// }
 
-//TODO: add web worker detection and move getAllDataCORS() to web worker
-var dataURL= 'http://paddy.suse.de:8080/getData'
-function getAllDataCORS(data) {
-  //TODO: remove inline CSS!!!
-  $('#list').html('<li style="display:block; padding:50px 0px; text-align:center;"><img src="static/css/images/ajax-loader.png" style="vertical-align:middle"><span style=" vertical-align:middle; font-size:22px;"> loading data, please wait ...</span></li>');
-  saveTeams(data)
-  log("DEBUG: GET ALL DATA FROM");
-  
-  if(typeof(Worker) == 'undefined') {
-    log("AJAX call in main thread");
-    XHRRequest(dataURL, '#');
-  } else {
-    log("AJAX call in separate thread (Web Workers)");
-    var worker = new Worker("/static/javascripts/worker.js");
-    worker.postMessage({'get': 'data', 'params': '#'});
-//     worker.postMessage({'get': 'updates', 'params': 'tstamp=2011-01-10T15:10:10'});
-    
-    worker.onmessage = function(event) {
-      if(event.data != "wait") {
-	log("save data from worker")
-	saveData(JSON.parse(event.data));
-      } else {
-	log("worker said " + event.data)
-      }
-    };
-  }
-}
+
+// function getMatchdaysData(data) {
+//   //TODO: remove inline CSS!!!
+//   $('#list').html('<li style="display:block; padding:50px 0px; text-align:center;"><img src="static/css/images/ajax-loader.png" style="vertical-align:middle"><span style=" vertical-align:middle; font-size:22px;"> loading data, please wait ...</span></li>');
+//   saveTeams(data)
+//   log("DEBUG: GET ALL DATA FROM");
+//   
+//   if(typeof(Worker) == 'undefined') {
+//     log("AJAX call in main thread");
+//     XHRRequest(dataURL, '#');
+//   } else {
+//     log("AJAX call in separate thread (Web Workers)");
+//     var worker = new Worker("/static/javascripts/worker.js");
+//     worker.postMessage({'get': 'data', 'params': '#'});
+//     
+//     worker.onmessage = function(event) {
+//       if(event.data != "wait") {
+// 	log("save data from worker")
+// 	saveData(JSON.parse(event.data));
+//       } else {
+// 	log("worker said " + event.data)
+//       }
+//     };
+//   }
+// }
 
 //SAVE TEAMS DATA FROM SERVER
 function saveTeams(data) {
@@ -80,6 +79,7 @@ function saveTeams(data) {
   
   var teams = new Array();
   localStorage.setItem('cmd',data['cmd']);
+  
   for(var id in data['teams']) {
     teams.push(data['teams'][id]);
     localStorage.setItem('team'+id,JSON.stringify(data['teams'][id]));
@@ -124,16 +124,16 @@ function saveData(data) {
   renderMatchDay(data.cmd, getMatchesByMatchdayID(data.cmd));
 }
 
-//GET UPDATES FROM SERVER
-function getUpdates(url, tstamp) {
-  log("DEBUG: GET UPDATES FROM " + url + " FOR TIMESTAMP " + tstamp);
-  $.ajax({
-    url: url,
-	 dataType: 'jsonp',
-	 data: 'tstamp=' + tstamp,
-	 success: saveUpdates
-  });
-}
+// //GET UPDATES FROM SERVER
+// function getUpdates(url, tstamp) {
+//   log("DEBUG: GET UPDATES FROM " + url + " FOR TIMESTAMP " + tstamp);
+//   $.ajax({
+//     url: url,
+// 	 dataType: 'jsonp',
+// 	 data: 'tstamp=' + tstamp,
+// 	 success: saveUpdates
+//   });
+// }
 
 //SAVE UPDATES FROM SERVER
 function saveUpdates(data) {
