@@ -29,19 +29,38 @@ function checkPoints(fin, pts) {
 function renderMatchDay(matchdayID, matches) {
   navbarMatchDay(matchdayID);
   var list = '';
-  var t1, t2, match;
+  var t1, t2, match, goalsIndex;
+  var team = 0, counter=0;
+  var array = new Array();
   
   for (var i=0; i<matches.length; i++) {
     t1 = getTeamDataByTeamID(getTeamsForMatch(matches[i])[0]);
     t2 = getTeamDataByTeamID(getTeamsForMatch(matches[i])[1]);
     match = getMatchByID(matches[i]);
+
+//     for(var j=0; j<getGoalsByMatchID(matches[i]).length; j++) {
+//       if(team != getGoalObjectByID(getGoalsByMatchID(matches[i])[j]).teamID){
+// 	array[team] = parseInt(1);
+// 	team = getGoalObjectByID(getGoalsByMatchID(matches[i])[j]).teamID;
+// 	log(team);
+//       } else {
+// 	var t = array[team];
+// 	log('++ ' + team)
+// 	array[team] = team;
+//       }
+//     }
     
+
+
     list += '<li>' +
     '<a class="match_link" href="' + matches[i] + '">' +
       '<span class="left-column">' +
       '<span class="icon icon-' + t1.icon.split('/').pop().split('.').shift() + '"></span>' +	
       '<span class="">'+ t1.short + '</span>' +	
-      '<span class="right">' + checkPoints(match.fin, match.pt2) + ':</span>' +
+      
+      
+      
+      '<span class="right">' + checkPoints(match.fin, match.pt1) + ':</span>' +
       '</span>' + 
       '<span class="right-column">' +
       '<span class="left">' + checkPoints(match.fin, match.pt2) + '</span>' +
@@ -54,15 +73,25 @@ function renderMatchDay(matchdayID, matches) {
     renderGames(matches[i], match, t1, t2);        
   }
   
+            for (var k in array) {
+    log('key is: ' + k + ', value is: ' + array[i]);
+                }
+  
   $('#list').html(list).listview('refresh');    
   $('#list').find('img.ui-li-thumb').removeClass('ui-li-thumb');
   $('#list').find('span.ui-icon-arrow-r').remove();
-  $('#list' + matches[i]).listview('refresh');    
+  $('#list' + matches[i]).listview('refresh');   
+  
+  
+  if(localStorage['goals-synced'] != 'true') {
+    getGoals();
+  }
 }
 
 function renderGames(matchID, match, t1, t2) {
-  var games='';
-  var goalsIndex = getGoalsByMatchID(matchID);
+  var games='', goals, goalsIndex;
+  
+  goalsIndex = getGoalsByMatchID(matchID);
   games +='<div data-role="page" id="' + matchID + '">' +
   '<div data-role="header">' +
   '<h2>' + t1.short + ' : ' + t2.short + '</h2>' +
@@ -73,7 +102,7 @@ function renderGames(matchID, match, t1, t2) {
   if(goalsIndex !=false) {
     for(i=0; i<goalsIndex.length; i++) {
       games += '<ul data-width="50%" data-role="listview" role="listbox" data-theme="c" data-dividertheme="b" data-inset="true">' 
-      var goals = getGoalObjectByID(goalsIndex[i])
+      goals = getGoalObjectByID(goalsIndex[i]);
       games += '<li  data-role="list-divider">Goal ' + parseInt(i+1) + '</li>';
       games += '<li data-theme="b">Team: ' + getTeamDataByTeamID(goals.teamID).name  + '</li>';
       games += '<li>Scorer: ' + goals.scorer  + '</li>';
@@ -102,6 +131,7 @@ function hideLoading(){
 function initNavbar() {
   var id = ['#prevMatchday', '#nextMatchday'];
   var matchday;
+  console.log("initNavbar")
   
   for (var i in id) {
     jQuery(id[i]).live('click tap', function(event) {
@@ -109,6 +139,7 @@ function initNavbar() {
       
       //TODO: if matchday > 34 switch to next season
       (jQuery(this).attr('id') == 'nextMatchday') ? matchday++ : matchday--;
+      console.log("initNavbar " + matchday)
       renderMatchDay(matchday, getMatchesByMatchdayID(matchday));
       jQuery.mobile.pageLoading();
       setTimeout("hideLoading()",500);

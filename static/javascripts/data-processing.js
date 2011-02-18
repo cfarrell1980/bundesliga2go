@@ -1,4 +1,5 @@
 var DEBUG = true;
+
 //LOGGER
 function log(object, inspect) {
   if(DEBUG) { 
@@ -12,67 +13,6 @@ function log(object, inspect) {
   }
 }
 
-//TODO: Replace the jsonp call with CORS ajax call
-
-//DON'T FORGET TO CHANGE THE URL!!!
-
-// var teamsURL = 'http://192.168.178.35:8080/getTeams'
-// var dataURL= 'http://192.168.178.35:8080/getData'
-// var dataURL= 'http://paddy.suse.de:8080/getData'
-
-//GET TEAMS DATA FROM SERVER
-function getTeamsData() {
-  console.log("DON'T FORGET TO CHANGE THE URL!!!");
-  log("DEBUG: GET TEAMS FROM");
-  $.ajax({
-    url: teamsURL,
-    cache: false,
-    async: false,
-    dataType: 'jsonp',
-//     success: getAllData
-    success: getAllDataCORS
-  });
-}
-
-//GET ALL DATA FROM SERVER
-function getAllData(data) {
-  saveTeams(data)
-  log("DEBUG: GET ALL DATA FROM");
-  $.ajax({
-    url: dataURL,
-    dataType: 'jsonp',
-    success: saveData
-  });
-}
-
-//TODO: add web worker detection and move getAllDataCORS() to web worker
-var dataURL= 'http://paddy.suse.de:8080/getData'
-function getAllDataCORS(data) {
-  //TODO: remove inline CSS!!!
-  $('#list').html('<li style="display:block; padding:50px 0px; text-align:center;"><img src="static/css/images/ajax-loader.png" style="vertical-align:middle"><span style=" vertical-align:middle; font-size:22px;"> loading data, please wait ...</span></li>');
-  saveTeams(data)
-  log("DEBUG: GET ALL DATA FROM");
-  
-  if(typeof(Worker) == 'undefined') {
-    log("AJAX call in main thread");
-    XHRRequest(dataURL, '#');
-  } else {
-    log("AJAX call in separate thread (Web Workers)");
-    var worker = new Worker("/static/javascripts/worker.js");
-    worker.postMessage({'get': 'data', 'params': '#'});
-//     worker.postMessage({'get': 'updates', 'params': 'tstamp=2011-01-10T15:10:10'});
-    
-    worker.onmessage = function(event) {
-      if(event.data != "wait") {
-	log("save data from worker")
-	saveData(JSON.parse(event.data));
-      } else {
-	log("worker said " + event.data)
-      }
-    };
-  }
-}
-
 //SAVE TEAMS DATA FROM SERVER
 function saveTeams(data) {
   log("DEBUG: SAVE TEAMS DATA");
@@ -80,10 +20,13 @@ function saveTeams(data) {
   
   var teams = new Array();
   localStorage.setItem('cmd',data['cmd']);
+  
   for(var id in data['teams']) {
     teams.push(data['teams'][id]);
     localStorage.setItem('team'+id,JSON.stringify(data['teams'][id]));
   }  
+  
+//   localStorage.setItem('teams-synced', 'true');
   localStorage.setItem('teams', JSON.stringify(teams));
 }
 
@@ -93,6 +36,7 @@ function saveData(data) {
   if(data.cmd) {
     for(var matchdayID in data.matchdays) {
       localStorage.setItem('lastKnownMatchday', JSON.stringify(data.cmd));
+//       localStorage.setItem('data-synced', 'true');
     }
   }
   
@@ -108,6 +52,12 @@ function saveData(data) {
     }
   }
   
+  log("DEBUG: RENDER MACTH DAY");
+  renderMatchDay(data.cmd, getMatchesByMatchdayID(data.cmd));
+}
+
+function saveGoals(data) {
+  log("DEBUG: SAVE GOALS DATA");
   if(data.goalindex) {
     for(var matchID in data.goalindex) {
       localStorage.setItem('goal'+matchID, JSON.stringify(data.goalindex[matchID]));
@@ -119,25 +69,16 @@ function saveData(data) {
       localStorage.setItem('goalobject'+goalID, JSON.stringify(data.goalobjects[goalID]));
     }
   }
-
-  log("DEBUG: RENDER MACTH DAY");
-  renderMatchDay(data.cmd, getMatchesByMatchdayID(data.cmd));
-}
-
-//GET UPDATES FROM SERVER
-function getUpdates(url, tstamp) {
-  log("DEBUG: GET UPDATES FROM " + url + " FOR TIMESTAMP " + tstamp);
-  $.ajax({
-    url: url,
-	 dataType: 'jsonp',
-	 data: 'tstamp=' + tstamp,
-	 success: saveUpdates
-  });
-}
-
-//SAVE UPDATES FROM SERVER
-function saveUpdates(data) {
-//   log("DEBUG: SAVE UPDATES");
+  
+  localStorage.setItem('goals-synced', 'true');
+  log("Perform page reload!");
+  jQuery.mobile.pageLoading();
+  setTimeout("hideLoading()",1000);
+  location.reload();
+  
+  //DEBUG: JUST FOR TEST
+//   data.cmd = '22';
+//   renderMatchDay(data.cmd, getMatchesByMatchdayID(data.cmd));
 }
 
 function getMatchesByMatchdayID(id) {
