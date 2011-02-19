@@ -18,6 +18,9 @@ api = BundesligaAPI()
 slow = Scheduler()
 match_in_progress = False
 
+future_matches = []
+
+"""
 @slow.interval_schedule(seconds=10)
 def hiFreq():
   '''High frequency syncing which should ensure that we update goals quickly
@@ -37,8 +40,29 @@ def hiFreq():
   else:
     logger.info("  -> hiFreq - nothing to do as no match in progress")
     return
+"""
 
-
+@slow.interval_schedule(seconds=10)
+def hiFreq():
+  global future_matches
+  if not len(future_matches):
+    print "No games in the future..."
+    return
+  else:
+    now = datetime.now()
+    do_update = False
+    for m in future_matches:
+      if (m[0] < now and m[1] > now):
+        print "Found a running match!"
+        do_update = True
+        break
+    if not do_update:
+      print "Checked all future matches and there is no match in progress"
+    else:
+      print "There is a match in progress. Updating from openligadb!"
+      
+ 
+"""
 @slow.interval_schedule(seconds=60*10)
 def sync():
   '''Perform a sync every so often anyway? Is this really needed?'''
@@ -50,7 +74,20 @@ def sync():
   e = time.time()
   took = e-s
   logger.info("sync - finished syncing. It took %f seconds"%took)
+"""
 
+@slow.interval_schedule(seconds=20)
+def fillfuture():
+  global future_matches
+  future_matches = []
+  now = datetime.now()
+  session=Session()
+  future = session.query(Match).filter(or_(Match.startTime >= now,and_(Match.startTime < now,Match.endTime>now))).all()  
+  for match in future:
+    future_matches.append((match.startTime,match.endTime))
+  return
+
+"""
 @slow.interval_schedule(seconds=30)
 def lowFreq():
     '''Query the local database to see if any matches are currently in progress. If
@@ -72,6 +109,7 @@ def lowFreq():
       match_in_progress = False
       logger.info("  -> lowFreq - no matches in progress")
       return True
+"""
 
 if __name__ == '__main__':
   ''' If the script is called directly from the cmdline then just start
