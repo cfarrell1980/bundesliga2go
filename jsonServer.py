@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import web,os,json,time,sys,contextlib,subprocess
 from background import background,backgrounder
+# TODO: remove the commandline switch or replace it with something more solid
 if len(sys.argv) == 2:
  if sys.argv[1] == '--apache':
   abspath = os.path.dirname(__file__)
@@ -43,6 +44,7 @@ import hashlib
 from datetime import datetime
 from bundesligaAPI import BundesligaAPI,AlreadyUpToDate,InvocationError,StaleData
 from bundesligaLogger import logger
+from bundesligaScheduler import *
 from OpenLigaDB import OpenLigaDB
 from paste.gzipper import middleware as gzm
 from partialSync import doSync as init_sync
@@ -50,6 +52,8 @@ from partialSync import doCmd as init_cmd
 from partialSync import doLmu as init_lmu
 from partialSync import doWrite as init_write
 logger.info("jsonServer - performing initial setup including syncing from upstream...")
+
+
 @contextlib.contextmanager
 def spin():
    # see http://is.gd/AcCZFS
@@ -68,6 +72,8 @@ init_write(mycmd,mylmu)
 print
 from bundesligaHelpers import *
 logger.info("jsonServer - starting WSGI JSON server")
+logger.info("jsonServer - starting scheduler...")
+slow.start()
 render_in_context = web.template.render('templates/', base='layout')
 render = web.template.render('templates/')
 web.config.debug = False
