@@ -1,16 +1,28 @@
 //DON'T FORGET TO CHANGE THE URL!!!
-var dataURL= 'http://paddy.suse.de:8080/getData';
 var teamsURL = 'http://paddy.suse.de:8080/getTeams';
-var goalsURL= 'http://paddy.suse.de:8080/getGoals';
+
 
 // var teamsURL = 'http://192.168.178.35:8080/getTeams';
 // var dataURL= 'http://192.168.178.35:8080/getData';
 // var goalsURL= 'http://192.168.178.35:8080/getGoals';
 
 //AJAX Cross Origin Ressource Sharing
-function XHRRequest(url, params) {
+function XHRRequest(type, params) {
+  var url, params;
+
   var xhr = new XMLHttpRequest();
   params == '#'? data = ' ' : data = params
+  
+  switch (type) {
+    case 'data':
+      url = 'http://paddy.suse.de:8080/getData';
+      break;
+    case 'goals':
+      url = 'http://paddy.suse.de:8080/getGoals';
+      break;
+    default:
+      console.error('Unknown type: ' + type);
+  }
   
   if(xhr) {    
     xhr.open('POST', url, true);
@@ -20,7 +32,16 @@ function XHRRequest(url, params) {
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
 	if (xhr.status == 200) {
-	  saveData(JSON.parse(xhr.responseText));
+	  switch (type) {
+	    case 'data':
+	      saveData(JSON.parse(xhr.responseText));
+	      break;
+	    case 'goals':
+	      saveGoals(JSON.parse(xhr.responseText));
+	      break;
+	    default:
+	      console.error('Unknown type: ' + type);
+	  }
 	} else {
 	  return "Invocation Errors Occured";
 	}
@@ -52,7 +73,7 @@ function getMatchdaysData(data) {
   
   if(typeof(Worker) == 'undefined') {
     log("AJAX call in main thread");
-    XHRRequest(dataURL, '#');
+    XHRRequest('data', '#');
   } else {
     log("AJAX call in separate thread (Web Workers)");
     var worker = new Worker("/static/javascripts/worker.js");
@@ -70,13 +91,13 @@ function getMatchdaysData(data) {
 }
 
 //GET UPDATES FROM SERVER
-function getGoals(url, tstamp) {
+function getGoals(tstamp) {
   typeof(tstamp) != "undefined"? tstamp = tstamp : tstamp = '#';
+  log("DEBUG: GET GOALS FOR TIMESTAMP " + tstamp);
   
-  log("DEBUG: GET UPDATES FROM " + url + " FOR TIMESTAMP " + tstamp);
   if(typeof(Worker) == 'undefined') {
     log("AJAX call in main thread");
-    XHRRequest(goalsURL, tstamp);
+    XHRRequest('goals', tstamp);
   } else {
     log("AJAX call in separate thread (Web Workers)");
     var worker = new Worker("/static/javascripts/worker.js");

@@ -38,20 +38,6 @@ function renderMatchDay(matchdayID, matches) {
     t2 = getTeamDataByTeamID(getTeamsForMatch(matches[i])[1]);
     match = getMatchByID(matches[i]);
 
-//     for(var j=0; j<getGoalsByMatchID(matches[i]).length; j++) {
-//       if(team != getGoalObjectByID(getGoalsByMatchID(matches[i])[j]).teamID){
-// 	array[team] = parseInt(1);
-// 	team = getGoalObjectByID(getGoalsByMatchID(matches[i])[j]).teamID;
-// 	log(team);
-//       } else {
-// 	var t = array[team];
-// 	log('++ ' + team)
-// 	array[team] = team;
-//       }
-//     }
-    
-
-
     list += '<li>' +
     '<a class="match_link" href="' + matches[i] + '">' +
       '<span class="left-column">' +
@@ -73,18 +59,17 @@ function renderMatchDay(matchdayID, matches) {
     renderGames(matches[i], match, t1, t2);        
   }
   
-            for (var k in array) {
+  for (var k in array) {
     log('key is: ' + k + ', value is: ' + array[i]);
-                }
+  }
   
   $('#list').html(list).listview('refresh');    
   $('#list').find('img.ui-li-thumb').removeClass('ui-li-thumb');
   $('#list').find('span.ui-icon-arrow-r').remove();
   $('#list' + matches[i]).listview('refresh');   
   
-  
   if(localStorage['goals-synced'] != 'true') {
-    getGoals();
+    getGoals('#');
   }
 }
 
@@ -114,10 +99,9 @@ function renderGames(matchID, match, t1, t2) {
   }
   
   games +=
-  
-  '</div>' +
-  '<div id="homeFooter" data-role="footer"><h2>FOOTER</h2></div>' +
-  '</div>';    
+    '</div>' +
+    '<div id="homeFooter" data-role="footer"><h2>FOOTER</h2></div>' +
+    '</div>';    
 
   $(games).insertAfter('#home');
   $('#'+matchID).hide();
@@ -131,15 +115,12 @@ function hideLoading(){
 function initNavbar() {
   var id = ['#prevMatchday', '#nextMatchday'];
   var matchday;
-  console.log("initNavbar")
   
   for (var i in id) {
     jQuery(id[i]).live('click tap', function(event) {
       matchday = parseInt(jQuery('#navbar>h2').text());
-      
       //TODO: if matchday > 34 switch to next season
       (jQuery(this).attr('id') == 'nextMatchday') ? matchday++ : matchday--;
-      console.log("initNavbar " + matchday)
       renderMatchDay(matchday, getMatchesByMatchdayID(matchday));
       jQuery.mobile.pageLoading();
       setTimeout("hideLoading()",500);

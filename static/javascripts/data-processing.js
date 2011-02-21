@@ -70,15 +70,11 @@ function saveGoals(data) {
     }
   }
   
+  log("Set goals to synced and perform page reload!");
   localStorage.setItem('goals-synced', 'true');
-  log("Perform page reload!");
   jQuery.mobile.pageLoading();
   setTimeout("hideLoading()",1000);
   location.reload();
-  
-  //DEBUG: JUST FOR TEST
-//   data.cmd = '22';
-//   renderMatchDay(data.cmd, getMatchesByMatchdayID(data.cmd));
 }
 
 function getMatchesByMatchdayID(id) {
@@ -92,16 +88,11 @@ function getMatchByID(id) {
 }
  
 function getTeamsForMatch(id) {
-//   log("INFO: GET TEAMS BY MATCHDAYID " + id);
-//   try {
     var temp = JSON.parse(localStorage.getItem('match' + id));
     var teams  = [];
     teams.push(temp.t1);
     teams.push(temp.t2);
     return teams;
-//   } catch(err) {
-//     log("ERROR: " + err);
-//   }
 }
 
 function getTeamDataByTeamID(id) {
