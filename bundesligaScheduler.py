@@ -17,7 +17,7 @@ from datetime import datetime,timedelta
 api = BundesligaAPI()
 slow = Scheduler()
 match_in_progress = False
-
+slow_sync_called_once = False
 future_matches = []
 
 """
@@ -44,26 +44,33 @@ def hiFreq():
 
 @slow.interval_schedule(seconds=10)
 def hiFreq():
-  global future_matches
+  league=DEFAULT_LEAGUE
+  season=current_bundesliga_season()
+  global future_matches,slow_sync_called_once
   if not len(future_matches):
-    print "No games in the future..."
+    print "No matches in progress in the next hour..."
     return
   else:
     now = datetime.now()
     do_update = False
+    then = now+timedelta(minutes=30)
     for m in future_matches:
       if (m[0] < now and m[1] > now):
         print "Found a running match!"
         do_update = True
         break
-    if not do_update:
-      print "Checked all future matches and there is no match in progress"
-    else:
+      elif m[0] > now and m[0] <= then:
+        smin = int(((then-now).seconds)/60)
+        print "Match will start in %d minutes..."%smin
+      else:
+        print m[0],now,m[1]
+        print "Checked all future matches and there is no match in progress. Nor will a match start in the next 30 minutes"
+    if do_update:
       print "There is a match in progress. Updating from openligadb!"
+      api.updateLocalCache(league,season)
       
  
-"""
-@slow.interval_schedule(seconds=60*10)
+@slow.interval_schedule(seconds=60*5)
 def sync():
   '''Perform a sync every so often anyway? Is this really needed?'''
   logger.info("sync - sync called to sync openligadb.de data to local cache...")
@@ -74,17 +81,18 @@ def sync():
   e = time.time()
   took = e-s
   logger.info("sync - finished syncing. It took %f seconds"%took)
-"""
 
-@slow.interval_schedule(seconds=20)
+@slow.interval_schedule(seconds=30)
 def fillfuture():
-  global future_matches
+  global future_matches,slow_sync_called_once
   future_matches = []
   now = datetime.now()
+  later = now+timedelta(hours=24) # matches in progress in the next day 
   session=Session()
-  future = session.query(Match).filter(or_(Match.startTime >= now,and_(Match.startTime < now,Match.endTime>now))).all()  
+  future = session.query(Match).filter(or_(and_(Match.startTime >= now,Match.startTime <= later),and_(Match.startTime < now,Match.endTime>now,Match.endTime <=later))).all()  
   for match in future:
     future_matches.append((match.startTime,match.endTime))
+  slow_sync_called_once=True
   return
 
 """
