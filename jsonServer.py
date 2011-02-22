@@ -44,7 +44,6 @@ import hashlib
 from datetime import datetime
 from bundesligaAPI import BundesligaAPI,AlreadyUpToDate,InvocationError,StaleData
 from bundesligaLogger import logger
-from bundesligaScheduler import *
 from OpenLigaDB import OpenLigaDB
 from paste.gzipper import middleware as gzm
 from partialSync import doSync as init_sync
@@ -72,8 +71,13 @@ init_write(mycmd,mylmu)
 print
 from bundesligaHelpers import *
 logger.info("jsonServer - starting WSGI JSON server")
-logger.info("jsonServer - starting scheduler...")
-slow.start()
+try:
+  from bundesligaScheduler import *
+except ImportError:
+  logger.info("jsonServer - not starting scheduler as APscheduler not installed")
+else:
+  logger.info("jsonServer - starting scheduler...")
+  slow.start()
 render_in_context = web.template.render('templates/', base='layout')
 render = web.template.render('templates/')
 web.config.debug = False
