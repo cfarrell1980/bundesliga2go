@@ -41,6 +41,13 @@ class InvocationError(Exception):
   def __str__(self):
     return repr(self.value)
 
+class NoSuchTeamError(Exception):
+  '''If there is no team with the ID requested, raise this exception'''
+  def __init__(self,value):
+    self.value = value
+
+  def __str__(self):
+    return repr(self.value)
 
 class BundesligaAPI:
 
@@ -324,6 +331,15 @@ class BundesligaAPI:
     finish = time.time()
     return teams
 
+  def getTeamByID(self,teamID):
+    '''Return the team if all you have is the teamID'''
+    session=Session()
+    t = session.query(Team).filter(Team.id==teamID).first()
+    if not t:
+      raise NoSuchTeamError, "There is no team in the database with id %d"%teamID
+    else:
+      return t
+
   def localMatchdayValid(self,league,season,matchday):
     '''Check if a particular matchday is up to date. Useful to call when the match is actually
        running and is a good candidate to run before updating the local matchdays'''
@@ -345,6 +361,8 @@ class BundesligaAPI:
       viewers = m.NumberOfViewers
     else:
       viewers = 0
+    x = session.query(Match).filter(Match.id==m.matchID).first()
+    orig_goals = len(x.goals)
     match = session.merge(Match(m.matchID,m.groupOrderID,m.matchDateTime,estEnd,m.matchIsFinished,\
                            m.pointsTeam1,m.pointsTeam2,viewers))
     t1 = session.merge(Team(m.idTeam1,m.nameTeam1.encode('utf-8'),m.iconUrlTeam1))
@@ -356,6 +374,10 @@ class BundesligaAPI:
     t1.leagues.append(l)
     t2.leagues.append(l)
     l.matches.append(match)
+    if len(m.goals) > x:
+      logger.info("mergeRemoteLocal - goal in match id %d (%s vs %s). Now %d to %s"%(m.matchID,t1.name,t2.name,m.pointsTeam1,pointsTeam2))
+    else:
+      logger.info("mergeRemoteLocal - no change in goal status in match id %d"%m.matchID)
     for goals in m.goals:
       for goal in goals:
         for goalobj in goal:

@@ -28,7 +28,7 @@ def updateMatchTimes():
   matches = list(set(matches)) # reduce num. matches by half as many take place at same time
   logger.info("updateMatchTimes - wrote %d matches to global matches list"%len(matches))
 
-@slow.interval_schedule(seconds=10)
+@slow.interval_schedule(seconds=30) # this should be configurable through bundesliga.conf
 def hiFreq():
   league=DEFAULT_LEAGUE
   season=current_bundesliga_season()
@@ -68,7 +68,7 @@ def sync():
   took = e-s
   logger.info("sync - finished syncing. It took %f seconds"%took)
 
-@slow.interval_schedule(seconds=30)
+@slow.interval_schedule(seconds=90)
 def fillFuture():
   logger.info("fillFuture - calling updateMatchTimes()")
   updateMatchTimes()
