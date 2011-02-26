@@ -374,10 +374,6 @@ class BundesligaAPI:
     t1.leagues.append(l)
     t2.leagues.append(l)
     l.matches.append(match)
-    if len(m.goals) > x:
-      logger.info("mergeRemoteLocal - goal in match id %d (%s vs %s). Now %d to %s"%(m.matchID,t1.name,t2.name,m.pointsTeam1,pointsTeam2))
-    else:
-      logger.info("mergeRemoteLocal - no change in goal status in match id %d"%m.matchID)
     for goals in m.goals:
       for goal in goals:
         for goalobj in goal:
@@ -406,4 +402,5 @@ class BundesligaAPI:
           match.goals[cur_idx].for_team_id = match.teams[0].id
         else:
           match.goals[cur_idx].for_team_id = match.teams[1].id
+    logger.info("%s vs %s is currently %d to %d"%(t1.name,t2.name,match.pt1,match.pt2))
     session.commit()
