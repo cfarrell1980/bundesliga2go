@@ -452,8 +452,8 @@ class getGoals:
 class quickView:
   def GET(self):
     '''Quick HTML view'''
-    m=web.input(m=None)
-    m=int(m.m)
+    m=web.input(m=0)
+    m=m.m
     try:
       cbk,league,season = parseRequestFundamentals()
     except:
@@ -462,15 +462,13 @@ class quickView:
       season = current_bundesliga_season()
     else:
       pass
-    if not m:
-      cmd = current_bundesliga_matchday(league)
-    elif not isinstance(m,int):
+    if m == 0:
       cmd = current_bundesliga_matchday(league)
     else:
-      if m < 1 or m > 34:
+      if int(m) < 1 or int(m) > 34:
         cmd = current_bundesliga_matchday(league)
       else:
-        cmd = m
+        cmd = int(m)
     matches = api.getMatchesByMatchday(league,season,cmd)
     # prepare the matchday for fast rendering
     renderMatches = []

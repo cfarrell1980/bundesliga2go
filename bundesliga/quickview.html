@@ -4,19 +4,27 @@ $def with (cmd,league,season,matches,next,prev)
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Bundesliga Quickview for $league $season</title>
  </head>
- <body>
-  <center>
-   <span style="font-weight:bold">$cmd. Spieltag</span>
-   <table border="0" cellpadding="4" cellspacing="4" width="100%" align="center">
-    $for m in matches:
-      <tr>
-       <td>$m['t1']</td><td>$m['pt1']:$m['pt2']</td><td>$m['t2']</td>
-      </tr>
-   </table>
-  </center>
- <div style="padding-top:20px;width:100%">
-  <div style="float:left"><a href="quickview?m=$prev">Prev</a></div>
-  <div style="float:left;padding-left:200px;"><a href="quickview?m=$next">Next</a></div>
- </div>
+ <body style="text-align:center;">
+  <div style="text-align:center;margin:auto;">
+    <table width="100%" border="0" cellpadding="4" cellspacing="4" style="text-align:center;margin: 0 auto;">
+     <tr>
+      <td width="30%"></td><td width="40%"><span style="font-weight:bold">$cmd. Spieltag</span></td><td width="30%"></td>
+     </tr>
+     $for m in matches:
+       <tr>
+         <td width="40%">$m['t1']</td><td width="30%">$m['pt1']:$m['pt2']</td><td width="40%">$m['t2']</td>
+       </tr>
+     <tr>
+      <td width="40%">
+        <a href="quickview?m=$prev" style="font-weight:bold;">Prev</a>
+      </td>
+      <td width="30%">
+      </td>
+      <td width="40%">
+       <a href="quickview?m=$next" style="font-weight:bold;">Next</a>
+      </td>
+     </tr>
+    </table>
+  </div>
  </body>
 </html>
