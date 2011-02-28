@@ -85,7 +85,7 @@ logger.info("Server is running in debug modus? %s"%web.config.debug)
 
 urls = (
   '/','index',
-  '/test','test',
+  '/quickview','quickView',
   '/getTeams', 'getTeams',
   '/matchday','matchday',
   '/md','md',
@@ -449,7 +449,43 @@ class getGoals:
     goals = api.getGoalsByLeagueSeason(league,season)
     return "%s(%s)"%(cbk,json.dumps(goals))
 
-
+class quickView:
+  def GET(self):
+    '''Quick HTML view'''
+    m=web.input(m=None)
+    m=int(m.m)
+    try:
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
+      league = DEFAULT_LEAGUE
+      season = current_bundesliga_season()
+    else:
+      pass
+    if not m:
+      cmd = current_bundesliga_matchday(league)
+    elif not isinstance(m,int):
+      cmd = current_bundesliga_matchday(league)
+    else:
+      if m < 1 or m > 34:
+        cmd = current_bundesliga_matchday(league)
+      else:
+        cmd = m
+    matches = api.getMatchesByMatchday(league,season,cmd)
+    # prepare the matchday for fast rendering
+    renderMatches = []
+    for match in matches:
+      md={}
+      md['t1'] = shortcuts[match.teams[0].id]
+      md['t2'] = shortcuts[match.teams[1].id]
+      md['pt1'] = match.pt1
+      md['pt2'] = match.pt2
+      md['s'] = match.startTime
+      md['f'] = match.isFinished
+      renderMatches.append(md)
+      
+    return render.quickview(cmd=cmd,league=league,season=season,
+                            matches=renderMatches,next=cmd+1,prev=cmd-1)    
 
 if __name__ == '__main__':
   try:
