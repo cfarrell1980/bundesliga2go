@@ -1,0 +1,22 @@
+$def with (cmd,league,season,matches,next,prev)
+<html>
+ <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Bundesliga Quickview for $league $season</title>
+ </head>
+ <body>
+  <center>
+   <span style="font-weight:bold">$cmd. Spieltag</span>
+   <table border="0" cellpadding="4" cellspacing="4" width="100%" align="center">
+    $for m in matches:
+      <tr>
+       <td>$m['t1']</td><td>$m['pt1']:$m['pt2']</td><td>$m['t2']</td>
+      </tr>
+   </table>
+  </center>
+ <div style="padding-top:20px;width:100%">
+  <div style="float:left"><a href="quickview?m=$prev">Prev</a></div>
+  <div style="float:left;padding-left:200px;"><a href="quickview?m=$next">Next</a></div>
+ </div>
+ </body>
+</html>
