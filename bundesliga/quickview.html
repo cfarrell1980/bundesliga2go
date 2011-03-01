@@ -1,8 +1,15 @@
-$def with (cmd,league,season,matches,next,prev)
+$def with (follow,cmd,league,season,matches,next,prev)
 <html>
  <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Bundesliga Quickview for $league $season</title>
+  <style type="text/css">
+     a {text-decoration:none;color:#000;}
+    .ft {text-decoration:none;font-weight:bold;color:#000;}
+    .ft a {text-decoration:none;font-weight:bold;color:#000;}
+    .nav {text-decoration:none;font-weight:bold;font-size:1.2em;color:blue;}
+    .nav a {text-decoration:none;font-weight:bold;font-size:1.2em;color:blue;}
+  </style>
  </head>
  <body style="text-align:center;">
   <div style="text-align:center;margin:auto;">
@@ -11,17 +18,33 @@ $def with (cmd,league,season,matches,next,prev)
       <td width="30%"></td><td width="40%"><span style="font-weight:bold">$cmd. Spieltag</span></td><td width="30%"></td>
      </tr>
      $for m in matches:
-       <tr>
-         <td width="40%">$m['t1']</td><td width="30%">$m['pt1']:$m['pt2']</td><td width="40%">$m['t2']</td>
-       </tr>
-     <tr>
+       $if m['idTeam1'] == follow or m['idTeam2'] == follow:
+         <tr class="ft">
+           <td width="40%">
+            $if m['idTeam1'] == follow:
+              <a href="quickview?m=$cmd&amp;ft=0">$m['t1']</a>
+            $else:
+              <a href="quickview?m=$cmd&amp;ft=$m['idTeam1']">$m['t1']</a>
+            </td><td width="30%">$m['pt1']:$m['pt2']</td>
+            <td width="40%">
+            $if m['idTeam2'] == follow:
+              <a href="quickview?m=$cmd&amp;ft=0">$m['t2']</a>
+            $else:
+              <a href="quickview?m=$cmd&amp;ft=$m['idTeam2']">$m['t2']</a>
+         </tr>
+       $else:
+         <tr>
+          <td width="40%"><a href="quickview?m=$cmd&amp;ft=$m['idTeam1']">$m['t1']</a></td><td width="30%">$m['pt1']:$m['pt2']</td>
+          <td width="40%"><a href="quickview?m=$cmd&amp;ft=$m['idTeam2']">$m['t2']</a></td>
+         </tr>
+     <tr class="nav">
       <td width="40%">
-        <a href="quickview?m=$prev" style="font-weight:bold;">Prev</a>
+        <a href="quickview?m=$prev&amp;ft=$follow" style="font-weight:bold;">Prev</a>
       </td>
       <td width="30%">
       </td>
       <td width="40%">
-       <a href="quickview?m=$next" style="font-weight:bold;">Next</a>
+       <a href="quickview?m=$next&amp;ft=$follow" style="font-weight:bold;">Next</a>
       </td>
      </tr>
     </table>

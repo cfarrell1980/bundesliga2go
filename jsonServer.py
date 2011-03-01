@@ -451,7 +451,9 @@ class getGoals:
 
 class quickView:
   def GET(self):
-    '''Quick HTML view'''
+    '''Quick HTML view with support for following a team'''
+    ft = web.input(ft=0)
+    follow=ft.ft
     m=web.input(m=0)
     m=m.m
     try:
@@ -476,13 +478,14 @@ class quickView:
       md={}
       md['t1'] = shortcuts[match.teams[0].id]
       md['t2'] = shortcuts[match.teams[1].id]
+      md['idTeam1'] = str(match.teams[0].id) #str for comparison to follow
+      md['idTeam2'] = str(match.teams[1].id) 
       md['pt1'] = match.pt1
       md['pt2'] = match.pt2
       md['s'] = match.startTime
       md['f'] = match.isFinished
       renderMatches.append(md)
-      
-    return render.quickview(cmd=cmd,league=league,season=season,
+    return render.quickview(follow=follow,cmd=cmd,league=league,season=season,
                             matches=renderMatches,next=cmd+1,prev=cmd-1)    
 
 if __name__ == '__main__':
