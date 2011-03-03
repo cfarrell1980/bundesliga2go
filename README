@@ -10,6 +10,7 @@ bundesliga and OpenLigaDB APIs included in the package. The requirements are:
 - Suds (https://fedorahosted.org/suds)
 - Paste (http://www.pythonpaste.org)
 - APScheduler (http://packages.python.org/APScheduler/)
+- pyOpenSSL (https://launchpad.net/pyopenssl) only if you want to use SSL on CherryPy
 
 If you are running openSUSE, it is recommended that you add the repository
 devel:languages:python to your zypper repositories. For example, if you have
@@ -19,7 +20,7 @@ openSUSE 11.3, use the following command (as root):
 
 You can then install your dependencies as follows:
 
-``zypper in python-sqlalchemy python-webpy python-suds python-paste python-apscheduler``
+``zypper in python-sqlalchemy python-webpy python-suds python-paste python-apscheduler python-openssl``
 
 When you are sure that all of these requirements are installed, you are basically
 ready to go.
