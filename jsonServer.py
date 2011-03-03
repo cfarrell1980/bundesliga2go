@@ -492,6 +492,14 @@ class getTeams:
       return "%s(%s)"%(cbk,y)
 
 class v2:
+  '''This class is the second attempt to make provisioning the mobile device
+     with data as efficient as possible. One of the main problems that the
+     mobile devices were having was the intensive parsing necessary to display
+     the matchday pages. By asking for data on a matchday basis and by adopting
+     a format more suited to how the mobile device actually accesses the data
+     and how it stores the data in localStorage it should be possible to speed
+     up the user experience considerably'''
+
   def OPTIONS(self):
     logger.info('v2::OPTIONS - called')
     web.header('Content-Type','application/json')
@@ -521,6 +529,7 @@ class v2:
       md = present_md
     else:
       if md < 1 or md > 34:
+        logger.info('v2::POST - matchday sent (%d) not valid (1-34). Using cmd %d'%(md,present_md)
         md = present_md
     matchdata = matchdayToDict(league,season,md)
     web.header('Content-Type','application/json')
@@ -545,6 +554,7 @@ class v2:
       md = present_md
     else:
       if md < 1 or md > 34:
+        logger.info('v2::GET - matchday sent (%d) not valid (1-34). Using cmd %d'%(md,present_md)
         md = present_md
     matchdata = matchdayToDict(league,season,md)
     web.header('Content-Type','application/json')
