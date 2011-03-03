@@ -50,6 +50,12 @@ from partialSync import doSync as init_sync
 from partialSync import doCmd as init_cmd
 from partialSync import doLmu as init_lmu
 from partialSync import doWrite as init_write
+# Uncomment the lines below to enable SSL on CherryPy
+#from web.wsgiserver import CherryPyWSGIServer
+#CherryPyWSGIServer.ssl_certificate = "/tmp/testkey/bundesliga2go.crt"
+#CherryPyWSGIServer.ssl_private_key = "/tmp/testkey/bundesliga2go.key"
+
+
 logger.info("jsonServer - performing initial setup including syncing from upstream...")
 
 
@@ -99,7 +105,8 @@ urls = (
   '/getUpdates','getUpdatesByTstamp',
   '/getUpdatesByTstamp','getUpdatesByTstamp',
   '/getData','getData',
-  '/getGoals','getGoals'
+  '/getGoals','getGoals',
+  '/v2','v2'
 )
 render = web.template.render('bundesliga/')
 #app = web.application(urls,globals(),autoreload=True)
@@ -168,6 +175,36 @@ def getDataFromAPI(league,season):
   y = json.dumps(packdict)
   return y
 
+def matchdayToDict(league,season,md):
+  ''' We can't just return a jsonified object because json will choke on some object
+      properties such as date and some unicode encoded strings. Instead, we create 
+      dictionaries and ensure that json can parse it. This functionality has been
+      refactored here so that POST and GET can use it directly. Returns a dict
+      containing dictionaries of matchday matchdata (including goaldata).
+  '''
+  matchdata = api.getMatchesByMatchday(league,season,md)
+  r = {}
+  for m in matchdata:
+    tmp = {}
+    tmp['st'] = m.startTime.isoformat()
+    tmp['idt1'] = m.teams[0].id
+    tmp['idt2'] = m.teams[1].id
+    tmp['isF'] = m.isFinished
+    tmp['v'] = m.viewers
+    tmp['gt1'] = []
+    tmp['gt2'] = []
+    for g in m.goals:
+      tmpg = {}
+      tmpg['s'] = g.scorer.encode('utf-8')
+      tmpg['m'] = g.minute
+      tmpg['p'] = g.penalty
+      tmpg['o'] = g.ownGoal
+      if g.for_team_id == tmp['idt1']:
+        tmp['gt1'].append(tmpg)
+      else:
+        tmp['gt2'].append(tmpg)
+    r[m.id] = tmp
+  return r
 
 class index:
   def GET(self):
@@ -409,6 +446,66 @@ class getTeams:
       y = json.dumps({'cmd':cmd,'teams':d})
       return "%s(%s)"%(cbk,y)
 
+class v2:
+  def OPTIONS(self):
+    logger.info('v2::OPTIONS - called')
+    web.header('Content-Type','application/json')
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "POST,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def POST(self):
+    logger.info('v2::POST - called')
+    web.header("Access-Control-Allow-Origin", "*")
+    try:
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
+      league = DEFAULT_LEAGUE
+      season = current_bundesliga_season()
+    else:
+      pass
+    present_md = current_bundesliga_matchday(league)
+    md = web.input(md=present_md)
+    try:
+      md = int(md.md)
+    except:
+      md = present_md
+    else:
+      if md < 1 or md > 34:
+        md = present_md
+    matchdata = matchdayToDict(league,season,md)
+    matchdata['cmd'] = present_md
+    web.header('Content-Type','application/json')
+    return json.dumps(matchdata)
+
+  def GET(self):
+    logger.info('v2::GET - called')
+    try:
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
+      league = DEFAULT_LEAGUE
+      season = current_bundesliga_season()
+    else:
+      pass
+    present_md = current_bundesliga_matchday(league)
+    md = web.input(md=present_md)
+    try:
+      md = int(md.md)
+    except:
+      md = present_md
+    else:
+      if md < 1 or md > 34:
+        md = present_md
+    matchdata = matchdayToDict(league,season,md)
+    matchdata['cmd'] = present_md
+    web.header('Content-Type','application/json')
+    return json.dumps(matchdata)
+
 class getGoals:
   def OPTIONS(self):
     logger.info('getGoals::OPTIONS - called')
@@ -471,22 +568,9 @@ class quickView:
         cmd = current_bundesliga_matchday(league)
       else:
         cmd = int(m)
-    matches = api.getMatchesByMatchday(league,season,cmd)
-    # prepare the matchday for fast rendering
-    renderMatches = []
-    for match in matches:
-      md={}
-      md['t1'] = shortcuts[match.teams[0].id]
-      md['t2'] = shortcuts[match.teams[1].id]
-      md['idTeam1'] = str(match.teams[0].id) #str for comparison to follow
-      md['idTeam2'] = str(match.teams[1].id) 
-      md['pt1'] = match.pt1
-      md['pt2'] = match.pt2
-      md['s'] = match.startTime
-      md['f'] = match.isFinished
-      renderMatches.append(md)
+    matches = matchdayToDict(league,season,cmd)
     return render.quickview(follow=follow,cmd=cmd,league=league,season=season,
-                            matches=renderMatches,next=cmd+1,prev=cmd-1)    
+                            matches=matches,next=cmd+1,prev=cmd-1)    
 
 if __name__ == '__main__':
   try:
