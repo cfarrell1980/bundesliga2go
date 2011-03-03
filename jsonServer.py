@@ -179,12 +179,13 @@ def matchdayToDict(league,season,md):
   ''' We can't just return a jsonified object because json will choke on some object
       properties such as date and some unicode encoded strings. Instead, we create 
       dictionaries and ensure that json can parse it. This functionality has been
-      refactored here so that POST and GET can use it directly. Returns a dict
-      containing dictionaries of matchday matchdata (including goaldata).
+      refactored here so that POST and GET can use it directly. Returns a tuple with
+      two dictionaries of matchday matchdata (including goaldata) and day with idx
   '''
   matchdata = api.getMatchesByMatchday(league,season,md)
-  r = {}
+  r,idx = {},[]
   for m in matchdata:
+    idx.append(m.id)
     tmp = {}
     tmp['st'] = m.startTime.isoformat()
     tmp['idt1'] = m.teams[0].id
@@ -204,7 +205,8 @@ def matchdayToDict(league,season,md):
       else:
         tmp['gt2'].append(tmpg)
     r[m.id] = tmp
-  return r
+  md = {'day':md,'idx':idx}
+  return (r,md)
 
 class index:
   def GET(self):
@@ -415,10 +417,53 @@ class getTeams:
      returned from upstream with locally stored supplemental data (such as team shortcut)))
   '''
 
+  def OPTIONS(self):
+    logger.info('getTeams::OPTIONS - called')
+    web.header('Content-Type','application/json')
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "POST,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def POST(self):
+    logger.info('getTeams::POST - called')
+    web.header("Access-Control-Allow-Origin", "*")
+    web.header('Content-Type','application/json')
+    try:
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
+      league = DEFAULT_LEAGUE
+      season = current_bundesliga_season()
+    else:
+      pass
+    cmd = current_bundesliga_matchday(league)
+    try:
+      data = api.getTeams(league,season)
+    except InvocationError:
+      m = 'Season %d or League %s does not exist?'%(season,league)
+      logger.info('getTeams::POST %s'%m)
+      return json.dumps({'invocationError':m,'cmd':cmd})
+    else:
+      d = {}
+      for t in data:
+        if shortcuts.has_key(t.id):
+          scut = shortcuts[t.id]
+        else:
+          scut = None
+        d[t.id] = {'name':t.name,
+                 'icon':t.iconURL,
+                 'short':scut}
+      return json.dumps({'cmd':cmd,'teams':d})
+      
+
   def GET(self):
     '''
     Return all the teams for specified league and year. Defaults to Bundesliga 1 for 
     the current season'''
+    web.header('Content-Type','application/json')
     try:
       cbk,league,season = parseRequestFundamentals()
     except:
@@ -478,9 +523,9 @@ class v2:
       if md < 1 or md > 34:
         md = present_md
     matchdata = matchdayToDict(league,season,md)
-    matchdata['cmd'] = present_md
     web.header('Content-Type','application/json')
-    return json.dumps(matchdata)
+    r = {'meta':matchdata[1],'cmd':present_md,'md':matchdata[0]}
+    return json.dumps(r)
 
   def GET(self):
     logger.info('v2::GET - called')
@@ -502,9 +547,9 @@ class v2:
       if md < 1 or md > 34:
         md = present_md
     matchdata = matchdayToDict(league,season,md)
-    matchdata['cmd'] = present_md
     web.header('Content-Type','application/json')
-    return json.dumps(matchdata)
+    r = {'meta':matchdata[1],'cmd':present_md,'md':matchdata[0]}
+    return json.dumps(r)
 
 class getGoals:
   def OPTIONS(self):
