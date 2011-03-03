@@ -1,5 +1,5 @@
 //DON'T FORGET TO CHANGE THE URL!!!
-var teamsURL = 'http://paddy.suse.de:8080/getTeams';
+var teamsURL = 'http://foxhall.de:8080/getTeams';
 
 
 // var teamsURL = 'http://192.168.178.35:8080/getTeams';
@@ -15,10 +15,10 @@ function XHRRequest(type, params) {
   
   switch (type) {
     case 'data':
-      url = 'http://paddy.suse.de:8080/getData';
+      url = 'http://foxhall.de:8080/getData';
       break;
     case 'goals':
-      url = 'http://paddy.suse.de:8080/getGoals';
+      url = 'http://foxhall.de:8080/getGoals';
       break;
     default:
       console.error('Unknown type: ' + type);
