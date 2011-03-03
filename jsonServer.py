@@ -529,7 +529,7 @@ class v2:
       md = present_md
     else:
       if md < 1 or md > 34:
-        logger.info('v2::POST - matchday sent (%d) not valid (1-34). Using cmd %d'%(md,present_md)
+        logger.info('v2::POST - matchday sent (%d) not valid (1-34). Using cmd %d'%(md,present_md))
         md = present_md
     matchdata = matchdayToDict(league,season,md)
     web.header('Content-Type','application/json')
@@ -554,7 +554,7 @@ class v2:
       md = present_md
     else:
       if md < 1 or md > 34:
-        logger.info('v2::GET - matchday sent (%d) not valid (1-34). Using cmd %d'%(md,present_md)
+        logger.info('v2::GET - matchday sent (%d) not valid (1-34). Using cmd %d'%(md,present_md))
         md = present_md
     matchdata = matchdayToDict(league,season,md)
     web.header('Content-Type','application/json')
