@@ -25,24 +25,5 @@ function XHRrequest(url, params){
 
 self.addEventListener('message', function(e) {
   var data = e.data;
-  switch (data.get) {
-    case 'teams':
-      var url = 'http://foxhall.de:8080/getTeams'
-      XHRrequest(url, data.params);
-      break;
-    case 'data':
-      var url = 'http://foxhall.de:8080/getData'
-      XHRrequest(url, data.params);
-      break;
-    case 'goals':
-      var url = 'http://foxhall.de:8080/getGoals'
-      XHRrequest(url, data.params);
-      break;
-    case 'updates':
-      var url = 'http://foxhall.de:8080/getUpdatesByTstamp'
-      XHRrequest(url, data.params);
-      break;
-    default:
-      self.postMessage('Unknown command: ' + data.msg);
-  };
+  XHRrequest(data.url, data.params);
 }, false);

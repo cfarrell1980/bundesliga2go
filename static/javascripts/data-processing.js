@@ -1,6 +1,4 @@
 var DEBUG = true;
-
-//LOGGER
 function log(object, inspect) {
   if(DEBUG) { 
     var now = new Date();
@@ -15,101 +13,58 @@ function log(object, inspect) {
 
 //SAVE TEAMS DATA FROM SERVER
 function saveTeams(data) {
-  log("DEBUG: SAVE TEAMS DATA");
-  console.log(data.cmd);
+  console.log("SAVE TEAMS DATA FROM SERVER")
   
   var teams = new Array();
-  localStorage.setItem('cmd',data['cmd']);
+  objects = JSON.parse(data);
   
-  for(var id in data['teams']) {
-    teams.push(data['teams'][id]);
-    localStorage.setItem('team'+id,JSON.stringify(data['teams'][id]));
+  for(var id in objects.teams) {
+    teams.push(id);
+    localStorage.setItem('team'+id, JSON.stringify(objects.teams[id]));
   }  
   
-//   localStorage.setItem('teams-synced', 'true');
   localStorage.setItem('teams', JSON.stringify(teams));
+  localStorage.setItem('teams-synced', 'true');
 }
+
 
 //SAVE ALL DATA FROM SERVER
-function saveData(data) {
-  log("DEBUG: SAVE ALL DATA");
-  if(data.cmd) {
-    for(var matchdayID in data.matchdays) {
-      localStorage.setItem('lastKnownMatchday', JSON.stringify(data.cmd));
-//       localStorage.setItem('data-synced', 'true');
-    }
+function saveIndex(data) {
+  console.log("DEBUG: SAVE INDEX DATA");
+  var matchday = JSON.parse(data);
+  
+  console.dir(matchday);
+  
+  localStorage.setItem('cmd', matchday.cmd);
+  localStorage.setItem(matchday.cmd, JSON.stringify(matchday.meta.idx));
+  
+  for(var id in matchday.md) {
+    localStorage.setItem(id, JSON.stringify(matchday.md[id]));
   }
   
-  if(data.matchdays) {
-    for(var matchdayID in data.matchdays) {
-      localStorage.setItem('matchday'+matchdayID, JSON.stringify(data.matchdays[matchdayID]));
-    }
-  }
-  
-  if(data.matches) {
-    for(var matchID in data.matches) {
-      localStorage.setItem('match'+matchID, JSON.stringify(data.matches[matchID]));
-    }
-  }
-  
-  log("DEBUG: RENDER MACTH DAY");
-  renderMatchDay(data.cmd, getMatchesByMatchdayID(data.cmd));
+  indexPage(matchday.cmd);
 }
 
-function saveGoals(data) {
-  log("DEBUG: SAVE GOALS DATA");
-  if(data.goalindex) {
-    for(var matchID in data.goalindex) {
-      localStorage.setItem('goal'+matchID, JSON.stringify(data.goalindex[matchID]));
-    }
-  }
-  
-  if(data.goalobjects) {
-    for(var goalID in data.goalobjects) {
-      localStorage.setItem('goalobject'+goalID, JSON.stringify(data.goalobjects[goalID]));
-    }
-  }
-  
-  log("Set goals to synced and perform page reload!");
-  localStorage.setItem('goals-synced', 'true');
-  jQuery.mobile.pageLoading();
-  setTimeout("hideLoading()",1000);
-  location.reload();
-}
 
-function getMatchesByMatchdayID(id) {
-  //log("INFO: GET TEAMS BY MATCHDAYID " + id);
-  return JSON.parse(localStorage.getItem('matchday'+id));
+function getMatches(cmd) {
+  return JSON.parse(localStorage.getItem(cmd));
 }
 
 function getMatchByID(id) {
-  //log("INFO: GET TEAMS BY MATCH ID " + id);
-  return JSON.parse(localStorage.getItem('match'+id));
-}
- 
-function getTeamsForMatch(id) {
-    var temp = JSON.parse(localStorage.getItem('match' + id));
-    var teams  = [];
-    teams.push(temp.t1);
-    teams.push(temp.t2);
-    return teams;
+  return JSON.parse(localStorage.getItem(id));
 }
 
-function getTeamDataByTeamID(id) {
-  //log("INFO: GET TEAM DATA BY TEAM ID " + id);
+function getTeamByID(id) {
   return JSON.parse(localStorage.getItem('team' + id));
 }
 
-function getGoalsByMatchID(id) {
-//   log("INFO: GET GOALS DATA BY MATCH ID " + 'goal' + id);
-  if('goal' + id in localStorage) {
-    return JSON.parse(localStorage.getItem('goal' + id));
-  } else {
-    return false;
-  }
-}
 
-function getGoalObjectByID(id) {
-//   log("INFO: GET GOAL BY ID " + 'goalobject' + id);
-  return JSON.parse(localStorage.getItem('goalobject' + id));
-}
+
+
+
+
+
+
+
+
+

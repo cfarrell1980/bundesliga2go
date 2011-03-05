@@ -1,130 +1,156 @@
-function navbarMatchDay(matchdayID) {
-  if(typeof matchdayID == 'undefined')  {
-    $('#navbar').html('<p class="error">ERROR: Can not render nav bar</p>');  
-  } else {
-    var content =  '<h2 class="ui-title" tabindex="0" role="heading" aria-level="1"><span>' + matchdayID + '</span>. Spieltag' + '</h2>' +
-    '<a href="#" id="prevMatchday" class="ui-btn-left ui-btn ui-btn-corner-all ui-shadow ui-btn-up-c">' +
-    '<span class="ui-btn-inner ui-btn-corner-all">' +
-    '<span class="ui-btn-text">' +
-    '<img class="" src="static/css/images/arrow-left.png" style="height:16px; vertical-align:middle;">' +
-    '</span>' +
-    '</span>' +
-    '</a>' +
-    '<a href="#" id="nextMatchday" class="ui-btn-right ui-btn ui-btn-corner-all ui-shadow ui-btn-up-c">' +
-    '<span class="ui-btn-inner ui-btn-corner-all">' +
-    '<span class="ui-btn-text">' +
-    '<img class="" src="static/css/images/arrow-right.png" style="height:16px; vertical-align:middle;">' +
-    '</span>' +
-    '</span>' + 
-    '</a>' ;
-    
-    $('#navbar').html(content);
-  }
-}
-
-function checkPoints(fin, pts) {
-  if(fin) { return '<b>' + pts + '</b>'; } else { return '<b class="color-grey">' + 0 + '</b>'; }
-}
-
-function renderMatchDay(matchdayID, matches) {
-  navbarMatchDay(matchdayID);
-  var list = '';
-  var t1, t2, match, goalsIndex;
-  var team = 0, counter=0;
-  var array = new Array();
+function indexPage(cmd) {
+  matches = getMatches(cmd);
   
-  for (var i=0; i<matches.length; i++) {
-    t1 = getTeamDataByTeamID(getTeamsForMatch(matches[i])[0]);
-    t2 = getTeamDataByTeamID(getTeamsForMatch(matches[i])[1]);
+  var content = '';
+  for(var i=0; i<matches.length; i++) {
     match = getMatchByID(matches[i]);
-
-    list += '<li>' +
-    '<a class="match_link" href="' + matches[i] + '">' +
-      '<span class="left-column">' +
-      '<span class="icon icon-' + t1.icon.split('/').pop().split('.').shift() + '"></span>' +	
-      '<span class="">'+ t1.short + '</span>' +	
-      
-      
-      
-      '<span class="right">' + checkPoints(match.fin, match.pt1) + ':</span>' +
-      '</span>' + 
-      '<span class="right-column">' +
-      '<span class="left">' + checkPoints(match.fin, match.pt2) + '</span>' +
-      '<span class="">'+ t2.short + '</span>' +	
-      '<span class="icon icon-' + t2.icon.split('/').pop().split('.').shift() + '"></span>' +	
-      '</span>' +
-    '</a>' +
-    '</li>';
+    team1 = getTeamByID(match.idt1);
+    team2 = getTeamByID(match.idt2);
     
-    renderGames(matches[i], match, t1, t2);        
+    initMatchPage(matches[i], match, team1, team2);
+    
+    content += '<li data-icon="false"><a href="' + matches[i] + '" id=' + matches[i] + ' data-theme="c" class="match">';
+      content += '<div class="container_12">';
+      content += '<div class="grid_5 text-left">' + 
+        '<span class="icon icon-' + team1.icon.split('/').pop().split('.').shift() + '"></span>' + team1.short +'</div>';
+      content += '<div class="grid_2 text-center">' + match.gt1.length + ':' + match.gt2.length + '</div>';
+      content += '<div class="grid_5 text-right">' + 
+        team2.short +  '<span class="icon icon-' + team2.icon.split('/').pop().split('.').shift() + '"></span></div>';
+      content += '</div>';
+    content += '</a></li>';  
   }
   
-  for (var k in array) {
-    log('key is: ' + k + ', value is: ' + array[i]);
-  }
+  jQuery('#cmd').text('Spieltag ' + cmd);
+  jQuery('#list').html(content).page();
+  jQuery('#list').listview('refresh', true);
   
-  $('#list').html(list).listview('refresh');    
-  $('#list').find('img.ui-li-thumb').removeClass('ui-li-thumb');
-  $('#list').find('span.ui-icon-arrow-r').remove();
-  $('#list' + matches[i]).listview('refresh');   
+  jQuery('#list').find('img.ui-li-thumb').removeClass('ui-li-thumb');
+  jQuery('#list').find('span.ui-icon-arrow-r').remove();
   
-  if(localStorage['goals-synced'] != 'true') {
-    getGoals('#');
-  }
+      
 }
 
-function renderGames(matchID, match, t1, t2) {
-  var games='', goals, goalsIndex;
+function initMatchPage(matchID, match, team1, team2) {
+ 
+//   matchPage =  '<div data-role="page" data-theme="c" id="' + matchID + '">';
+//     matchPage += '<div data-role="header"><h2>Spiel: ' + matchID + '</h2></div>';  
+//     
+//     matchPage += '<div id="list' + matchID + '" data-role="content" class="ui-body">';
+//       matchPage += '<div>Datum: ' + match.st.split('T')[0] + ' Zeit: ' +  match.st.split('T')[1] + '</div>';
+// 
+//       matchPage += '<div class="container_12">';
+//         matchPage += '<div class="grid_12 text-center">' + team1.name + ' vs ' + team2.name + '</div>';
+//         
+//         matchPage += '<div class="grid_6 text-left">';
+//           matchPage += '<span class="grid_2 left">ICON</span>';
+//           matchPage += '<span class="grid_4 right text-right margin-right5">' + team1.short + '</span>';
+//         matchPage += '</div>';
+//       
+//         matchPage += '<div class="grid_6 text-right">';
+//           matchPage += '<span class="grid_4 left text-left margin-left5">' + team2.short + '</span>';
+//           matchPage += '<span class="grid_2 right margin-left5" style="float:right">ICON</span>';
+//         matchPage += '</div>'
+//       
+//         matchPage += '<div class="grid_6 text-left">';
+//           matchPage += '<span class="grid_4 left text-left ">Scorer</span>';
+//           matchPage += '<span class="grid_2 right text-right margin-right5">Goal</span>';
+//         matchPage += '</div>';
+//       
+//         matchPage += '<div class="grid_6 text-left">';
+//           matchPage += '<span class="grid_2 left text-left margin-left5">Goal</span>';
+//           matchPage += '<span class="grid_4 right text-right">Scorer</span>';
+//         matchPage += '</div>';
+//         
+//     matchPage += '</div>';
+//   matchPage += '</div>';
   
-  goalsIndex = getGoalsByMatchID(matchID);
-  games +='<div data-role="page" id="' + matchID + '">' +
-  '<div data-role="header">' +
-  '<h2>' + t1.short + ' : ' + t2.short + '</h2>' +
-  '<a href="#home" class="ui-btn-left" data-icon="arrow-l">zurück</a>' +
-  '</div>' +
-  '<div id="list' + matchID + '" data-role="content" class="ui-body">' 
-  
-  if(goalsIndex !=false) {
-    for(i=0; i<goalsIndex.length; i++) {
-      games += '<ul data-width="50%" data-role="listview" role="listbox" data-theme="c" data-dividertheme="b" data-inset="true">' 
-      goals = getGoalObjectByID(goalsIndex[i]);
-      games += '<li  data-role="list-divider">Goal ' + parseInt(i+1) + '</li>';
-      games += '<li data-theme="b">Team: ' + getTeamDataByTeamID(goals.teamID).name  + '</li>';
-      games += '<li>Scorer: ' + goals.scorer  + '</li>';
-      games += '<li>Minute: ' + goals.minute  + '</li>';
-      games += '</ul>';  
-    }
-  } else {
-    games += '<li>Spiel findet am xx.xx.xxxx statt</li>';
-  }
-  
-  games +=
-    '</div>' +
-    '<div id="homeFooter" data-role="footer"><h2>FOOTER</h2></div>' +
-    '</div>';    
+  matchPage =  '<div data-role="page" data-theme="c" id="' + matchID + '">';
+  matchPage += '<div data-role="header"><h1>' + team1.short + ' vs ' + team2.short +'</h1></div>';
+  matchPage += '<div data-role="content">';
+    matchPage += '<ul data-role="listview">';
+    matchPage += '<li>Datum: ' + match.st.split('T')[0] + ' ' + match.st.split('T')[1] + '</li>';
+      matchPage += '<li class="container_12">';
+        matchPage += '<span class="grid_6 left text-left">' + team1.short + '</span>';
+        matchPage += '<span class="grid_6 right text-right">' + team2.short +'</span>';
+      matchPage +='</li>';
+      matchPage += '<li class="container_12">';
+      
+      if(match.gt1.length == match.gt2.length) {
+        for(var i=0; i<match.gt1.length; i++) {
+//           matchPage += '<span class="grid_6 left text-left">' + match.gt1[i].s + '</span>';
+//           matchPage += '<span class="grid_6 right text-right">' + match.gt2[i].s + '</span>';
+          
+          matchPage += '<span class="grid_6 left text-left">';
+            matchPage += '<span class="left">' + match.gt1[i].s + '</span>';
+            matchPage += '<span class="right margin-right10">' +  match.gt1[i].m + '\"</span>';
+          matchPage += '</span>';
+          
+          matchPage += '<span class="grid_6 right text-right">';
+            matchPage += '<span class="left margin-left10">' +  match.gt2[i].m + '\"</span>';
+            matchPage += '<span class="right">' + match.gt2[i].s + '</span>';
+          matchPage += '</span>';
+        }
+      } else {
+        var counter=0;
+        match.gt1.length < match.gt2.length? counter = match.gt2.length : counter = match.gt1.length
 
-  $(games).insertAfter('#home');
-  $('#'+matchID).hide();
+        var tmp = 0;
+        for(var j=0; j<counter; j++) {
+          match.gt1? tmp = match.gt1: tmp=0;
+          
+          if(match.gt1[j]) {
+            matchPage += '<span class="grid_6 left text-left">';
+              matchPage += '<span class="left">' + match.gt1[j].s + '</span>';
+              matchPage += '<span class="right margin-right10">' +  match.gt1[j].m + '\"</span>';
+            matchPage += '</span>';
+          } else {
+            matchPage += '<span class="grid_6 left text-left">';
+              matchPage += '<span class="left">--</span>';
+              matchPage += '<span class="right margin-right10">--</span>';
+            matchPage += '</span>';
+          }
+          
+          if(match.gt2[j]) {
+            matchPage += '<span class="grid_6 right text-right">';
+              matchPage += '<span class="left margin-left10">' +  match.gt2[j].m + '\"</span>';
+              matchPage += '<span class="right">' + match.gt2[j].s + '</span>';
+            matchPage += '</span>';
+          } else {
+            matchPage += '<span class="grid_6 right text-right">';
+              matchPage += '<span class="left margin-left10">--</span>';
+              matchPage += '<span class="right">--</span>';
+            matchPage += '</span>';
+          }
+        }
+      }
+      
+      matchPage +='</li>';
+    matchPage += '</ul>';
+  matchPage += '</div>';
+  matchPage += '<div data-role="footer">Header</div>';
+  $(matchPage).insertAfter('#home').page();
 }
 
-function hideLoading(){
-  jQuery.mobile.pageLoading(true);
-}
 
-//TODO: Investigate page loading issue --> jQuery.mobile.pageLoading(true);
-function initNavbar() {
-  var id = ['#prevMatchday', '#nextMatchday'];
-  var matchday;
-  
-  for (var i in id) {
-    jQuery(id[i]).live('click tap', function(event) {
-      matchday = parseInt(jQuery('#navbar>h2').text());
-      //TODO: if matchday > 34 switch to next season
-      (jQuery(this).attr('id') == 'nextMatchday') ? matchday++ : matchday--;
-      renderMatchDay(matchday, getMatchesByMatchdayID(matchday));
-      jQuery.mobile.pageLoading();
-      setTimeout("hideLoading()",500);
-      return false;
-    });
-  }
-}
+
+// function hideLoading(){
+//   jQuery.mobile.pageLoading(true);
+// }
+
+// //TODO: Investigate page loading issue --> jQuery.mobile.pageLoading(true);
+// function initNavbar() {
+//   var id = ['#prevMatchday', '#nextMatchday'];
+//   var matchday;
+//   
+//   for (var i in id) {
+//     jQuery(id[i]).live('click tap', function(event) {
+//       matchday = parseInt(jQuery('#navbar>h2').text());
+//       //TODO: if matchday > 34 switch to next season
+//       (jQuery(this).attr('id') == 'nextMatchday') ? matchday++ : matchday--;
+//       renderMatchDay(matchday, getMatchesByMatchdayID(matchday));
+//       jQuery.mobile.pageLoading();
+//       setTimeout("hideLoading()",500);
+//       return false;
+//     });
+//   }
+// }

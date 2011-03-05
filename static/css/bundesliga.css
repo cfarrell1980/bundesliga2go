@@ -1,4 +1,52 @@
-.error { color:#900000; text-align:center; font-weight:bold; }
+body { background-image: url(../img/bg-body.png); }
+.ui-header .ui-btn-inner, .ui-footer .ui-btn-inner, .ui-bar .ui-btn-inner  { padding:4px 4px; }
+
+#header { padding:0px; margin:0px; height:45px; vertical-align:middle; }
+#cmd, .ui-title { 
+  display:block; 
+  color:#fff; 
+  text-shadow: 0 -1px 1px #000000; 
+  padding:1px 10px; 
+  background-color:#999; 
+  -moz-border-radius:100%; 
+  -webkit-border-radius:50px; 
+}
+
+#footer { padding:4px; }
+#reset-storage { float:right; margin:3px 20px 0px 0px; position:relative; padding:0px 10px; }
+.ui-header, .ui-footer { background: -moz-linear-gradient(center top , #555, #555) repeat scroll 0 0 #555; text-align:center; }
+.ui-btn-up-c { background: -moz-linear-gradient(center top , #EEEEEE, #EEEEEE) repeat scroll 0 0 #EEEEEE; }
+
+#list .ui-li-has-thumb, #list .ui-btn-inner { min-height: 26px; line-height:26px; padding:3px 0; }
+.ui-btn-inner { -moz-border-radius:3px; -webkit-border-radius:3px; }
+.ui-btn-corner-all { -moz-border-radius: 3px; -webkit-border-radius: 3px; }
+
+
+
+.text-left { text-align:left; }
+.text-center { text-align:center; }
+.text-right { text-align:right; }
+
+.left { float:left; }
+.right { float:right; }
+.margin-left5 { margin-left:5px; }
+.margin-right5 { margin-right:5px; }
+.margin-left10 { margin-left:10px; }
+.margin-right10 { margin-right:10px; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*.error { color:#900000; text-align:center; font-weight:bold; }
 div.ui-page-active { display:block!important; }
 
 #message {
@@ -24,14 +72,13 @@ span.matchday {
   height:76px; 
   width:76px; 
   margin-right: 150px;
-}
+}*/
 
-#list h3.ui-li-heading, #list p.ui-li-desc { margin-left:100px; }
-span.color-grey { color:#aaa; }
-span.left { float:left; clear:both; overflow:hidden; }
-span.right { float:right; clear:both; overflow:hidden; }
+/* #list h3.ui-li-heading, #list p.ui-li-desc { margin-left:100px; } */
+/* span.color-grey { color:#aaa; } */
 
-span.matchday {text-align:center;}
+
+/*span.matchday {text-align:center;}
 span.matchday_border {
   border:4px solid #a9a9a9; 
   display:inline-block; 
@@ -39,14 +86,15 @@ span.matchday_border {
   width:58px; 
   padding:5px;
   vertical-align:50%;
-}
+}*/
 
-#list .ui-li-has-thumb, #list .ui-btn-inner { min-height: 20px; padding:5px 0;}
+/* #list { position:relative!important; } */
+/*#list .ui-li-has-thumb, #list .ui-btn-inner { min-height: 20px; padding:5px 0;}
 #list div.ui-btn-inner { padding:5px 5px 5px 0; }
 #navbar .ui-btn-inner { padding:5px 30px 5px 30px; }
 
 span.left-column, span.right-column {white-space: pre-line; overflow:hidden; display:inline-block; width:50%; }
-span.left-column { float:left; text-align:left;} span.right-column { float:right; text-align:right;}
+span.left-column { float:left; text-align:left;} span.right-column { float:right; text-align:right;}*/
 
 span.icon { margin:0 10px; vertical-align:middle; line-height: 20px; border: 2px solid #cccccc; -moz-border-radius:50%; -webkit-border-radius:20px;}
 span.icon-1_FC_Kaiserslautern{ background: url(../img/teams.png) no-repeat top left; background-position: 0 0; width: 20px; height: 20px; display:inline-block; } 
