@@ -109,6 +109,8 @@ urls = (
   '/v2','v2'
 )
 render = web.template.render('bundesliga/')
+web.template.Template.globals['len'] = len # to count goals
+web.template.Template.globals['type'] = type
 #app = web.application(urls,globals(),autoreload=True)
 app = web.application(urls, globals(), autoreload=False)
 application = app.wsgifunc()
@@ -624,8 +626,18 @@ class quickView:
       else:
         cmd = int(m)
     matches = matchdayToDict(league,season,cmd)
-    return render.quickview(follow=follow,cmd=cmd,league=league,season=season,
-                            matches=matches,next=cmd+1,prev=cmd-1)    
+    teams = api.getTeams(league,season)
+    d = {}
+    for t in teams:
+      if shortcuts.has_key(t.id):
+        scut = shortcuts[t.id]
+      else:
+        scut = None
+      d[t.id] = {'name':t.name,
+                 'icon':t.iconURL,
+                 'short':scut}
+    return render.quickview(follow=int(follow),cmd=cmd,league=league,season=season,
+                            matches=matches[0],next=cmd+1,prev=cmd-1,teams=d)    
 
 if __name__ == '__main__':
   try:
