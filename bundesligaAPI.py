@@ -362,7 +362,6 @@ class BundesligaAPI:
     else:
       viewers = 0
     x = session.query(Match).filter(Match.id==m.matchID).first()
-    orig_goals = len(x.goals)
     match = session.merge(Match(m.matchID,m.groupOrderID,m.matchDateTime,estEnd,m.matchIsFinished,\
                            m.pointsTeam1,m.pointsTeam2,viewers))
     t1 = session.merge(Team(m.idTeam1,m.nameTeam1.encode('utf-8'),m.iconUrlTeam1))
