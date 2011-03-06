@@ -383,10 +383,13 @@ class BundesligaAPI:
               scorer = u'Unknown'
             if goalobj.goalPenalty == None or goalobj.goalPenalty == False: #sometimes null sometimes False
               penalty = False
-            localGoal = session.merge(Goal(goalobj.goalID,scorer,
+            if scorer == 'Unknown' and goalobj.goalMatchMinute == None and penalty == False:
+              logger.info("mergeRemoteLocal - goalID %d is probably a dud match"%goalobj.goalID)
+            else:
+              localGoal = session.merge(Goal(goalobj.goalID,scorer,
                             goalobj.goalMatchMinute,goalobj.goalScoreTeam1,goalobj.goalScoreTeam2,
                             goalobj.goalOwnGoal,goalobj.goalPenalty,))
-            match.goals.append(localGoal)
+              match.goals.append(localGoal)
     for goal in match.goals:# now try to find out what team scored. not easy from raw openligadb data
       cur_idx = match.goals.index(goal)
       if cur_idx == 0:#the first goal is easy
