@@ -131,7 +131,7 @@ def parseRequestFundamentals():
   cmd = current_bundesliga_matchday(league)
   now = datetime.now().strftime("%Y-%m-%dT%H:%M%S")
   season = web.input(season=None)
-  if not season:
+  if not season.season:
     logger.info("getData::GET - season undefined...")
     season = current_bundesliga_season()
   else:
@@ -139,7 +139,7 @@ def parseRequestFundamentals():
     try:
       season = int(season.season)
     except TypeError:
-      logger.info("getData::GET - can't convert season %s into int"%season)
+      logger.info("getData::GET - can't convert season %s into int"%season.season)
       season = current_bundesliga_season()
     else: pass
   return (cbk,league,season)
