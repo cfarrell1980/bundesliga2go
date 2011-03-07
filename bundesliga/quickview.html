@@ -1,4 +1,4 @@
-$def with (follow,cmd,league,season,matches,next,prev)
+$def with (follow,cmd,league,season,matches,next,prev,teams)
 <html>
  <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -22,20 +22,26 @@ $def with (follow,cmd,league,season,matches,next,prev)
          <tr class="ft">
            <td width="40%">
             $if matches[m]['idt1'] == follow:
-              <a href="quickview?m=$cmd&amp;ft=0">$matches[m]['t1']</a>
+              <a href="quickview?m=$cmd&amp;ft=0">$teams[matches[m]['idt1']]['short']</a>
             $else:
-              <a href="quickview?m=$cmd&amp;ft=$matches[m]['idt1']">$matches[m]['t1']</a>
-            </td><td width="30%">len($matches[m]['gt1']):len($matches[m]['gt2']</td>
+              <a href="quickview?m=$cmd&amp;ft=$matches[m]['idt1']">$teams[matches[m]['idt1']]['short']</a>
+            </td>
+            <td width="30%">
+              $len(matches[m]['gt1']) : $len(matches[m]['gt2'])
+            </td>
             <td width="40%">
             $if matches[m]['idt2'] == follow:
-              <a href="quickview?m=$cmd&amp;ft=0">$matches[m]['t2']</a>
+              <a href="quickview?m=$cmd&amp;ft=0">$teams[matches[m]['idt2']]['short']</a>
             $else:
-              <a href="quickview?m=$cmd&amp;ft=$matches[m]['idt2']">$matches[m]['t2']</a>
+              <a href="quickview?m=$cmd&amp;ft=$matches[m]['idt2']">$teams[matches[m]['idt2']]['short']</a>
          </tr>
        $else:
          <tr>
-          <td width="40%"><a href="quickview?m=$cmd&amp;ft=$matches[m]['idt1']">$matches[m]['t1']</a></td><td width="30%">len($matches[m]['gt1']):len($matches[m]['gt2']</td>
-          <td width="40%"><a href="quickview?m=$cmd&amp;ft=$matches[m]['idt2']">$matches[m]['t2']</a></td>
+          <td width="40%"><a href="quickview?m=$cmd&amp;ft=$matches[m]['idt1']">$teams[matches[m]['idt1']]['short']</a></td>
+          <td width="30%">
+            $len(matches[m]['gt1']) : $len(matches[m]['gt2'])
+          </td>
+          <td width="40%"><a href="quickview?m=$cmd&amp;ft=$matches[m]['idt2']">$teams[matches[m]['idt2']]['short']</a></td>
          </tr>
      <tr class="nav">
       <td width="40%">
