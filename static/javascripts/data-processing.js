@@ -33,8 +33,6 @@ function saveIndex(data) {
   console.log("DEBUG: SAVE INDEX DATA");
   var matchday = JSON.parse(data);
   
-  console.dir(matchday);
-  
   localStorage.setItem('cmd', matchday.cmd);
   localStorage.setItem(matchday.cmd, JSON.stringify(matchday.meta.idx));
   
@@ -42,6 +40,7 @@ function saveIndex(data) {
     localStorage.setItem(id, JSON.stringify(matchday.md[id]));
   }
   
+//   jQuery('#cmd').text('Spieltag ' + matchday.cmd);
   indexPage(matchday.cmd);
 }
 
@@ -57,14 +56,3 @@ function getMatchByID(id) {
 function getTeamByID(id) {
   return JSON.parse(localStorage.getItem('team' + id));
 }
-
-
-
-
-
-
-
-
-
-
-

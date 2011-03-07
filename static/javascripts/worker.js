@@ -1,13 +1,19 @@
 var xhr = new XMLHttpRequest();
 
-function XHRrequest(url, params){
-  params == '#'? data = ' ' : data = params
+function XHRrequest(url, type, params){
+//   params == '#'? data = ' ' : data = params
+  
+  if(type == 'index') {
+    params = '&md=' + params;
+  } else{
+    params = '#';
+  }
   
   if(xhr) {    
     xhr.open('POST', url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.send(data);
+    xhr.send(params);
     
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
@@ -25,5 +31,5 @@ function XHRrequest(url, params){
 
 self.addEventListener('message', function(e) {
   var data = e.data;
-  XHRrequest(data.url, data.params);
+  XHRrequest(data.url, data.get, data.params);
 }, false);

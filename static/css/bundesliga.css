@@ -1,27 +1,33 @@
-body { background-image: url(../img/bg-body.png); }
-.ui-header .ui-btn-inner, .ui-footer .ui-btn-inner, .ui-bar .ui-btn-inner  { padding:4px 4px; }
+body { background-image: url(../img/bg-body.png); padding:10px; }
 
-#header { padding:0px; margin:0px; height:45px; vertical-align:middle; }
+#home { -moz-border-radius:5px; -webkit-border-radius:5px; margin:0 auto; position:relative; padding:4px; width:96%; }
+.matchPage { -moz-border-radius:5px; -webkit-border-radius:5px; margin:0 auto!important; position:relative!important; padding:5px; width:96%!important; }
+.ui-header .ui-btn-inner, .ui-footer .ui-btn-inner, .ui-bar .ui-btn-inner  { padding:4px; }
+
+#header { padding:0px; margin:0px; height:40px; vertical-align:middle; }
+
 #cmd, .ui-title { 
-  display:block; 
   color:#fff; 
   text-shadow: 0 -1px 1px #000000; 
   padding:1px 10px; 
   background-color:#999; 
-  -moz-border-radius:100%; 
-  -webkit-border-radius:50px; 
+  -moz-border-radius:5px; 
+  -webkit-border-radius:5px; 
 }
 
-#footer { padding:4px; }
-#reset-storage { float:right; margin:3px 20px 0px 0px; position:relative; padding:0px 10px; }
+#footer span { padding:3px 0px; text-align:center; -moz-border-radius:5px; -webkit-border-radius:5px; }
+#reset-storage { display:block; width:98%; margin:0 auto; position:relative; }
 .ui-header, .ui-footer { background: -moz-linear-gradient(center top , #555, #555) repeat scroll 0 0 #555; text-align:center; }
 .ui-btn-up-c { background: -moz-linear-gradient(center top , #EEEEEE, #EEEEEE) repeat scroll 0 0 #EEEEEE; }
 
-#list .ui-li-has-thumb, #list .ui-btn-inner { min-height: 26px; line-height:26px; padding:3px 0; }
+#list .ui-li-has-thumb, #list .ui-btn-inner { min-height: 36px; line-height:36px; padding:3px 0px; }
 .ui-btn-inner { -moz-border-radius:3px; -webkit-border-radius:3px; }
 .ui-btn-corner-all { -moz-border-radius: 3px; -webkit-border-radius: 3px; }
+.ui-page { min-height:160px!important; }
 
-
+/*.round { -moz-border-radius:100%; -webkit-border-radius:50px; }
+.bg-grey { background-color: #555; }
+.padding5 { padding:5px; }*/
 
 .text-left { text-align:left; }
 .text-center { text-align:center; }

@@ -1,4 +1,5 @@
 function indexPage(cmd) {
+  log("Render Index for: " + cmd)
   matches = getMatches(cmd);
   
   var content = '';
@@ -20,7 +21,6 @@ function indexPage(cmd) {
     content += '</a></li>';  
   }
   
-  jQuery('#cmd').text('Spieltag ' + cmd);
   jQuery('#list').html(content).page();
   jQuery('#list').listview('refresh', true);
   
@@ -31,40 +31,7 @@ function indexPage(cmd) {
 }
 
 function initMatchPage(matchID, match, team1, team2) {
- 
-//   matchPage =  '<div data-role="page" data-theme="c" id="' + matchID + '">';
-//     matchPage += '<div data-role="header"><h2>Spiel: ' + matchID + '</h2></div>';  
-//     
-//     matchPage += '<div id="list' + matchID + '" data-role="content" class="ui-body">';
-//       matchPage += '<div>Datum: ' + match.st.split('T')[0] + ' Zeit: ' +  match.st.split('T')[1] + '</div>';
-// 
-//       matchPage += '<div class="container_12">';
-//         matchPage += '<div class="grid_12 text-center">' + team1.name + ' vs ' + team2.name + '</div>';
-//         
-//         matchPage += '<div class="grid_6 text-left">';
-//           matchPage += '<span class="grid_2 left">ICON</span>';
-//           matchPage += '<span class="grid_4 right text-right margin-right5">' + team1.short + '</span>';
-//         matchPage += '</div>';
-//       
-//         matchPage += '<div class="grid_6 text-right">';
-//           matchPage += '<span class="grid_4 left text-left margin-left5">' + team2.short + '</span>';
-//           matchPage += '<span class="grid_2 right margin-left5" style="float:right">ICON</span>';
-//         matchPage += '</div>'
-//       
-//         matchPage += '<div class="grid_6 text-left">';
-//           matchPage += '<span class="grid_4 left text-left ">Scorer</span>';
-//           matchPage += '<span class="grid_2 right text-right margin-right5">Goal</span>';
-//         matchPage += '</div>';
-//       
-//         matchPage += '<div class="grid_6 text-left">';
-//           matchPage += '<span class="grid_2 left text-left margin-left5">Goal</span>';
-//           matchPage += '<span class="grid_4 right text-right">Scorer</span>';
-//         matchPage += '</div>';
-//         
-//     matchPage += '</div>';
-//   matchPage += '</div>';
-  
-  matchPage =  '<div data-role="page" data-theme="c" id="' + matchID + '">';
+  matchPage =  '<div class="matchPage" data-role="page" id="' + matchID + '">';
   matchPage += '<div data-role="header"><h1>' + team1.short + ' vs ' + team2.short +'</h1></div>';
   matchPage += '<div data-role="content">';
     matchPage += '<ul data-role="listview">';
@@ -77,9 +44,6 @@ function initMatchPage(matchID, match, team1, team2) {
       
       if(match.gt1.length == match.gt2.length) {
         for(var i=0; i<match.gt1.length; i++) {
-//           matchPage += '<span class="grid_6 left text-left">' + match.gt1[i].s + '</span>';
-//           matchPage += '<span class="grid_6 right text-right">' + match.gt2[i].s + '</span>';
-          
           matchPage += '<span class="grid_6 left text-left">';
             matchPage += '<span class="left">' + match.gt1[i].s + '</span>';
             matchPage += '<span class="right margin-right10">' +  match.gt1[i].m + '\"</span>';
@@ -127,10 +91,28 @@ function initMatchPage(matchID, match, team1, team2) {
       matchPage +='</li>';
     matchPage += '</ul>';
   matchPage += '</div>';
-  matchPage += '<div data-role="footer">Header</div>';
+  matchPage += '<div data-role="footer">Footer</div>';
   $(matchPage).insertAfter('#home').page();
 }
 
+
+jQuery(document).ready(function() {
+  jQuery('#prev').bind("click", function(){
+    var $cmd = jQuery('#cmd').text().split(' ')[1];
+    $cmd = parseInt($cmd)-1;
+    jQuery('#cmd').text('Spielzag ' + $cmd);
+    console.log("Switch to " + $cmd)
+    firstRun($cmd);
+  });
+  
+  jQuery('#next').bind("click", function(){
+    var $cmd = jQuery('#cmd').text().split(' ')[1];
+    $cmd = parseInt($cmd)+1;
+    jQuery('#cmd').text('Spielzag ' + $cmd);
+    console.log("Switch to " + $cmd)
+    firstRun($cmd);
+  }); 
+});
 
 
 // function hideLoading(){

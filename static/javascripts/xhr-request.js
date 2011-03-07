@@ -14,11 +14,11 @@ function XHRRequest(type, url, params) {
           switch(type) {
             case 'index':
               console.info('Type is: ' + type + ' before save!');
-              saveIndex(xhr.responseText);
+              saveIndex(xhr.responseText, data);
               break;
             case 'teams':
-              console.info('Type is: ' + type + ' before save!');
-              index(xhr.responseText);
+//               console.info('Type is: ' + type + ' before save!');
+              index(xhr.responseText, params);
               break;
             default:
               console.error('Unknown type: ' + type);
