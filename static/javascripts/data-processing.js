@@ -34,14 +34,17 @@ function saveIndex(data) {
   var matchday = JSON.parse(data);
   
   localStorage.setItem('cmd', matchday.cmd);
-  localStorage.setItem(matchday.cmd, JSON.stringify(matchday.meta.idx));
+  localStorage.setItem(matchday.meta.day, JSON.stringify(matchday.meta.idx));
   
   for(var id in matchday.md) {
     localStorage.setItem(id, JSON.stringify(matchday.md[id]));
   }
-  
-//   jQuery('#cmd').text('Spieltag ' + matchday.cmd);
-  indexPage(matchday.cmd);
+    
+  if(matchday.cmd != matchday.meta.day) {
+    indexPage(matchday.meta.day);
+  } else {
+    indexPage(matchday.cmd);
+  }
 }
 
 

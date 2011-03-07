@@ -1,23 +1,27 @@
 function XHRRequest(type, url, params) {
   var xhr = new XMLHttpRequest();
-  params == '#'? data = ' ' : data = params
+
   
+  if(type == 'index') {
+    url = url + '?md='+params;
+  } else{
+    params = '#';
+  }
+ 
   if(xhr) {    
     xhr.open('POST', url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.send(data);
+    xhr.send(params);
     
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
         if (xhr.status == 200) {
           switch(type) {
             case 'index':
-              console.info('Type is: ' + type + ' before save!');
-              saveIndex(xhr.responseText, data);
+              saveIndex(xhr.responseText, params);
               break;
             case 'teams':
-//               console.info('Type is: ' + type + ' before save!');
               index(xhr.responseText, params);
               break;
             default:
