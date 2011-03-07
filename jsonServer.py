@@ -186,7 +186,9 @@ def matchdayToDict(league,season,md):
   '''
   matchdata = api.getMatchesByMatchday(league,season,md)
   r,idx = {},[]
+  all_matches_finished = True
   for m in matchdata:
+    if not m.isFinished: all_matches_finished = False
     idx.append(m.id)
     tmp = {}
     tmp['st'] = m.startTime.isoformat()
@@ -207,7 +209,7 @@ def matchdayToDict(league,season,md):
       else:
         tmp['gt2'].append(tmpg)
     r[m.id] = tmp
-  md = {'day':md,'idx':idx}
+  md = {'day':md,'idx':idx,'isFinished':all_matches_finished}
   return (r,md)
 
 class index:
