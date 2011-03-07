@@ -1,33 +1,39 @@
-function indexPage(cmd) {
-  log("Render Index for: " + cmd)
-  matches = getMatches(cmd);
+function indexPage(matchday) {
+  log("Render Index for: " + matchday)
+  if(matchday == '#') matchday = localStorage.getItem('cmd');
+  jQuery('#cmd').text('Spieltag ' + matchday);
   
-  var content = '';
-  for(var i=0; i<matches.length; i++) {
-    match = getMatchByID(matches[i]);
-    team1 = getTeamByID(match.idt1);
-    team2 = getTeamByID(match.idt2);
-    
-    initMatchPage(matches[i], match, team1, team2);
-    
-    content += '<li data-icon="false"><a href="' + matches[i] + '" id=' + matches[i] + ' data-theme="c" class="match">';
-      content += '<div class="container_12">';
-      content += '<div class="grid_5 text-left">' + 
-        '<span class="icon icon-' + team1.icon.split('/').pop().split('.').shift() + '"></span>' + team1.short +'</div>';
-      content += '<div class="grid_2 text-center">' + match.gt1.length + ':' + match.gt2.length + '</div>';
-      content += '<div class="grid_5 text-right">' + 
-        team2.short +  '<span class="icon icon-' + team2.icon.split('/').pop().split('.').shift() + '"></span></div>';
-      content += '</div>';
-    content += '</a></li>';  
-  }
-  
-  jQuery('#list').html(content).page();
-  jQuery('#list').listview('refresh', true);
-  
-  jQuery('#list').find('img.ui-li-thumb').removeClass('ui-li-thumb');
-  jQuery('#list').find('span.ui-icon-arrow-r').remove();
-  
+  matches = getMatches(matchday);
+
+  if(matches !== null) {
+    var content = '';
+    for(var i=0; i<matches.length; i++) {
+      match = getMatchByID(matches[i]);
+      team1 = getTeamByID(match.idt1);
+      team2 = getTeamByID(match.idt2);
       
+      initMatchPage(matches[i], match, team1, team2);
+      
+      content += '<li data-icon="false"><a href="' + matches[i] + '" id=' + matches[i] + ' data-theme="c" class="match">';
+        content += '<div class="container_12">';
+        content += '<div class="grid_5 text-left">' + 
+          '<span class="icon icon-' + team1.icon.split('/').pop().split('.').shift() + '"></span>' + team1.short +'</div>';
+        content += '<div class="grid_2 text-center">' + match.gt1.length + ':' + match.gt2.length + '</div>';
+        content += '<div class="grid_5 text-right">' + 
+          team2.short +  '<span class="icon icon-' + team2.icon.split('/').pop().split('.').shift() + '"></span></div>';
+        content += '</div>';
+      content += '</a></li>';  
+    }
+    
+    jQuery('#list').html(content).page();
+    jQuery('#list').listview('refresh', true);
+    
+    jQuery('#list').find('img.ui-li-thumb').removeClass('ui-li-thumb');
+    jQuery('#list').find('span.ui-icon-arrow-r').remove();
+  } else {
+    jQuery('#list').html('<li>Can not render Index page for ' + matchday +' </li>');
+      
+  }
 }
 
 function initMatchPage(matchID, match, team1, team2) {
@@ -96,22 +102,59 @@ function initMatchPage(matchID, match, team1, team2) {
 }
 
 
+
+hideSpinner = function(){
+  jQuery.mobile.pageLoading(true);
+}
+  
 jQuery(document).ready(function() {
   jQuery('#prev').bind("click", function(){
     var $cmd = jQuery('#cmd').text().split(' ')[1];
     $cmd = parseInt($cmd)-1;
-    jQuery('#cmd').text('Spielzag ' + $cmd);
+//     jQuery('#cmd').text('Spieltag ' + $cmd);
     console.log("Switch to " + $cmd)
+    
+    jQuery.mobile.pageLoading();
+    setTimeout(hideSpinner,500);
     firstRun($cmd);
+    return false;
   });
   
   jQuery('#next').bind("click", function(){
     var $cmd = jQuery('#cmd').text().split(' ')[1];
     $cmd = parseInt($cmd)+1;
-    jQuery('#cmd').text('Spielzag ' + $cmd);
+//     jQuery('#cmd').text('Spielzag ' + $cmd);
     console.log("Switch to " + $cmd)
+    
+    jQuery.mobile.pageLoading();
+    setTimeout(hideSpinner,500);
     firstRun($cmd);
+    return false;
   }); 
+  
+  jQuery('#home').bind("swiperight", function(){
+    var $cmd = jQuery('#cmd').text().split(' ')[1];
+    $cmd = parseInt($cmd)-1;
+//     jQuery('#cmd').text('Spielzag ' + $cmd);
+    console.log("Switch to " + $cmd)
+    
+    jQuery.mobile.pageLoading();
+    setTimeout(hideSpinner,500);
+    firstRun($cmd);
+    return false;
+  });
+  
+  jQuery('#home').bind("swipeleft", function(){
+    var $cmd = jQuery('#cmd').text().split(' ')[1];
+    $cmd = parseInt($cmd)+1;
+//     jQuery('#cmd').text('Spielzag ' + $cmd);
+    console.log("Switch to " + $cmd)
+    
+    jQuery.mobile.pageLoading();
+    setTimeout(hideSpinner,500);
+    firstRun($cmd);
+    return false;
+  });
 });
 
 

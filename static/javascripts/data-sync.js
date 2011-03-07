@@ -1,58 +1,75 @@
-var teamsURL = 'http://paddy.suse.de:8080/getTeams';
-var indexURL = 'http://paddy.suse.de:8080/v2';
+// var teamsURL = 'http://paddy.suse.de:8080/getTeams';
+// var indexURL = 'http://paddy.suse.de:8080/v2';
+
+var teamsURL = 'http://10.10.100.148:8080/getTeams';
+var indexURL = 'http://10.10.100.148:8080/v2';
 // 
 // var teamsURL = 'http://dell:8080/getTeams';
 // var indexURL = 'http://dell:8080/v2';
 
-function firstRun(matchday) {
-  if(localStorage.getItem(matchday) === null || typeof(localStorage.getItem(matchday)) == 'undefined') {
-    log("Performe init sync!")
-//     jQuery('#cmd').text('Spieltag ' + matchday);
-    matchday? prepareIndex(matchday) : prepareIndex('#');
+function firstRun(mday) {
+//   localStorage.clear();
+//   log("Param " + mday)
+  
+  mday == '#'? matchday=localStorage.getItem('cmd') : matchday=localStorage.getItem(mday);
+
+  if(matchday == null || typeof(matchday) === 'undefined') {
+    log("Performe init sync, LS is empty!")
+    prepareIndex(mday);
   } else {
-    log("Read from LS! " + localStorage.getItem("cmd"))
-    jQuery('#cmd').text('Spieltag ' + localStorage.getItem("cmd"));
-    matchday? indexPage(matchday) : indexPage(localStorage.getItem("cmd"));
+    log("Read matchday " + mday + " from LS!")
+    indexPage(mday);
   }
 }
 
 //GET TEAMS DATA FROM SERVER
 function prepareIndex(matchday) {
-  if(typeof(Worker) == 'undefined') {
-    log("TEAMS: AJAX call in main thread");
-    XHRRequest('teams', teamsURL, '#');
+  console.log("Send request with param " + matchday)
+  if(localStorage.getItem('teams-synced')) {
+    log("TEAMS already synced! continue with index(" + matchday + ")");
+    index('#', matchday)
   } else {
-    log("TEAMS: AJAX call through Web Workers");
-    var worker = new Worker("/static/javascripts/worker.js");
-    worker.postMessage({'get': 'teams', 'url':teamsURL, 'params': '#'});
-    
-    worker.onmessage = function(event) {
-      if(event.data != "wait") {
-        index(event.data, matchday);
-      } 
-    };
+    if(typeof(Worker) == 'undefined') {
+      console.log("GET TEAMS: AJAX call in main thread");
+      XHRRequest('teams', teamsURL, '#');
+    } else {
+      console.log("GET TEAMS: AJAX call through Web Workers");
+      
+//       var worker = chrome.extension.getURL("web_worker.js"); 
+      var worker = new Worker("/static/javascripts/worker.js");
+      worker.postMessage({'get': 'teams', 'url':teamsURL, 'params': '#'});
+      
+      worker.onmessage = function(event) {
+        if(event.data != "wait") {
+          index(event.data, matchday);
+        } 
+      };
+    }
   }
 }
 
 function index(data, matchday) {
-  saveTeams(data);
+  if(data!='#') { saveTeams(data) }
   
-  if(typeof(Worker) == 'undefined') {
-    log("INDEX: AJAX call in main thread");
-//     console.log("Set matchday " + matchday)
-//     jQuery('#cmd').text('Spieltag ' + matchday);
+  
+//   if(typeof(Worker) == 'undefined') {
+    console.log("GET INDEX: AJAX call in main thread");
+    console.log("Call url " + indexURL + " with param " + matchday);
     XHRRequest('index', indexURL, matchday);
-  } else {
-    log("INDEX: Web Workers)");
-    var worker = new Worker("/static/javascripts/worker.js");
-    worker.postMessage({'get': 'index', 'url':indexURL, 'params': matchday});
-    
-    worker.onmessage = function(event) {
-      if(event.data != "wait") {
-//         jQuery('#cmd').text('Spieltag ' + matchday);
-        saveIndex(event.data);
-      }
-    };
-  }
+//   } else {
+//     console.log("GET INDEX: AJAX call through Web Workers");
+//     console.log("Call url " + indexURL + " with param " + matchday);
+//     
+//     var worker = new Worker("/static/javascripts/worker.js");
+//     worker.postMessage({'get': 'index', 'url':indexURL, 'params': matchday});
+//     
+//     worker.onmessage = function(event) {
+//       if(event.data != "wait") {
+//         console.log("Got from Paddy");
+//         console.log(event.data)
+//         saveIndex(event.data);
+//       }
+//     };
+//   }
 }
 
