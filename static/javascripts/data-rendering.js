@@ -15,13 +15,13 @@ function indexPage(matchday) {
       initMatchPage(matches[i], match, team1, team2);
       
       content += '<li data-icon="false"><a href="' + matches[i] + '" id=' + matches[i] + ' data-theme="c" class="match">';
-        content += '<div class="container_12">';
-        content += '<div class="grid_5 text-left">' + 
-          '<span class="icon icon-' + team1.icon.split('/').pop().split('.').shift() + '"></span>' + team1.short +'</div>';
-        content += '<div class="grid_2 text-center">' + match.gt1.length + ':' + match.gt2.length + '</div>';
-        content += '<div class="grid_5 text-right">' + 
-          team2.short +  '<span class="icon icon-' + team2.icon.split('/').pop().split('.').shift() + '"></span></div>';
-        content += '</div>';
+        content += '<span class="container_12" style="vertical-align:middle;">';
+        content += '<span class="grid_5 text-left">' + 
+          '<span class="icon icon-' + team1.icon.split('/').pop().split('.').shift() + '"></span>' + team1.short +'</span>';
+        content += '<span class="grid_2 text-center points">' + match.gt1.length + ':' + match.gt2.length + '</span>';
+        content += '<span class="grid_5 text-right">' + 
+          team2.short +  '<span class="icon icon-' + team2.icon.split('/').pop().split('.').shift() + '"></span></span>';
+        content += '</span>';
       content += '</a></li>';  
     }
     
@@ -43,8 +43,9 @@ function initMatchPage(matchID, match, team1, team2) {
     matchPage += '<ul data-role="listview">';
     matchPage += '<li>Datum: ' + match.st.split('T')[0] + ' ' + match.st.split('T')[1] + '</li>';
       matchPage += '<li class="container_12">';
-        matchPage += '<span class="grid_6 left text-left">' + team1.short + '</span>';
-        matchPage += '<span class="grid_6 right text-right">' + team2.short +'</span>';
+        matchPage += '<span class="grid_5 left text-left">' + team1.short /*+ '<span class="right">' +  match.gt1.length + '</span>'*/ + '</span>';
+	matchPage += '<span class="grid_2 text-center points-big">' + '<span>' +  match.gt1.length + '</span>' + ':' + '<span>' +  match.gt2.length + '</span>' + '</span>';
+        matchPage += '<span class="grid_5 right text-right">' + team2.short/* + '<span class="left">:' +  match.gt2.length + '</span>'*/ + '</span>';
       matchPage +='</li>';
       matchPage += '<li class="container_12">';
       
@@ -95,6 +96,9 @@ function initMatchPage(matchID, match, team1, team2) {
       }
       
       matchPage +='</li>';
+      matchPage +='<li style="text-align:center;">&nbsp;</li>';
+//       matchPage +='<hr/>';
+//       matchPage +='<li style="text-align:center;"><hr/>/*</li>*/';
     matchPage += '</ul>';
   matchPage += '</div>';
   matchPage += '<div data-role="footer">Footer</div>';
@@ -108,9 +112,12 @@ hideSpinner = function(){
 }
   
 jQuery(document).ready(function() {
-  document.ontouchmove = function(event) {
-    event.preventDefault();
-  };
+  jQuery('li.ui-btn').bind("click", function(){
+    
+  });
+//   document.ontouchmove = function(event) {
+//     event.preventDefault();
+//   };
 
   
   jQuery('#prev').bind("click", function(){

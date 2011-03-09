@@ -1,8 +1,17 @@
-body { background-image: url(../img/bg-body.png); padding:10px; }
+body { background: -moz-linear-gradient(center top , #c2c2c2, #e5e5e5) repeat scroll 0 0 #e5e5e5; text-align:center; background: -webkit-gradient(linear,left top,left bottom,color-stop(0,#c2c2c2),color-stop(1,#e5e5e5)); }
+body { background: #c2c2c2; }
+.ui-mobile [data-role="page"], .ui-mobile [data-role="dialog"], .ui-page, .matchPage, #home {
+  -moz-border-radius:5px;
+  -webkit-border-radius:5px;
+  text-align:center;
+  margin:2%;
+  width:94%; 
+  padding:1%;
+}
 
-#home { -moz-border-radius:5px; -webkit-border-radius:5px; margin:0 auto; position:relative; padding:4px; width:96%; }
-.matchPage { -moz-border-radius:5px; -webkit-border-radius:5px; margin:0 auto!important; position:relative!important; padding:5px; width:96%!important; }
 .ui-header .ui-btn-inner, .ui-footer .ui-btn-inner, .ui-bar .ui-btn-inner  { padding:4px; }
+.points { text-shadow: 0 -1px 1px #000; color: #fff; display:inline-block; margin:6px 0; height:24px; line-height:24px; background-color:#555; -moz-border-radius:3px; -webkit-border-radius:3px; }
+.points-big { vertical-align:middle; text-shadow: 0 -1px 1px #000; color: #fff; display:inline-block; background-color:#555; -moz-border-radius:3px; -webkit-border-radius:3px; }
 
 #header { padding:0px; margin:0px; height:40px; vertical-align:middle; }
 
@@ -11,23 +20,20 @@ body { background-image: url(../img/bg-body.png); padding:10px; }
   text-shadow: 0 -1px 1px #000000; 
   padding:1px 10px; 
   background-color:#999; 
-  -moz-border-radius:5px; 
-  -webkit-border-radius:5px; 
+  -moz-border-radius:3px; 
+  -webkit-border-radius:3px; 
+  border:1px solid #444;
 }
 
 #footer span { padding:3px 0px; text-align:center; -moz-border-radius:5px; -webkit-border-radius:5px; }
-#reset-storage { display:block; width:98%; margin:0 auto; position:relative; }
-.ui-header, .ui-footer { background: -moz-linear-gradient(center top , #555, #555) repeat scroll 0 0 #555; text-align:center; }
-.ui-btn-up-c { background: -moz-linear-gradient(center top , #EEEEEE, #EEEEEE) repeat scroll 0 0 #EEEEEE; }
+#reset-storage { display:block; width:90%; margin:0 auto; position:relative; }
+.ui-header, .ui-footer { background: -moz-linear-gradient(center top , #444, #444) repeat scroll 0 0 #444; text-align:center; background: -webkit-gradient(linear,left top,left bottom,color-stop(0,#444),color-stop(1,#444)); }
 
-#list .ui-li-has-thumb, #list .ui-btn-inner { min-height: 36px; line-height:36px; padding:3px 0px; }
+.ui-btn-up-c, .ui-btn-down-c  { background: -moz-linear-gradient(center top , #EEEEEE, #EEEEEE) repeat scroll 0 0 #EEEEEE; background: -webkit-gradient(linear,left top,left bottom,color-stop(0,#EEE),color-stop(1,#EEEEEE)) }
+
+#list .ui-li-has-thumb, #list .ui-btn-inner { min-height: 36px; line-height:36px; padding:2px 0px; }
 .ui-btn-inner { -moz-border-radius:3px; -webkit-border-radius:3px; }
 .ui-btn-corner-all { -moz-border-radius: 3px; -webkit-border-radius: 3px; }
-.ui-page { min-height:160px!important; }
-
-/*.round { -moz-border-radius:100%; -webkit-border-radius:50px; }
-.bg-grey { background-color: #555; }
-.padding5 { padding:5px; }*/
 
 .text-left { text-align:left; }
 .text-center { text-align:center; }
@@ -40,84 +46,22 @@ body { background-image: url(../img/bg-body.png); padding:10px; }
 .margin-left10 { margin-left:10px; }
 .margin-right10 { margin-right:10px; }
 
-
-
-
-
-
-
-
-
-
-
-
-
-/*.error { color:#900000; text-align:center; font-weight:bold; }
-div.ui-page-active { display:block!important; }
-
-#message {
-   display:none;
-   margin:10px;
-   padding:10px; 
-   border:3px solid red;
-   background-color:#fff; 
-   text-align:center;
-}
-
-.ui-btn-inner, .ui-btn-corner-all { -moz-border-radius:3px; -webkit-border-radius:3px; }
-
-span.matchday {
-  display:inline-block;
-  left: 1px; 
-  max-height: 80px;
-  text-align:center;
-  vertical-align:50%; 
-  max-width: 80px; 
-  position: absolute; 
-  top: 0; 
-  height:76px; 
-  width:76px; 
-  margin-right: 150px;
-}*/
-
-/* #list h3.ui-li-heading, #list p.ui-li-desc { margin-left:100px; } */
-/* span.color-grey { color:#aaa; } */
-
-
-/*span.matchday {text-align:center;}
-span.matchday_border {
-  border:4px solid #a9a9a9; 
-  display:inline-block; 
-  height:58px; 
-  width:58px; 
-  padding:5px;
-  vertical-align:50%;
-}*/
-
-/* #list { position:relative!important; } */
-/*#list .ui-li-has-thumb, #list .ui-btn-inner { min-height: 20px; padding:5px 0;}
-#list div.ui-btn-inner { padding:5px 5px 5px 0; }
-#navbar .ui-btn-inner { padding:5px 30px 5px 30px; }
-
-span.left-column, span.right-column {white-space: pre-line; overflow:hidden; display:inline-block; width:50%; }
-span.left-column { float:left; text-align:left;} span.right-column { float:right; text-align:right;}*/
-
-span.icon { margin:0 10px; vertical-align:middle; line-height: 20px; border: 2px solid #cccccc; -moz-border-radius:50%; -webkit-border-radius:20px;}
-span.icon-1_FC_Kaiserslautern{ background: url(../img/teams.png) no-repeat top left; background-position: 0 0; width: 20px; height: 20px; display:inline-block; } 
-span.icon-1_FC_Koeln{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -70px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-1_FC_Nuernberg{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -140px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-1_FSV_Mainz_05{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -210px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-Bayer_Leverkusen{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -280px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-Bayern_Muenchen{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -350px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-Bor_Moenchengladbach{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -420px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-Borussia_Dortmund{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -490px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-Eintracht_Frankfurt{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -560px; width: 20px; height: 20px; display:inline-block;} 
-span.icon-FC_Schalke_04{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -630px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-FC_St_Pauli{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -700px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-Hamburger_SV{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -770px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-Hannover_96{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -840px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-SC_Freiburg{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -910px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-TSG_Hoffenheim{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -980px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-VfB_Stuttgart{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -1050px; width: 20px; height: 20px; display:inline-block; } 
-span.icon-VfL_Wolfsburg{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -1120px; width: 20px; height: 20px; display:inline-block;} 
-span.icon-werder_bremen{ background: url(../img/teams.png) no-repeat top left; background-position: 0 -1190px; width: 20px; height: 20px; display:inline-block;} 
+span.icon { margin:0 10px; vertical-align:middle; line-height: 20px; border: 2px solid #cccccc; -moz-border-radius:50%; -webkit-border-radius:20px;  background: url(../img/teams.png) no-repeat top left; }
+span.icon-1_FC_Kaiserslautern { background-position: 0 0; width: 20px; height: 20px; display:inline-block; } 
+span.icon-1_FC_Koeln { background-position: 0 -70px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-1_FC_Nuernberg { background-position: 0 -140px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-1_FSV_Mainz_05 { background-position: 0 -210px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Bayer_Leverkusen { background-position: 0 -280px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Bayern_Muenchen { background-position: 0 -350px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Bor_Moenchengladbach { background-position: 0 -420px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Borussia_Dortmund { background-position: 0 -490px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Eintracht_Frankfurt { background-position: 0 -560px; width: 20px; height: 20px; display:inline-block;} 
+span.icon-FC_Schalke_04 { background-position: 0 -630px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-FC_St_Pauli { background-position: 0 -700px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Hamburger_SV { background-position: 0 -770px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-Hannover_96 { background-position: 0 -840px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-SC_Freiburg { background-position: 0 -910px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-TSG_Hoffenheim { background-position: 0 -980px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-VfB_Stuttgart { background-position: 0 -1050px; width: 20px; height: 20px; display:inline-block; } 
+span.icon-VfL_Wolfsburg { background-position: 0 -1120px; width: 20px; height: 20px; display:inline-block;} 
+span.icon-werder_bremen { background-position: 0 -1190px; width: 20px; height: 20px; display:inline-block;} 

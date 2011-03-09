@@ -1,6 +1,5 @@
 function XHRRequest(type, url, params) {
   var xhr = new XMLHttpRequest();
-
   
   if(type == 'index') {
     url = url + '?md='+params;
