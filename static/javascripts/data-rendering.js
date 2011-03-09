@@ -108,6 +108,11 @@ hideSpinner = function(){
 }
   
 jQuery(document).ready(function() {
+  document.ontouchmove = function(event) {
+    event.preventDefault();
+  };
+
+  
   jQuery('#prev').bind("click", function(){
     var $cmd = jQuery('#cmd').text().split(' ')[1];
     $cmd = parseInt($cmd)-1;
