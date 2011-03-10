@@ -106,7 +106,8 @@ urls = (
   '/getUpdatesByTstamp','getUpdatesByTstamp',
   '/getData','getData',
   '/getGoals','getGoals',
-  '/v2','v2'
+  '/v2','v2',
+  '/cache.manifest','manifest'
 )
 render = web.template.render('bundesliga/')
 web.template.Template.globals['len'] = len # to count goals
@@ -590,6 +591,7 @@ class getGoals:
     else:
       pass
     goals = api.getGoalsByLeagueSeason(league,season)
+    web.header('Content-Type','application/json')
     return json.dumps(goals)
 
   def GET(self):
@@ -603,6 +605,7 @@ class getGoals:
     else:
       pass
     goals = api.getGoalsByLeagueSeason(league,season)
+    web.header('Content-Type','application/json')
     return "%s(%s)"%(cbk,json.dumps(goals))
 
 class quickView:
@@ -640,6 +643,39 @@ class quickView:
                  'short':scut}
     return render.quickview(follow=int(follow),cmd=cmd,league=league,season=season,
                             matches=matches[0],next=cmd+1,prev=cmd-1,teams=d)    
+
+class manifest:
+  def GET(self):
+    web.header('Content-Type','text/cache-manifest')
+    return '''CACHE MANIFEST
+/static/favicon.ico
+/static/css/bundesliga.css
+/static/css/jquery.mobile-1.0a3.min.css
+/static/css/jquery-mobile-fluid960.min.css
+/static/css/jquery.mobile-1.0a3.css
+/static/css/jquery-mobile-fluid960.css
+/static/css/images/ajax-loader.png
+/static/css/images/arrow-left.png
+/static/css/images/arrow-right.png
+/static/css/images/form-check-off.png
+/static/css/images/form-check-on.png
+/static/css/images/form-radio-off.png
+/static/css/images/form-radio-on.png
+/static/css/images/icons-18-black.png
+/static/css/images/icons-36-black.png
+/static/css/images/icons-36-white.png
+/static/css/images/icon-search-black.png
+/static/img/homeicon.png
+/static/img/startup.png
+/static/img/teams.png
+/static/javascripts/data-processing.js
+/static/javascripts/data-rendering.js
+/static/javascripts/data-sync.js
+/static/javascripts/jquery-1.5.min.js
+/static/javascripts/jquery.mobile-1.0a2.min.js
+/static/javascripts/worker.js
+/static/javascripts/xhr-request.js
+'''
 
 if __name__ == '__main__':
   try:
