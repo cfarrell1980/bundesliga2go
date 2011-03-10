@@ -2,6 +2,18 @@
 <html manifest="/cache.manifest">
   <head>
     <title>Bundesliga</title>
+    <script type="text/javascript">
+    function supports_local_storage() {
+      try {
+        return 'localStorage' in window && window['localStorage'] !== null;
+      } catch(e){
+       return false;
+       }
+     }
+     if !supports_local_storage() {
+       window.location = "/quickview";
+     }
+    </script>
     <script type="text/javascript" src="static/javascripts/jquery-1.5.min.js"></script>
     <script type="text/javascript" src="static/javascripts/jquery.mobile-1.0a2.min.js"></script>  
 
