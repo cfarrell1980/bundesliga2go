@@ -406,3 +406,35 @@ class BundesligaAPI:
           match.goals[cur_idx].for_team_id = match.teams[1].id
     logger.info("%s vs %s is currently %d to %d"%(t1.name,t2.name,match.pt1,match.pt2))
     session.commit()
+
+  def table(self,league,season,matchday):
+    '''Return a list of tuples representing (team.id,sum_of_points) for a particular
+       matchday of a bundesliga league and season. Thus, the method returns the 
+       bundesliga table as of a particular matchday'''
+    session=Session()
+    matches = session.query(Match).join(League).filter(and_(League.season==season,
+           League.name==league,Match.matchday<=matchday,Match.isFinished==True)).all()
+    order = {}
+    for m in matches:
+      t1 = m.teams[0].id
+      t2 = m.teams[1].id
+      if m.pt1 > m.pt2:
+        pointsT1 = 3
+        pointsT2 = 0
+      elif m.pt1 == m.pt2:
+        pointsT1 = 1
+        pointsT2 = 1
+      else:
+        pointsT1 = 0
+        pointsT2 = 3
+      if order.has_key(t1):
+        order[t1] += pointsT1
+      else:
+        order[t1] = pointsT1
+      if order.has_key(t2):
+        order[t2] += pointsT2
+      else:
+        order[t2] = pointsT2
+    table = sorted(order.iteritems(), key=lambda (k,v): (v,k),reverse=True)
+    return table
+
