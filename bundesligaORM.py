@@ -3,7 +3,14 @@ from sqlalchemy import create_engine
 from sqlalchemy import Table,Column,Integer,String,DateTime
 from sqlalchemy import Boolean,MetaData,ForeignKey
 from sqlalchemy.orm import mapper,sessionmaker
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import backref
+try:
+  from sqlalchemy.orm import relationship
+except ImportError:
+  try:
+    from sqlalchemy.orm import relation as relationship
+  except ImportError:
+    raise ImportError, "Tried using sqlalchemy.orm.relationship and sqlalchemy.orm.relation"
 import datetime,os
 
 dbfile = os.path.join(os.getcwd(),"bundesliga.sqlite")

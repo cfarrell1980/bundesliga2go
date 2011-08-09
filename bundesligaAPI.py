@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 from OpenLigaDB import OpenLigaDB
-from sqlalchemy.exc import IntegrityError
+try:
+  from sqlalchemy.exc import IntegrityError
+except ImportError:
+  try:
+    from sqlalchemy.exceptions import IntegrityError
+  except ImportError:
+    sys.stderr.write("You seem to be using an incompatible version of sqlalchemy\n")
+    sys.exit(1)
 from sqlalchemy.sql import and_,or_,not_
 from bundesligaORM import *
 from bundesligaHelpers import shortcuts,tstamp_to_md5

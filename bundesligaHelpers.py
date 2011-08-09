@@ -31,7 +31,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from datetime import datetime
 from OpenLigaDB import OpenLigaDB
-import hashlib,json,os,sys
+import hashlib,os,sys
+try:
+  import json
+except ImportError:
+  try:
+    import simplejson as json
+  except ImportError:
+    raise ImportError, "You need to install python-json or python-simplejson"
 from bundesligaLogger import logger
 DEFAULT_LEAGUE = 'bl1'
 
@@ -135,17 +142,18 @@ def current_bundesliga_season():
   now = datetime.now()
   current_year = now.year
   current_month = now.month
-  if current_month < 8:
+  if current_month < 7:
     return int(current_year-1)
   else:
     return int(current_year)
 
-def checksum(thefile):
-  md5 = hashlib.md5()
-  with open('%s'%thefile,'rb') as f:
-    for chunk in iter(lambda: f.read(8192), ''):
-      md5.update(chunk)
-  return str(md5.hexdigest()).encode('utf-8')
+# Won't work with python 2.5 and not needed anyway
+#def checksum(thefile):
+#  md5 = hashlib.md5()
+#  with open('%s'%thefile,'rb') as f:
+#    for chunk in iter(lambda: f.read(8192), ''):
+#      md5.update(chunk)
+#  return str(md5.hexdigest()).encode('utf-8')
 
 def tstamp_to_md5(tstamp):
   '''Converts the timestamp we get back from OpenLigaDB to md5.

@@ -31,7 +31,15 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 
-import web,os,json,time,sys,contextlib,subprocess
+import web,os,time,sys,contextlib,subprocess
+try:
+  import json
+except ImportError:
+  try:
+    import simplejson as json
+  except ImportError:
+    sys.stderr.write("You need to install python-json or python-simplejson\n")
+    sys.exit(1)
 from background import background,backgrounder
 # TODO: remove the commandline switch or replace it with something more solid
 if len(sys.argv) == 2:
@@ -67,8 +75,8 @@ def spin():
    p.terminate()
 
 def initSync():
-  with spin():
-    init_sync()
+  #with spin():#with won't work on python 2.5
+  init_sync()
 print "Performing initial sync...".rstrip("\n")
 initSync()
 mycmd = init_cmd()
