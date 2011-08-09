@@ -658,9 +658,9 @@ class manifest:
     return '''CACHE MANIFEST
 /static/favicon.ico
 /static/css/bundesliga.css
-/static/css/jquery.mobile-1.0a3.min.css
+/static/css/jquery.mobile-1.0a2.min.css
 /static/css/jquery-mobile-fluid960.min.css
-/static/css/jquery.mobile-1.0a3.css
+/static/css/jquery.mobile-1.0a2.css
 /static/css/jquery-mobile-fluid960.css
 /static/css/images/ajax-loader.png
 /static/css/images/arrow-left.png
