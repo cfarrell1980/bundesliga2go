@@ -1,6 +1,6 @@
 
 '''
-Copyright (c) 2011, Ciaran Farrell, Vladislav Gorobets
+Copyright (c) 2011, Ciaran Farrell, Vladislav Lewin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
