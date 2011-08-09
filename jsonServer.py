@@ -655,7 +655,24 @@ class quickView:
 class manifest:
   def GET(self):
     web.header('Content-Type','text/cache-manifest')
+    static_dir = os.path.join(os.getcwd(),'static')
+    walkobj = os.walk(static_dir)
+    paths = []
+    exclude = ['.xcf']
+    for diskobj in walkobj:
+      for filepath in diskobj[2]:
+        p = os.path.join(diskobj[0],filepath).replace(os.getcwd(),'') # replace sys path
+        if p not in paths:
+          add2path = True
+          for ending in exclude:
+            if p.lower().endswith == ending:
+              add2path = False
+          if add2path:
+            paths.append(p)
+    paths_str = "\n".join(paths)
     return '''CACHE MANIFEST
+%s'''%paths_str
+'''
 /static/favicon.ico
 /static/css/bundesliga.css
 /static/css/jquery.mobile-1.0a2.min.css
