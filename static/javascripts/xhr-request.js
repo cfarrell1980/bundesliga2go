@@ -1,5 +1,12 @@
 function XHRRequest(type, url, params) {
   var xhr = new XMLHttpRequest();
+  var methode = '';
+  
+  if (params == 'active') {
+    methode = 'GET';
+  } else {
+    methode = 'POST';
+  }
   
   if(type == 'index') {
     url = url + '?md='+params;
@@ -8,7 +15,7 @@ function XHRRequest(type, url, params) {
   }
  
   if(xhr) {    
-    xhr.open('POST', url, true);
+    xhr.open(methode, url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     xhr.send(params);

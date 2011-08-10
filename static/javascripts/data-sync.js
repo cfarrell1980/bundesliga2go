@@ -59,3 +59,25 @@ function index(data, matchday) {
   }
 }
 
+var activeURL = "http://paddy.suse.de:8080/active?tester=2011-08-06-16-00"
+
+function getActive() {
+  if(typeof(Worker) == 'undefined') {
+    console.log("GET ACTIVE MATCHES: AJAX call in main thread");
+    console.log("Call url " + activeURL);
+    XHRRequest('', activeURL, 'active');
+  } else {
+    console.log("GET ACTIVE MATCHES: AJAX call through Web Workers");
+    console.log("Call url " + activeURL);
+    
+    var worker = new Worker("/static/javascripts/worker.js");
+    worker.postMessage({'params' : 'active', 'url':activeURL});
+    
+    worker.onmessage = function(event) {
+      if(event.data != "wait") {
+        saveIndex(event.data);
+      }
+    };
+  }
+}
+
