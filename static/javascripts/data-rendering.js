@@ -17,10 +17,12 @@ function indexPage(matchday) {
       content += '<li data-icon="false"><a href="' + matches[i] + '" id=' + matches[i] + ' data-theme="c" class="match">';
         content += '<span class="container_12" style="vertical-align:middle;">';
         content += '<span class="grid_5 text-left">' + 
-          '<span class="icon icon-' + team1.icon.split('/').pop().split('.').shift() + '"></span>' + team1.short +'</span>';
+//          '<span class="icon icon-' + team1.icon.split('/').pop().split('.').shift() + '"></span>' + team1.short +'</span>';
+          '<span class="icon icon-' + team1.short + '"></span>' + team1.short +'</span>';
         content += '<span class="grid_2 text-center points">' + match.gt1.length + ':' + match.gt2.length + '</span>';
         content += '<span class="grid_5 text-right">' + 
-          team2.short +  '<span class="icon icon-' + team2.icon.split('/').pop().split('.').shift() + '"></span></span>';
+//          team2.short +  '<span class="icon icon-' + team2.icon.split('/').pop().split('.').shift() + '"></span></span>';
+          team2.short +  '<span class="icon icon-' + team2.short + '"></span></span>';
         content += '</span>';
       content += '</a></li>';  
     }
