@@ -115,7 +115,8 @@ urls = (
   '/getData','getData',
   '/getGoals','getGoals',
   '/v2','v2',
-  '/cache.manifest','manifest'
+  '/cache.manifest','manifest',
+  '/active','getActiveMatches',
 )
 render = web.template.render('bundesliga/')
 web.template.Template.globals['len'] = len # to count goals
@@ -423,6 +424,58 @@ class getCurrentMatchday:
     currentMatchDay = cursor.GetCurrentGroup(league)
     return "%s('cmd':'%s')"%(cbk,currentMatchDay.groupOrderID)
 
+class getActiveMatches:
+  '''
+  This class returns a json encoded array of match ids. Each match id corresponds to a match
+  which must currently be in action.
+  '''
+  def OPTIONS(self):
+    logger.info('getActiveMatches::OPTIONS - called')
+    web.header('Content-Type','application/json')
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "POST,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def POST(self):
+    logger.info('getActiveMatches::POST - called')
+    web.header("Access-Control-Allow-Origin", "*")
+    web.header('Content-Type','application/json')
+    try:
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
+      league = DEFAULT_LEAGUE
+      season = current_bundesliga_season()
+    tester = web.input(tester=None)
+    if tester.tester:
+      tstamp = datetime.strptime(tester.tester,"%Y-%m-%d-%H-%M")
+    else:
+      tstamp = None
+    print tstamp
+    print tester.tester
+    matches_in_progress = api.getActiveMatches(None,None,tstamp)
+    print type(matches_in_progress)
+    print matches_in_progress
+    return json.dumps(matches_in_progress)
+
+  def GET(self):
+    web.header('Content-Type','application/json')
+    try:
+      cbk,league,season = parseRequestFundamentals()
+    except:
+      cbk = 'bundesliga2go'
+      league = DEFAULT_LEAGUE
+      season = current_bundesliga_season()
+    tester = web.input(tester=None)
+    if tester.tester:
+      tstamp = datetime.strptime(tester.tester,"%Y-%m-%d-%H-%M")
+    else:
+      tstamp = None
+    matches_in_progress = api.getActiveMatches(None,None,tstamp)
+    return json.dumps(matches_in_progress)
 
 class getTeams:
   '''This class enables the client to have speedy access to all the teams in a specified
