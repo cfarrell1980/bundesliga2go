@@ -1,0 +1,19 @@
+span.icon { margin:0 10px; vertical-align:middle; line-height: 20px; border: 2px solid #cccccc; -moz-border-radius:50%; -webkit-border-radius:20px;  background: url(../img/teams.png) no-repeat top left; }
+span.icon-BVB { background-position: 0 0; width: 20px; height: 20px; display:inline-block; }
+span.icon-HSV { background-position: 0 40; width: 20px; height: 20px; display:inline-block; }
+span.icon-1FCK { background-position: 0 80; width: 20px; height: 20px; display:inline-block; }
+span.icon-HOF { background-position: 0 120; width: 20px; height: 20px; display:inline-block; }
+span.icon-B04 { background-position: 0 160; width: 20px; height: 20px; display:inline-block; }
+span.icon-FCB { background-position: 0 200; width: 20px; height: 20px; display:inline-block; }
+span.icon-S04 { background-position: 0 240; width: 20px; height: 20px; display:inline-block; }
+span.icon-H96 { background-position: 0 280; width: 20px; height: 20px; display:inline-block; }
+span.icon-BSC { background-position: 0 320; width: 20px; height: 20px; display:inline-block; }
+span.icon-FVB { background-position: 0 360; width: 20px; height: 20px; display:inline-block; }
+span.icon-WOB { background-position: 0 400; width: 20px; height: 20px; display:inline-block; }
+span.icon-BRE { background-position: 0 440; width: 20px; height: 20px; display:inline-block; }
+span.icon-FCK { background-position: 0 480; width: 20px; height: 20px; display:inline-block; }
+span.icon-1FCN { background-position: 0 520; width: 20px; height: 20px; display:inline-block; }
+span.icon-MO5 { background-position: 0 560; width: 20px; height: 20px; display:inline-block; }
+span.icon-FCA { background-position: 0 600; width: 20px; height: 20px; display:inline-block; }
+span.icon-SCF { background-position: 0 640; width: 20px; height: 20px; display:inline-block; }
+span.icon-BMG { background-position: 0 680; width: 20px; height: 20px; display:inline-block; }

@@ -46,7 +46,7 @@ body { background: #c2c2c2; }
 .margin-left10 { margin-left:10px; }
 .margin-right10 { margin-right:10px; }
 
-span.icon { margin:0 10px; vertical-align:middle; line-height: 20px; border: 2px solid #cccccc; -moz-border-radius:50%; -webkit-border-radius:20px;  background: url(../img/teams.png) no-repeat top left; }
+/*span.icon { margin:0 10px; vertical-align:middle; line-height: 20px; border: 2px solid #cccccc; -moz-border-radius:50%; -webkit-border-radius:20px;  background: url(../img/teams.png) no-repeat top left; }
 span.icon-1_FC_Kaiserslautern { background-position: 0 0; width: 20px; height: 20px; display:inline-block; } 
 span.icon-1_FC_Koeln { background-position: 0 -70px; width: 20px; height: 20px; display:inline-block; } 
 span.icon-1_FC_Nuernberg { background-position: 0 -140px; width: 20px; height: 20px; display:inline-block; } 
@@ -65,3 +65,4 @@ span.icon-TSG_Hoffenheim { background-position: 0 -980px; width: 20px; height: 2
 span.icon-VfB_Stuttgart { background-position: 0 -1050px; width: 20px; height: 20px; display:inline-block; } 
 span.icon-VfL_Wolfsburg { background-position: 0 -1120px; width: 20px; height: 20px; display:inline-block;} 
 span.icon-werder_bremen { background-position: 0 -1190px; width: 20px; height: 20px; display:inline-block;} 
+*/
