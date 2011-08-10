@@ -1,0 +1,5 @@
+menu_home:arrow_left.png
+menu_about_me:vcard.png
+menu_about_site:sitemap.png
+menu_resume:page_word.png
+menu_index:page_key.png

@@ -10,7 +10,7 @@ except ImportError:
     sys.exit(1)
 from sqlalchemy.sql import and_,or_,not_
 from bundesligaORM import *
-from bundesligaHelpers import shortcuts,tstamp_to_md5
+from bundesligaHelpers import shortcuts,tstamp_to_md5,DEFAULT_LEAGUE,current_bundesliga_season
 from bundesligaLogger import logger
 from suds import WebFault
 import time
@@ -91,6 +91,23 @@ class BundesligaAPI:
     for matchID in matches:
       logger.info("updateLocalCache - updating matchID %d..."%matchID)
       self.updateMatchByID(matchID)
+
+  def getActiveMatches(self,league,season,tstamp):
+    '''
+    Returns a list of match ids if the matches are in progress at tstamp (datetime)
+    '''
+    if not league:
+      league = DEFAULT_LEAGUE
+    if not season:
+      season = current_bundesliga_season()
+    if not tstamp:
+      tstamp = datetime.now()
+    session = Session()
+    logger.info("getActiveMatches - looking for matches in progress in league %s,season %s,tstamp %s"%(league,
+                    season,tstamp))
+    q = session.query(Match).filter(and_(Match.startTime<tstamp,Match.endTime>tstamp )).all() 
+    return [x.id for x in q]
+
 
   def getUpdatesByTstamp(self,league,season,tstamp):
     if not league:
