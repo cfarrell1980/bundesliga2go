@@ -64,19 +64,18 @@ print "saved!"
 cssHead = '''span.icon { margin:0 10px; vertical-align:middle; line-height: 20px; border: 2px solid #cccccc; -moz-border-radius:50%; -webkit-border-radius:20px;  background: url(../img/teams.png) no-repeat top left; }
 '''
 # create the css code needed to interpret the sprite
-cssTemplate = "span.icon-%s { background-position: 0 %d; width: 20px; height: 20px; display:inline-block; }\n"
+cssTemplate = "span.icon-%s { background-position: 0px %dpx; width: 20px; height: 20px; display:inline-block; }\n"
 # write the css code to string
-css_code = cssHead
-css_str = ""
+css_str = []
 iterator = 0
 for teamlist in icon_map:
   scut,filename = teamlist[0],teamlist[1]
   location = (image_height*iterator*2)
-  css_str = cssTemplate%(scut,location)
-  css_code = css_code + css_str
+  css_str.append(cssTemplate%(scut,location))
   iterator+=1
 
 # open the target css file
 fd = open(target_css,'w')
-fd.write(css_code)
+fd.write(cssHead+"\n")
+fd.write("\n".join(css_str))
 fd.close()
