@@ -64,7 +64,7 @@ print "saved!"
 cssHead = '''span.icon { margin:0 10px; vertical-align:middle; line-height: 20px; border: 2px solid #cccccc; -moz-border-radius:50%; -webkit-border-radius:20px;  background: url(../img/teams.png) no-repeat top left; }
 '''
 # create the css code needed to interpret the sprite
-cssTemplate = "span.icon-%s { background-position: 0px %dpx; width: 20px; height: 20px; display:inline-block; }\n"
+cssTemplate = "span.icon-%s { background-position: 0px -%dpx; width: 20px; height: 20px; display:inline-block; }\n"
 # write the css code to string
 css_str = []
 iterator = 0
