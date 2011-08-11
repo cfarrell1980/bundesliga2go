@@ -83,6 +83,14 @@ mycmd = init_cmd()
 mylmu = init_lmu()
 init_write(mycmd,mylmu)
 print
+from bundesligaHelpers import teamIconCssExists,createTeamIcons
+print "Checking if static/css/teamicons.css and static/img/teams.png exist..."
+if teamIconCssExists():
+  print "...they exist. Use mkteamicons.py to update if necessary"
+else:
+  print "...they don't exist. Creating them..."
+  createTeamIcons()
+print
 from bundesligaHelpers import *
 logger.info("jsonServer - starting WSGI JSON server")
 try:
@@ -454,11 +462,7 @@ class getActiveMatches:
       tstamp = datetime.strptime(tester.tester,"%Y-%m-%d-%H-%M")
     else:
       tstamp = None
-    print tstamp
-    print tester.tester
     matches_in_progress = api.getActiveMatches(None,None,tstamp)
-    print type(matches_in_progress)
-    print matches_in_progress
     return json.dumps(matches_in_progress)
 
   def GET(self):

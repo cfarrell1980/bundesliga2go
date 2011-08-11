@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from datetime import datetime
 from OpenLigaDB import OpenLigaDB
-import hashlib,os,sys
+import hashlib,os,sys,subprocess
 try:
   import json
 except ImportError:
@@ -166,3 +166,21 @@ def tstamp_to_md5(tstamp):
   md5.update(tstamp.strftime("%Y%m%d%H%M%s"))
   return md5.hexdigest()
 
+def teamIconCssExists():
+  '''Check to see if static/css/teamicons.css exists. If it does
+     not exist, it means that it needs to be generated.'''
+  cssfile = os.path.join(os.getcwd(),'static/css/teamicons.css')
+  if not os.path.isfile(os.path.abspath(cssfile)):
+    return False
+  else:
+    return True
+
+def createTeamIcons():
+  '''Create static/img/teams.png and static/css/teamicons.css by
+     downloading the individual team icons for the league and
+     season, stitching them together to create teams.png and then
+     creating the appropriate CSS to reference the individual
+     icons by position'''
+  mkteamicons = subprocess.Popen(['python', 'mkteamicons.py'], shell=False,
+    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  return
