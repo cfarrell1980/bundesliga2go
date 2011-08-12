@@ -11,6 +11,7 @@ bundesliga and OpenLigaDB APIs included in the package. The requirements are:
 - Paste (http://www.pythonpaste.org)
 - APScheduler (http://packages.python.org/APScheduler/)
 - pyOpenSSL (https://launchpad.net/pyopenssl) only if you want to use SSL on CherryPy
+- PIL (http://www.pythonware.com/products/pil/) for stitching icons
 
 If you are running openSUSE, it is recommended that you add the repository
 devel:languages:python to your zypper repositories. For example, if you have
@@ -40,6 +41,15 @@ like:
 The default port used is port 8080. You will get an error if there is already something
 listening/using port 8080. You can either stop the other service or choose another port
 for the jsonServer.py server.
+
+When you first start the server the script will automatically check if a local database
+has been configured and if it has been synchronised with openligadb. If not, this will
+be done first. This may take some time.
+
+Also, the script will check if there is an existing valid teams.png image (i.e. the 
+stitched together individual team icons). If not, the script will download all of the
+season team's icons and stitch them together. It will also dynamically generate the
+appropriate CSS so that the individual icon can be addressed.
 
 **Copyright, License, Authors**
 ===============================
