@@ -31,7 +31,9 @@ function saveTeams(data) {
 //SAVE ALL DATA FROM SERVER
 function saveIndex(data) {
   console.log("DEBUG: SAVE INDEX DATA");
+
   var matchday = JSON.parse(data);
+  console.dir(matchday)
   
   localStorage.setItem('cmd', matchday.cmd);
   localStorage.setItem(matchday.meta.day, JSON.stringify(matchday.meta.idx));

@@ -1,7 +1,7 @@
 function indexPage(matchday) {
   log("Render Index for: " + matchday);
   
-  var activeMatches = getActive();
+  //var activeMatches = getActive();
   
   if(matchday == '#') matchday = localStorage.getItem('cmd');
   jQuery('#cmd').text('Spieltag ' + matchday);

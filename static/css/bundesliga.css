@@ -26,7 +26,7 @@ body { background: #c2c2c2; }
 }
 
 #footer span { padding:3px 0px; text-align:center; -moz-border-radius:5px; -webkit-border-radius:5px; }
-#reset-storage { display:block; width:90%; margin:0 auto; position:relative; }
+#reset-storage, #live { display:block; width:90%; margin:0 auto; position:relative; }
 .ui-header, .ui-footer { background: -moz-linear-gradient(center top , #444, #444) repeat scroll 0 0 #444; text-align:center; background: -webkit-gradient(linear,left top,left bottom,color-stop(0,#444),color-stop(1,#444)); }
 
 .ui-btn-up-c, .ui-btn-down-c  { background: -moz-linear-gradient(center top , #EEEEEE, #EEEEEE) repeat scroll 0 0 #EEEEEE; background: -webkit-gradient(linear,left top,left bottom,color-stop(0,#EEE),color-stop(1,#EEEEEE)) }

@@ -107,6 +107,7 @@ logger.info("Server is running in debug modus? %s"%web.config.debug)
 
 urls = (
   '/','index',
+  '/liveview', 'liveview',
   '/quickview','quickView',
   '/getTeams', 'getTeams',
   '/matchday','matchday',
@@ -672,6 +673,11 @@ class getGoals:
     goals = api.getGoalsByLeagueSeason(league,season)
     web.header('Content-Type','application/json')
     return "%s(%s)"%(cbk,json.dumps(goals))
+
+class liveview:
+  def GET(self):
+    return render.liveview()
+
 
 class quickView:
   def GET(self):
