@@ -1,18 +1,23 @@
-
-  
+// INITIAL SYNC
 function index() {
   console.log("**** CONTROLLER: INDEX ****");
   
-  matches = match.find('all');
-  if( matches == "undefined" || matches == null) {
-//    XHRRequest(URL, 'index', false);
-    CORS(URL);
+  if(navigator.onLine) {
+    matches = match.find('all');
+    if( matches == "undefined" || matches == null) {
+  //    XHRRequest(URL, 'index', false);
+      CORS(URL);
+    } else {
+      renderIndex(matches, true);
+    }
+  
   } else {
-    renderIndex(matches, true);
+    jQuery('#matches').html("SORRY YOU ARE OFFLINE !!!");
   }
   
 }
 
+// SAVE VALUES IN SESSION STORAGE AFTER INDEX IS RENDERED
 function save(matches) {
   console.log("**** CONTROLLER: SAVE ****");
   
@@ -21,6 +26,12 @@ function save(matches) {
   } else {
     console.error("ERROR OCUURED!");
   }
+}
+
+// GET LIVE UPDATE FROM SERVER
+function update() {
+  console.log("get updates");
+  CORS(URL);
 }
 
 
