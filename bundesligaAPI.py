@@ -116,6 +116,7 @@ class BundesligaAPI:
       tmp['team2shortcut'] = shortcuts[t2.id]
       tmp['team1score'] = match.pt1
       tmp['team2score'] = match.pt2
+      tmp['matchID'] = match.id
       retlist.append(tmp)
     return retlist
 
