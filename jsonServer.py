@@ -435,8 +435,10 @@ class getCurrentMatchday:
 
 class getActiveMatches:
   '''
-  This class returns a json encoded array of match ids. Each match id corresponds to a match
-  which must currently be in action.
+  Returns a JSON object of the form
+    [matchID:{'team1name':'foo','team2name':'bar',team1goals':0,'team2goals':1,
+              'team1shortcut':foo',team2shortcut':'bar'}
+  for each match which is currently being played
   '''
   def OPTIONS(self):
     logger.info('getActiveMatches::OPTIONS - called')
