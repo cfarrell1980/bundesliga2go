@@ -106,7 +106,19 @@ class BundesligaAPI:
     logger.info("getActiveMatches - looking for matches in progress in league %s,season %s,tstamp %s"%(league,
                     season,tstamp))
     q = session.query(Match).filter(and_(Match.startTime<tstamp,Match.endTime>tstamp )).all() 
-    return [x.id for x in q]
+    retlist = []
+    for match in q:
+      tmp = {}
+      t1,t2 = match.teams[0],match.teams[1]
+      tmp['team1name'] = t1.name.encode('utf-8')
+      tmp['team2name'] = t2.name.encode('utf-8')
+      tmp['team1shortcut'] = shortcuts[t1.id]
+      tmp['team2shortcut'] = shortcuts[t2.id]
+      tmp['team1score'] = match.pt1
+      tmp['team2score'] = match.pt2
+      tmp['matchID'] = match.id
+      retlist.append(tmp)
+    return retlist
 
 
   def getUpdatesByTstamp(self,league,season,tstamp):
