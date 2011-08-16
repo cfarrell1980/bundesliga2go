@@ -3,12 +3,22 @@
 <head>
     <title>Index</title>
     <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0b2/jquery.mobile-1.0b2.min.css" />
-
+    <link rel="stylesheet" href="static/css/jquery-mobile-fluid960.min.css" />
+    <link rel="stylesheet" href="static/css/bundesliga.css" />
+    <link rel="stylesheet" href="static/css/liveview.css" />
+    <link rel="stylesheet" href="static/css/teamicons.css" />
+    
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta http-equiv="content-script-type" content="text/javascript">  
+    
     <script src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
     <script src="http://code.jquery.com/mobile/1.0b2/jquery.mobile-1.0b2.min.js"></script>
 
-    <script type="text/javascript" src="static/javascripts/data-processing.js"></script>
-
+<!--    <script type="text/javascript" src="static/javascripts/liveview/jquery.audiotag.js"></script>-->
 
     <script type="text/javascript" src="static/javascripts/liveview/liveview-model.js"></script>
     <script type="text/javascript" src="static/javascripts/liveview/liveview-helpers.js"></script>
@@ -28,21 +38,33 @@
 
     <div id="header" data-role="header">
       <h1>Live View</h1>
+      <a href="#" class="play buttons" style="visibility:hidden;">play</a>
+<!--      <embed id="sound" src="static/sound/goal.wav" autostart="false" loop="false"></embed>-->
+<!--      <audio>-->
+<!--        <source src="static/sound/goal.wav">-->
+<!--      </audio>-->
     </div>
-
+    
+    <div>&nbsp;</div>
+    
     <div data-role="content">
       <ul id='matches' data-role='listview'>
-        <li>TEAM1 vs TEAM2</li>
-        <li>TEAM3 vs TEAM4</li>
+        <li>Info: click on Auto button to activate "Live mode"</li>
+        <li>**************************************************</li>
       </ul>
       
     </div>
 
     <div>&nbsp;</div>
     
-    <div data-role="footer">
-      <button id="reset">SESSION STORAGE RESET</button>
-      <button id="ticker">Enable polling</button>
+    <div data-role="footer" data-position="fixed">
+      <div data-role="navbar">
+        <ul id="conf">
+			    <li><a id="reset" href="#" class="ui-btn">Manuall</a></li>
+		    	<li><a id="ticker" href="#" class="ui-btn">Auto</a></li>
+		    </ul>
+	    </div><!-- /navbar -->
+<!--      <button id="reset">SESSION STORAGE RESET</button>-->
     </div>
     
   </div>
