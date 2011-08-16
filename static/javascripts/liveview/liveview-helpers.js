@@ -47,6 +47,7 @@ function CORS(url) {
     success: function(data) {
       renderIndex(data);
       save(data);
+      $('.play').click();
     },
     
     complete: function(data) {
