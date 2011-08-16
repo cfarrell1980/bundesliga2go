@@ -6,7 +6,7 @@ local database with data from upstream. You can install the python-apscheduler
 package from devel:languages:python on openSUSE or with easy_install from PyPi
 """
 from apscheduler.scheduler import Scheduler
-import sys,time
+import sys,time,signal
 from bundesligaORM import *
 from bundesligaAPI import BundesligaAPI
 from bundesligaLogger import logger
@@ -78,7 +78,8 @@ if __name__ == '__main__':
       the scheduler and run forever...
   '''
   try:
-    slow.run()
+    slow.start()
+    signal.pause() # necessary because of http://www.velocityreviews.com/forums/t741696-apscheduler-error.htm
   except KeyboardInterrupt:
     sys.stdout.write("\r")
     sys.stdout.flush()

@@ -5,6 +5,7 @@
 # The only way to revert to the real scores is to delete the
 # sqlite database and start jsonServer.py again
 #
+import signal
 from apscheduler.scheduler import Scheduler
 from random import choice
 from bundesligaORM import *
@@ -40,5 +41,6 @@ def changescores():
   
 
 if __name__ == '__main__':
-  tick.run()
+  tick.start()
+  signal.pause() # necessary because of http://www.velocityreviews.com/forums/t741696-apscheduler-error.html
 
