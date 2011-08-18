@@ -48,10 +48,17 @@ class bundesligaSyncAPI:
       matchLocation = mo.location.locationCity.encode('utf-8')
     else:
       matchLocation = None
-    match = session.merge(Match(matchID,matchStartTime,matchIsFinished,matchMatchday,
+    try:
+      print "Merging matchID %d"%matchID
+      match = session.merge(Match(matchID,matchStartTime,matchIsFinished,matchMatchday,
                   matchViewers=matchViewers,matchLocation=matchLocation))
-    session.commit()
-    session.close()
+    except Exception,e:
+      print str(e)
+      raise
+    else:
+      session.commit()
+    finally:
+      session.close()
 
   def teamToDBase(self,teamobject):
     '''
