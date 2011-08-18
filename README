@@ -51,6 +51,7 @@ stitched together individual team icons). If not, the script will download all o
 season team's icons and stitch them together. It will also dynamically generate the
 appropriate CSS so that the individual icon can be addressed.
 
+
 **Copyright, License, Authors**
 ===============================
 bundesliga2go is copyright 2011 Ciaran Farrell <cfarrell1980@gmail.com> and Vladislav
