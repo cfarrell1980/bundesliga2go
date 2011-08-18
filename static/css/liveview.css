@@ -1,0 +1,30 @@
+span.text20 { 
+  font-size:20px;
+}
+
+li.match {
+  background: #f5f5f5;
+  padding:10px 5px!important;
+}
+
+#header { padding-bottom: 10px;}
+#header .ui-title { font-size:20px; background:transparent; }
+
+.green { 
+  background: -moz-linear-gradient(center top , #74B042, #56A00E) repeat scroll 0 0 #74B042; 
+  background: -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 56, from(#74B042), to(#56A00E));
+}
+
+.grey { 
+  background: -moz-linear-gradient(center top , #DDDDDD, #BBBBBB) repeat scroll 0 0 #BBBBBB;
+  background: -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 56, from(#DDDDDD), to(#BBBBBB));
+  color:#222; 
+  text-shadow: 0px 1px 0px #fff;
+}
+
+.ui-btn-active {
+  background: -moz-linear-gradient(center top , #74B042, #56A00E) repeat scroll 0 0 #4596CE;
+  background: -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 56, from(#74B042), to(#56A00E));
+  border: 1px solid green;
+  text-shadow: 0 -1px 1px green;
+}
