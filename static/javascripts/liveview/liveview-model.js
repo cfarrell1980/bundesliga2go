@@ -1,4 +1,4 @@
-var URL = "http://paddy.suse.de:8080/active?tester=2011-08-06-16-00"
+var URL = "http://foxhall.de:8081/active?tester=2011-08-06-16-00"
 
 var match = new function() {
   this.find = function(id) {

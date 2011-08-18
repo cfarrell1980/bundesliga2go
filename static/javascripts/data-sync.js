@@ -1,5 +1,5 @@
-var teamsURL = 'http://foxhall.de:8080/getTeams';
-var indexURL = 'http://foxhall.de:8080/v2';
+var teamsURL = 'http://foxhall.de:8081/getTeams';
+var indexURL = 'http://foxhall.de:8081/v2';
 
 function firstRun(mday) {
   mday == '#'? matchday=localStorage.getItem('cmd') : matchday=localStorage.getItem(mday);
@@ -59,7 +59,7 @@ function index(data, matchday) {
   }
 }
 
-var activeURL = "http://paddy.suse.de:8080/active?tester=2011-08-06-16-00"
+var activeURL = "http://foxhall.de:8081/active?tester=2011-08-06-16-00"
 
 function getActive() {
   if(typeof(Worker) == 'undefined') {
