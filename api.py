@@ -1,4 +1,34 @@
 # -*- coding: utf-8 -*-
+
+'''
+Copyright (c) 2011, Ciaran Farrell, Vladislav Lewin
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+
+Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
+and/or other materials provided with the distribution.
+
+Neither the name of the authors nor the names of its contributors
+may be used to endorse or promote products derived from this software without
+specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+'''
 from orm import *
 from OpenLigaDB import OpenLigaDB
 from sqlalchemy.sql import and_, or_, not_
@@ -71,6 +101,11 @@ class localService:
     return lastchange    
     
   def getLeagueByShortcutSeason(self,league,season,ret_dict=True):
+    ''' @league:  string representing shortcut of League (e.g. 'bl1')
+        @season:  int representing season year (e.g. 2011)
+        @returns: dictionary representing League object, or the League object
+                  itself if caller uses ret_dict = False
+    '''
     session = Session()
     try:
       league = session.query(League).filter(and_(League.shortcut==league,
@@ -86,6 +121,11 @@ class localService:
       session.close()
         
   def getLeagueByID(self,leagueID,ret_dict=True):
+    ''' @matchID: int representing primary key of the League object in the
+                  database.
+        @returns: dictionary representing League object, or the League object
+                  itself if caller uses ret_dict = False
+    ''' 
     session=Session()
     try:
       league = session.query(League).filter(League.id==leagueID).one()
@@ -100,6 +140,11 @@ class localService:
       session.close()
       
   def getMatchByID(self,matchID,ret_dict=True):
+    ''' @matchID: int representing primary key of the Match object in the
+                  database.
+        @returns: dictionary representing Match object, or the Match object
+                  itself if caller uses ret_dict = False
+    '''
     session = Session()
     try:
       match = session.query(Match).filter(Match.id==matchID).one()
@@ -114,6 +159,11 @@ class localService:
       session.close()
       
   def getMatchesInProgressNow(self,ret_dict=True):
+    ''' A simple method to find out from the local database which matches are
+        in progress at the moment (if any)
+        @returns: List of Match dictionaries or list of Match objects if the
+                  caller uses ret_dict = False
+    '''
     session=Session()
     try:
       mip = session.query(Match).filter(and_(Match.isFinished != True,
@@ -159,6 +209,10 @@ class localService:
       session.close()
     
   def getGoalByID(self,goalID,ret_dict=True):
+    ''' @goalID:  int representing primary key of Goal object in database
+        @returns: dictionary representing Goal object or Goal object itself if
+                  caller uses ret_dict=False
+    '''
     session = Session()
     try:
       goal = session.query(Goal).filter(Goal.id==goalID).one()
@@ -174,6 +228,11 @@ class localService:
 
   def getTeams(self,league=DEFAULT_LEAGUE,season=getCurrentSeason(),
               ret_dict=True):
+    ''' @league:  string representing League shortcut (e.g. 'bl1')
+        @season:  int representing season year (e.g. 2011)
+        @returns: list of Dictionaries representing Team objects or Team objects
+                  if caller uses ret_dict=False
+    '''
     session = Session()
     try:
       league = session.query(League).filter(and_(League.season==season,
@@ -193,6 +252,10 @@ class localService:
     
 
   def getTeamByID(self,teamID,ret_dict=True):
+    ''' @teamID:  int representing primary key of Team object in database
+        @retuns:  dictionary representing Team object or Team object itself if
+                  caller uses ret_dict=False
+    '''
     session = Session()
     try:
       team = session.query(Team).filter(Team.id==teamID).one()
@@ -207,6 +270,10 @@ class localService:
       session.close()
       
   def getTeamByShortname(self,shortName,ret_dict=True):
+    ''' @shortName: string representing Team shortName (e.g. '1FCN')
+        @returns:   dictionary representing Team object or Team object if
+                    caller uses ret_dict=False
+    '''
     session = Session()
     try:
       team = session.query(Team).filter(Team.shortName==shortName).one()
@@ -220,7 +287,9 @@ class localService:
     finally:
       session.close()      
       
-  def getGoalsSince(self,ret_dict=True):
+  def getGoalsSince(self,tstamp,ret_dict=True):
+    ''' TODO: retrieve goals since tstamp
+    '''
     pass
 
   def getMatchesByMatchday(self,matchday=getCurrentMatchDay(),
