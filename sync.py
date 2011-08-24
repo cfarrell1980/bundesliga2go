@@ -153,6 +153,18 @@ class SyncAPI:
           lleague = session.merge(League(int(league.leagueID),
             league.leagueName.encode('utf-8'),league.leagueShortcut,
             int(league.leagueSaison)))
+          team = oldb.GetTeamsByLeagueSaison(lleague.shortcut,lleague.season)
+          teams = team.Team
+          for t in teams:
+            if teamShortcuts.has_key(int(t.teamID)):
+              shortName = teamShortcuts[int(t.teamID)]
+            else:
+              # mail admin - should add the shortcut to teamShortcuts
+              shortName = None
+            team = session.merge(Team(int(t.teamID),
+                    t.teamName.encode('utf-8'),shortName=shortName,
+                    iconURL=t.teamIconURL))
+            lleague.teams.append(team)
     session.commit()
 
 

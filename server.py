@@ -46,15 +46,17 @@ def SYNC():
   sync = SyncAPI()
   print "syncing leagues..."
   sync.syncLeagues()
-  print "syncing teams..."
-  sync.syncTeams()
   last_match_change = api.getLastChangeToMatches()
   last_upstream_change = api.getLastUpstreamChange()
-  if last_upstream_change > last_match_change:
-    print "local database older than upstream - syncing season data..."
+  if not last_match_change:
+    print "matches were never synced - syncing season data..."
     sync.syncSeasonMatches()
   else:
-    print "local database up to date. Not syncing season data..."
+      if last_upstream_change > last_match_change:
+        print "local database older than upstream - syncing season data..."
+        sync.syncSeasonMatches()
+      else:
+        print "local database up to date. Not syncing season data..."
 
 # Check if the scheduler is running. If not, do not continue
 procs = Popen(['ps', '-A', '-F'], stdout=PIPE).communicate()[0]
@@ -199,8 +201,10 @@ class jsonTeams:
     web.header("Access-Control-Max-Age", "60");
     return None
 
-  def GET(self,season=getCurrentSeason(),league=DEFAULT_LEAGUE):
+  def GET(self,season=getCurrentSeason(),league=None):
     web.header('Content-Type','application/json')
+    if not league:
+      league = DEFAULT_LEAGUE
     teams = api.getTeams(league,season)
     return json.dumps(teams)
     

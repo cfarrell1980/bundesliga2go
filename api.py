@@ -152,7 +152,27 @@ class localService:
         return league
     finally:
       session.close()
-      
+
+  def getLeagues(self,ret_dict=True):
+    ''' @returns: list of dictionaries representing League objects or League
+        objects if caller uses ret_dict=False
+    '''
+    session=Session()
+    try:
+      leagues = session.query(League).all()
+    except:
+      raise
+    else:
+      if ret_dict:
+        leaguelist = []
+        for league in leagues:
+          leaguelist.append(self.dictifier.dictifyLeague(league))
+        return leaguelist
+      else:
+        return leagues
+    finally:
+      session.close()
+        
   def getMatchByID(self,matchID,ret_dict=True):
     ''' @matchID: int representing primary key of the Match object in the
                   database.
@@ -248,6 +268,7 @@ class localService:
                   if caller uses ret_dict=False
     '''
     session = Session()
+    print league,season
     try:
       league = session.query(League).filter(and_(League.season==season,
             League.shortcut==league)).one()
