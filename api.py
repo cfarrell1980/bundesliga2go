@@ -268,7 +268,7 @@ class localService:
     finally:
       session.close()
 
-  def getTeams(self,league=DEFAULT_LEAGUE,season=getCurrentSeason(),
+  def getTeams(self,league=None,season=None,
               ret_dict=True):
     ''' @league:  string representing League shortcut (e.g. 'bl1')
         @season:  int representing season year (e.g. 2011)
@@ -276,22 +276,39 @@ class localService:
                   if caller uses ret_dict=False
     '''
     session = Session()
-    print league,season
-    try:
-      league = session.query(League).filter(and_(League.season==season,
-            League.shortcut==league)).one()
-    except:
-      raise
+    if not league and season:
+      try:
+        leagues = session.query(League).filter(League.season==season).all()
+      except:
+        raise
+    elif league and not season:
+      try:
+        leagues = session.query(League).filter(League.shortcut==league).all()
+      except:
+        raise
+    elif not league and not season:
+      try:
+        leagues = session.query(League).all()
+      except:
+        raise
     else:
-      teamlist = []
+      try:
+        leagues = session.query(League).filter(and_(League.season==season,
+            League.shortcut==league)).one()
+      except:
+        raise
+    teamlist = []
+    for league in leagues:
       for team in league.teams:
         if ret_dict:
-          teamlist.append(self.dictifier.dictifyTeam(team))
+          dictteam = self.dictifier.dictifyTeam(team)
+          if dictteam not in teamlist:
+            teamlist.append(dictteam)
         else:
-          teamlist.append(team)
-      return teamlist
-    finally:
-      session.close()
+          if team not in teamlist:
+            teamlist.append(team)
+    session.close()
+    return teamlist
     
 
   def getTeamByID(self,teamID,ret_dict=True):
