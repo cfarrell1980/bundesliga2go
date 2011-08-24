@@ -31,19 +31,30 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 import web,json,re,os
 from api import localService
-from PermaData import DBASE
+from PermaData import DBASE,getCurrentMatchDay,getCurrentSeason,DEFAULT_LEAGUE
 from datetime import datetime
 from subprocess import Popen,PIPE
 api = localService()
+
 def SYNC():
+  ''' This function just calls the sync methods in the correct order. Note that
+      the methods called take quite a while to run (especially syncTeams) so it
+      does not make sense to call this function often. It is run when the
+      server starts as it is not envisaged that this will happen very often
+  '''
   from sync import SyncAPI
   sync = SyncAPI()
   print "syncing leagues..."
   sync.syncLeagues()
   print "syncing teams..."
   sync.syncTeams()
-  print "syncing season data..."
-  sync.syncSeasonMatches()
+  last_match_change = api.getLastChangeToMatches()
+  last_upstream_change = api.getLastUpstreamChange()
+  if last_upstream_change > last_match_change:
+    print "local database older than upstream - syncing season data..."
+    sync.syncSeasonMatches()
+  else:
+    print "local database up to date. Not syncing season data..."
 
 # Check if the scheduler is running. If not, do not continue
 procs = Popen(['ps', '-A', '-F'], stdout=PIPE).communicate()[0]
@@ -62,7 +73,7 @@ urls = (
   '/api/team/(.*?)/?','jsonTeam',
   '/api/goal/(\d{1,6})/?','jsonGoal',
   '/api/matches/inprogress/(.*?)/?','jsonMatchesInProgess',
-  '/api/teams','jsonTeams',
+  '/api/teams/(\d{4})/(.*?)/?','jsonTeams',
 )
 app = web.application(urls, globals(), autoreload=False)
 application = app.wsgifunc()
@@ -188,9 +199,9 @@ class jsonTeams:
     web.header("Access-Control-Max-Age", "60");
     return None
 
-  def GET(self):
+  def GET(self,season=getCurrentSeason(),league=DEFAULT_LEAGUE):
     web.header('Content-Type','application/json')
-    teams = api.getTeams()
+    teams = api.getTeams(league,season)
     return json.dumps(teams)
     
     

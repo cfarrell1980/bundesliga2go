@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from orm import *
 from OpenLigaDB import OpenLigaDB
 from sqlalchemy.sql import and_, or_, not_
+from sqlalchemy import func
 from datetime import datetime
 from PermaData import DEFAULT_LEAGUE,getCurrentMatchDay,getCurrentSeason,\
     DBASE
@@ -98,7 +99,20 @@ class localService:
     '''
     dbase_abspath = os.path.abspath(os.path.join(os.getcwd(),DBASE))   
     lastchange = datetime.fromtimestamp(os.stat(dbase_abspath)[8])
-    return lastchange    
+    return lastchange
+    
+  def getLastChangeToMatches(self):
+    ''' @returns: datetime of last modification to Match table
+    '''
+    session = Session()
+    try:
+      lastmod = session.query(func.max(Match.modified)).one()
+    except:
+      raise
+    else:
+      return lastmod[0]
+    finally:
+      session.close()
     
   def getLeagueByShortcutSeason(self,league,season,ret_dict=True):
     ''' @league:  string representing shortcut of League (e.g. 'bl1')
