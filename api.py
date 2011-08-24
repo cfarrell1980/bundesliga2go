@@ -41,6 +41,14 @@ import os,json
 oldb = OpenLigaDB()
 
 class Dictify:
+  ''' This Dictify class is to make it easier to convert objects returned from
+      SQLAlchemy queries into dictionaries. This is necessary because when
+      responding to queries over web.py we usually return JSON. JSON is
+      particularly sensitive to certain data types such as datetime. In order to
+      avoid JSON encoding errors, we convert to dictionary and also convert
+      certain datatypes to a more JSON friendly type
+  '''
+  
   def dictifyTeam(self,team):
     t={'fullName':team.fullName.encode('utf-8'),
        'iconURL':team.iconURL,
@@ -329,7 +337,11 @@ class localService:
 
   def getMatchesByMatchday(self,matchday=getCurrentMatchDay(),
         league=DEFAULT_LEAGUE,season=getCurrentSeason(),ret_dict=True):
-    '''
+    ''' @matchday:  int representing bundesliga matchday (e.g. max 34)
+        @league:    string representing League shortcut (e.g. 'bl1')
+        @season:    int representing season year (e.g. 2011)
+        @returns:   list of dictionaries representing Match objects or list oft
+                    Match objects if caller uses ret_dict=False
     '''
     session = Session()
     try:
@@ -350,6 +362,10 @@ class localService:
       session.close()
       
   def getGoalByID(self,goalID,ret_dict=True):
+    ''' @goalID:  int representing primary key of Goal object in database
+        @returns: dictionary representing Goal object or Goal object if caller
+                  uses ret_dict=False
+    '''
     session = Session()
     try:
       goal = session.query(Goal).filter(Goal.id==goalID).one()
