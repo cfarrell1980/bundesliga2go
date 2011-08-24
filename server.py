@@ -31,7 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 import web,json,re,os
 from api import localService
-from PermaData import DBASE,getCurrentMatchDay,getCurrentSeason,DEFAULT_LEAGUE
+from PermaData import DBASE,getCurrentMatchDay,getCurrentSeason,\
+    getDefaultLeague
 from datetime import datetime
 from subprocess import Popen,PIPE
 api = localService()
@@ -75,7 +76,7 @@ urls = (
   '/api/team/(.*?)/?','jsonTeam',
   '/api/goal/(\d{1,6})/?','jsonGoal',
   '/api/matches/inprogress/(.*?)/?','jsonMatchesInProgess',
-  '/api/teams/(\d{4})/(.*?)/?','jsonTeams',
+  '/api/teams/?','jsonTeams',
 )
 app = web.application(urls, globals(), autoreload=False)
 application = app.wsgifunc()
@@ -201,12 +202,18 @@ class jsonTeams:
     web.header("Access-Control-Max-Age", "60");
     return None
 
-  def GET(self,season=getCurrentSeason(),league=None):
+  def GET(self):
     web.header('Content-Type','application/json')
-    if not league:
-      league = DEFAULT_LEAGUE
-    teams = api.getTeams(league,season)
-    return json.dumps(teams)
+    season = web.input(season=None)
+    league = web.input(league=None)
+    season = season.season
+    league = league.league
+    try:
+      teams = api.getTeams(league=league,season=season)
+    except:
+      return json.dumps({'error':'could not return team data'})
+    else:
+      return json.dumps(teams)
     
     
 if __name__ == '__main__':
