@@ -294,7 +294,7 @@ class localService:
     else:
       try:
         leagues = session.query(League).filter(and_(League.season==season,
-            League.shortcut==league)).one()
+            League.shortcut==league)).all()
       except:
         raise
     teamlist = []
