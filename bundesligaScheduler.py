@@ -34,7 +34,7 @@ from apscheduler.scheduler import Scheduler
 from datetime import datetime
 from api import localService
 from sync import SyncAPI
-import signal
+import signal,os
 api = localService()
 sync = SyncAPI()
 slow = Scheduler()

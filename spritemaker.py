@@ -82,6 +82,8 @@ class Sprite:
     except:
       raise
     else:
+      if not len(teams):
+        raise StandardError, "No teams found locally. Did you sync?"
       for i in range(len(teams)):
         t = ThreadUrl(queue)
         t.setDaemon(True)
@@ -128,10 +130,12 @@ class Sprite:
     
   def makeCSS(self,targetdir=os.path.join(os.getcwd(),'static/css/')):
     # create the css code needed to define the icon sprite
-    cssHead = "span.icon { margin:0 10px; vertical-align:middle;\
-                line-height: 20px; border: 2px solid #cccccc;\
-                -moz-border-radius:50% ; -webkit-border-radius:20px;\
-                background: url(../images/%s_%s.png) no-repeat top left;}"%(self.league,self.season)
+    bg_url = '%s_%s.png'%(self.league,str(self.season))
+    cssHead = " span.icon { margin:0 10px; vertical-align:middle;\
+                line-height: 20px; border: 2px solid #cccccc;\n\
+                -moz-border-radius:50%; -webkit-border-radius:20px;"
+    cssHead=cssHead+"background: url(../images/%s)"%bg_url
+    cssHead=cssHead+"no-repeat top left; }"
     # create the css code needed to interpret the sprite
     cssTemplate = " span.icon-%s { background-position: 0px -%dpx;\
                     width: 20px; height: 20px; display:inline-block; }\n"

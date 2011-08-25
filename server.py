@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
-import web,json,re,os
+import web,json,re,os,sys
 from api import localService
 from PermaData import DBASE,getCurrentMatchDay,getCurrentSeason,\
     getDefaultLeague
@@ -62,7 +62,8 @@ def SYNC():
 # Check if the scheduler is running. If not, do not continue
 procs = Popen(['ps', '-A', '-F'], stdout=PIPE).communicate()[0]
 if not re.search('bundesligaScheduler.py',procs):
-  raise StandardError,"bundesligaScheduler.py is not running. Start it first!"
+  raise StandardError,"bundesligaScheduler.py is not running - start it first!"
+  sys.exit(1)
 else:
   print "bundesligaScheduler.py is already running. Good!"
   
