@@ -69,7 +69,8 @@ class Sprite:
     self.image_width = 0
     self.iconmap = []
     self.tmpdir = tempfile.mkdtemp()
-    
+    self.default_icon = os.path.join(os.getcwd(),
+                      '/static/images/default_icon.png')
         
   def syncIcons(self):
     ''' This method obtains information about each team in the League and 
@@ -94,12 +95,19 @@ class Sprite:
           self.iconmap.append([team['shortName'],team['target']])
         else:
           print "No iconURL for %s"%team['shortName']
+          self.iconmap.append([team['shortName'],self.default_icon])
       queue.join()
       
     
   def makeSprite(self,targetdir=os.path.join(os.getcwd(),'static/images/')):
     # read all of the individual team icons into memory and get properties
-    images = [Image.open(filename) for cssClass, filename in self.iconmap]
+    images =  []
+    for imglist in self.iconmap:
+      try:
+        images.append(Image.open(imglist[1]))
+      except IOError:
+        print "IOError opening %s. Using default icon instead..."%imglist[1]
+        images.append(self.default_icon)
     self.image_width, self.image_height = images[0].size
     master_width = self.image_width
     #seperate each image with lots of whitespace
@@ -120,11 +128,10 @@ class Sprite:
     
   def makeCSS(self,targetdir=os.path.join(os.getcwd(),'static/css/')):
     # create the css code needed to define the icon sprite
-    cssHead = " span.icon { margin:0 10px; vertical-align:middle;\
+    cssHead = "span.icon { margin:0 10px; vertical-align:middle;\
                 line-height: 20px; border: 2px solid #cccccc;\
-                -moz-border-radius:50%; -webkit-border-radius:20px;\
-                background: url(../images/"%s_%s".png) no-repeat top left; }"%(
-                self.league,self.season)
+                -moz-border-radius:50% ; -webkit-border-radius:20px;\
+                background: url(../images/%s_%s.png) no-repeat top left;}"%(self.league,self.season)
     # create the css code needed to interpret the sprite
     cssTemplate = " span.icon-%s { background-position: 0px -%dpx;\
                     width: 20px; height: 20px; display:inline-block; }\n"
