@@ -29,7 +29,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
-import os,Queue,threading,urllib2
+import os,Queue,threading,urllib2,tempfile,shutil
 try:
   import Image
 except ImportError:
@@ -65,13 +65,14 @@ class Sprite:
   def __init__(self,league,season):
     self.league = league
     self.season = season
+    self.image_height = 0
+    self.image_width = 0
     self.iconmap = []
+    self.tmpdir = tempfile.mkdtemp()
     
         
-  def syncIcons(self,tmpdir=os.path.join(os.getcwd(),'iconstore')):
-    ''' @ŧmpdir:  the local directory where icon images are stored. This must
-                  exist!
-        This method obtains information about each team in the League and 
+  def syncIcons(self):
+    ''' This method obtains information about each team in the League and 
         Season requested. It then uses threads to download all of the icons in
         parallel and stores them to @tmpdir
     '''
@@ -88,7 +89,7 @@ class Sprite:
       for team in teams:
         if team['iconURL']:
           base = os.path.basename(team['iconURL'])
-          team['target'] = os.path.join(tmpdir,base)
+          team['target'] = os.path.join(self.tmpdir,base)
           queue.put(team)
           self.iconmap.append([team['shortName'],team['target']])
         else:
@@ -96,35 +97,49 @@ class Sprite:
       queue.join()
       
     
-  def makeSprite(self,srcdir=os.path.join(os.getcwd(),'iconstore'),
-                targetdir=os.path.join(os.getcwd(),'static/images/')):
+  def makeSprite(self,targetdir=os.path.join(os.getcwd(),'static/images/')):
     # read all of the individual team icons into memory and get properties
     images = [Image.open(filename) for cssClass, filename in self.iconmap]
-    print "%d images will be combined." % len(images)
-    image_width, image_height = images[0].size
-    print "all images assumed to be %d by %d." % (image_width, image_height)
-    master_width = image_width
+    self.image_width, self.image_height = images[0].size
+    master_width = self.image_width
     #seperate each image with lots of whitespace
-    master_height = (image_height * len(images) * 2) - image_height
-    print "the master image will by %d by %d" % (master_width, master_height)
-    print "creating image...",
+    master_height = (self.image_height * len(images) * 2) - self.image_height
     master = Image.new(
       mode='RGBA',
       size=(master_width, master_height),
       color=(0,0,0,0)) # fully transparent
-    print "created."
     # add the images to the master image and write master.png and master.gif
     for count, image in enumerate(images):
-      location = image_height*count*2
-      print "adding %s at %d..." % (self.iconmap[count][1], location),
+      location = self.image_height*count*2
       master.paste(image,(0,location))
-      print "added."
-    print "done adding icons."
     master_png_target = os.path.join(targetdir,'%s_%s.png'%(self.league,
           str(self.season)))
-    print "saving teams.png to %s"%master_png_target,
     master.save(master_png_target)
-    print "saved!"
+    shutil.rmtree(self.tmpdir,ignore_errors=True)
+    
     
   def makeCSS(self,targetdir=os.path.join(os.getcwd(),'static/css/')):
-    pass
+    # create the css code needed to define the icon sprite
+    cssHead = " span.icon { margin:0 10px; vertical-align:middle;\
+                line-height: 20px; border: 2px solid #cccccc;\
+                -moz-border-radius:50%; -webkit-border-radius:20px;\
+                background: url(../images/"%s_%s".png) no-repeat top left; }"%(
+                self.league,self.season)
+    # create the css code needed to interpret the sprite
+    cssTemplate = " span.icon-%s { background-position: 0px -%dpx;\
+                    width: 20px; height: 20px; display:inline-block; }\n"
+    # write the css code to string
+    css_str = []
+    iterator = 0
+    for teamlist in self.iconmap:
+      scut,filename = teamlist[0],teamlist[1]
+      location = (self.image_height*iterator*2)
+      css_str.append(cssTemplate%(scut,location))
+      iterator+=1
+
+    # open the target css file
+    fd = open(os.path.join(targetdir,
+        "%s_%s.css"%(self.league,str(self.season))),'w')
+    fd.write(cssHead+"\n")
+    fd.write("\n".join(css_str))
+    fd.close()
