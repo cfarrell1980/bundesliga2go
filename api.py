@@ -394,5 +394,24 @@ class localService:
         return goal
     finally:
       session.close()
+      
+  def getGoalsSince(self,tstamp,matchlist,ret_dict=True):
+    ''' @matchlist: list of Match objects
+        @tstamp:    datetime
+    '''
+    session = Session()
+    #TODO this loop is not needed. Find out how to use in_
+    goaldict =  {}
+    for match in matchlist:
+      goaldict[match.id] = []
+      goals = session.query(Goal).join(Match).filter(and_(Match.id==match.id,
+              Goal.modified > tstamp)).all()
+      for goal in goals:
+        if ret_dict:
+          goaldict[match.id].append(self.dictifier.dictifyGoal(goal))
+        else:
+          goaldict[match.id].append(goal)
+    session.close()
+    return goaldict
 
 

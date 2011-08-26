@@ -34,7 +34,7 @@ from api import localService
 from sync import SyncAPI
 from PermaData import DBASE,getCurrentMatchDay,getCurrentSeason,\
     getDefaultLeague
-from datetime import datetime
+from datetime import datetime,timedelta
 from subprocess import Popen,PIPE
 api = localService()
 sync = SyncAPI()
@@ -230,21 +230,29 @@ class jsonGoalUpdates:
     web.header('Content-Type','application/json')
     league = web.input(league=None)
     league = league.league
+    tstamp = web.input(tstamp=None)
+    tstamp = tstamp.tstamp
+    if not tstamp:
+      tstamp = datetime.now()+timedelta(minutes=-5)
+    else:
+      try:
+        print tstamp
+        tstamp = datetime.strptime(tstamp,"%Y-%m-%d-%H-%M")
+      except Exception,e:
+        print e
+        return json.dumps({'error':'improper format for %s'%tstamp})
+     
     try:
-      pass
-    #  if league:
-    #    mip = api.getMatchesInProgressNow(league=league,ret_dict=False)
-    #  else:
-    #    mip = api.getMatchesInProgressNow(ret_dict=False)
+      if league:
+        mip = api.getMatchesInProgressNow(league=league,ret_dict=False)
+      else:
+        mip = api.getMatchesInProgressNow(ret_dict=False)
     except:
       return json.dumps({'error':'could not obtain matches in progress'})
     else:
-      goaldict = {}
-      for match in [14021,14022]:
-        goals = sync.fakeGoalUpdates(match)
-        goaldict[match] = goals
-      return json.dumps(goaldict)
-    
+      updates = api.getGoalsSince(tstamp,mip)
+      updates['tstamp'] = datetime.now().strftime("%Y-%m-%d-%H-%M")
+      return json.dumps(updates)
     
 if __name__ == '__main__':
   app.run()

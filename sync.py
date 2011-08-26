@@ -174,48 +174,5 @@ class SyncAPI:
             lleague.teams.append(team)
     session.commit()
     session.close()
-    
-  def syncGoalUpdates(self,match_id,ret_dict=True):
-    ''' @match:   int representing primary key of Match object
-        @returns: list of dictionaries representing all goals for Match
-    '''
-    session=Session()
-    goallist = []
-    tmp = {'goalScored':False,'goallist':[]}
-    updates = oldb.GetGoalsByMatch(match_id)
-    upstream_goals = updates.Goal
-    match = session.query(Match).filter(Match.id==match_id).one()
-    if len(upstream_goals) != len(match.goals):
-      tmp['goalScored'] = True
-      self.syncMatch(match_id)
-    match = session.query(Match).filter(Match.id==match_id).one()
-    for goal in match.goals:
-      if ret_dict:
-        tmp['goallist'].append(dictifier.dictifyGoal(goal))
-      else:
-        tmp['goallist'].append(goal)
-    goallist.append(tmp)
-    session.close()
-    return goallist
-    
-  def fakeGoalUpdates(self,match_id,ret_dict=True):
-    ''' For testing purposes, fake some updates
-    '''
-    session=Session()
-    goallist = []
-    tmp = {'goalScored':False,'goallist':[]}
-    upstream_goals = session.query(Goal).all()
-    upstream_goals = random.sample(upstream_goals,4)
-    x = random.choice([True,False])
-    if x:
-      tmp['goalScored'] = True
-    for goal in upstream_goals:
-      if ret_dict:
-        tmp['goallist'].append(dictifier.dictifyGoal(goal))
-      else:
-        tmp['goallist'].append(goal)
-    goallist.append(tmp)
-    session.close()
-    return goallist
 
 
