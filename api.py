@@ -34,10 +34,8 @@ from OpenLigaDB import OpenLigaDB
 from sqlalchemy.sql import and_, or_, not_
 from sqlalchemy import func
 from datetime import datetime
-from PermaData import DEFAULT_LEAGUE,getCurrentMatchDay,getCurrentSeason,\
-    DBASE
+from PermaData import getCurrentMatchDay,getCurrentSeason,DBASE,getDefaultLeague
 import os,json
-
 oldb = OpenLigaDB()
 
 class Dictify:
@@ -91,7 +89,7 @@ class localService:
   def __init__(self):
     self.dictifier = Dictify()
     
-  def getLastUpstreamChange(self,league=DEFAULT_LEAGUE,
+  def getLastUpstreamChange(self,league=getDefaultLeague(),
         season=getCurrentSeason()):
     ''' @league:  string representing shortname of league (e.g. 'bl1')
         @season:  int representing year (e.g. 2011)
@@ -122,7 +120,8 @@ class localService:
     finally:
       session.close()
     
-  def getLeagueByShortcutSeason(self,league,season,ret_dict=True):
+  def getLeagueByShortcutSeason(self,league=getDefaultLeague(),
+            season=getCurrentSeason(),ret_dict=True):
     ''' @league:  string representing shortcut of League (e.g. 'bl1')
         @season:  int representing season year (e.g. 2011)
         @returns: dictionary representing League object, or the League object
@@ -200,7 +199,7 @@ class localService:
     finally:
       session.close()
       
-  def getMatchesInProgressNow(self,ret_dict=True):
+  def getMatchesInProgressNow(self,league=getDefaultLeague(),ret_dict=True):
     ''' A simple method to find out from the local database which matches are
         in progress at the moment (if any)
         @returns: List of Match dictionaries or list of Match objects if the
@@ -208,8 +207,8 @@ class localService:
     '''
     session=Session()
     try:
-      mip = session.query(Match).filter(and_(Match.isFinished != True,
-            Match.startTime<=datetime.now())).all()
+      mip = session.query(Match).join(League).filter(and_(Match.isFinished!=True,
+            Match.startTime<=datetime.now(),League.shortcut==league)).all()
     except:
       raise
     else:
@@ -353,7 +352,7 @@ class localService:
     pass
 
   def getMatchesByMatchday(self,matchday=getCurrentMatchDay(),
-        league=DEFAULT_LEAGUE,season=getCurrentSeason(),ret_dict=True):
+        league=getDefaultLeague(),season=getCurrentSeason(),ret_dict=True):
     ''' @matchday:  int representing bundesliga matchday (e.g. max 34)
         @league:    string representing League shortcut (e.g. 'bl1')
         @season:    int representing season year (e.g. 2011)
@@ -395,3 +394,5 @@ class localService:
         return goal
     finally:
       session.close()
+
+

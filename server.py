@@ -31,20 +31,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 import web,json,re,os,sys
 from api import localService
+from sync import SyncAPI
 from PermaData import DBASE,getCurrentMatchDay,getCurrentSeason,\
     getDefaultLeague
 from datetime import datetime
 from subprocess import Popen,PIPE
 api = localService()
-
+sync = SyncAPI()
 def SYNC():
   ''' This function just calls the sync methods in the correct order. Note that
       the methods called take quite a while to run (especially syncTeams) so it
       does not make sense to call this function often. It is run when the
       server starts as it is not envisaged that this will happen very often
   '''
-  from sync import SyncAPI
-  sync = SyncAPI()
   print "syncing leagues..."
   sync.syncLeagues()
   last_match_change = api.getLastChangeToMatches()
@@ -78,6 +77,7 @@ urls = (
   '/api/goal/(\d{1,6})/?','jsonGoal',
   '/api/matches/inprogress/(.*?)/?','jsonMatchesInProgess',
   '/api/teams/?','jsonTeams',
+  '/api/goalupdates','jsonGoalUpdates',
 )
 app = web.application(urls, globals(), autoreload=False)
 application = app.wsgifunc()
@@ -215,6 +215,35 @@ class jsonTeams:
       return json.dumps({'error':'could not return team data'})
     else:
       return json.dumps(teams)
+
+class jsonGoalUpdates:
+
+  def OPTIONS(self):
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def GET(self):
+    web.header('Content-Type','application/json')
+    league = web.input(league=None)
+    league = league.league
+    try:
+      pass
+    #  if league:
+    #    mip = api.getMatchesInProgressNow(league=league,ret_dict=False)
+    #  else:
+    #    mip = api.getMatchesInProgressNow(ret_dict=False)
+    except:
+      return json.dumps({'error':'could not obtain matches in progress'})
+    else:
+      goaldict = {}
+      for match in [14021,14022]:
+        goals = sync.fakeGoalUpdates(match)
+        goaldict[match] = goals
+      return json.dumps(goaldict)
     
     
 if __name__ == '__main__':
