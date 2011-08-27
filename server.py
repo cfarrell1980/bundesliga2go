@@ -233,15 +233,16 @@ class jsonGoalUpdates:
     tstamp = web.input(tstamp=None)
     tstamp = tstamp.tstamp
     if not tstamp:
-      tstamp = datetime.now()+timedelta(minutes=-5)
+      print "Looking for updates in the last 2 minutes"
+      tstamp = datetime.now()+timedelta(minutes=-2)
     else:
       try:
-        print tstamp
         tstamp = datetime.strptime(tstamp,"%Y-%m-%d-%H-%M")
       except Exception,e:
         print e
         return json.dumps({'error':'improper format for %s'%tstamp})
-     
+      else:
+        print "Looking for updates since %s"%tstamp.strftime("%Y-%m-%d %H:%M")
     try:
       if league:
         mip = api.getMatchesInProgressNow(league=league,ret_dict=False)
@@ -250,6 +251,13 @@ class jsonGoalUpdates:
     except:
       return json.dumps({'error':'could not obtain matches in progress'})
     else:
+      if not len(mip):
+        print "No matches in progress at the moment..."
+      else:
+        print "%d matches in progress at the moment..."%len(mip)
+      #TODO Goal.modified returns when the goal was entered into the database,
+      #not when the goal actually occurred. This has to be fixed, probably by
+      #adding an estimated goal timestamp to the Goal table.
       updates = api.getGoalsSince(tstamp,mip)
       updates['tstamp'] = datetime.now().strftime("%Y-%m-%d-%H-%M")
       return json.dumps(updates)
