@@ -35,6 +35,7 @@ from PermaData import getCurrentSeason,DEFAULT_LEAGUE,DEFAULT_SEASON,\
 from orm import *
 from api import localService,Dictify
 import random
+from datetime import timedelta
 oldb = OpenLigaDB(timeout=12)
 localService = localService()
 dictifier = Dictify()
@@ -77,41 +78,74 @@ class SyncAPI:
     m.league = league
     team1goals,team2goals = [],[]
     m_goals = match.goals
+    firsthalfgoals = 0
+    results = match.matchResults
+    if results:
+      results = results.matchResult
+      for result in results:
+        if result.resultName.lower() == 'halbzeit':
+          firsthalfgoals = int(result.pointsTeam1+result.pointsTeam2)
     if hasattr(m_goals,'Goal'):
       if isinstance(m_goals.Goal,list):
         goallist = m_goals.Goal
         for goal in goallist:
           idx = goallist.index(goal)
+          if idx <= firsthalfgoals:
+            half=1
+          else:
+            half=2
           if idx==0:#first goal of the game 
             if goal.goalScoreTeam1==1:
-              team1goals.append(goal)
+              team1goals.append((goal,half))
             else:
-              team2goals.append(goal)
+              team2goals.append((goal,half))
           else: #not the first goal of the game
             previous_score = goallist[idx-1]
             if goal.goalScoreTeam1 > previous_score.goalScoreTeam1:
-              team1goals.append(goal)
+              team1goals.append((goal,half))
             else: 
-              team2goals.append(goal)
+              team2goals.append((goal,half))
     for goal in team1goals:
       # We don't want to store None types in the database to represent bool
-      if not goal.goalPenalty:
+      if goal[1] == 1: # first half
+        estTstamp = startTime+timedelta(minutes=+int(goal[0].goalMatchMinute))
+      else:
+        estTstamp = startTime+timedelta(minutes=+int((goal[0].goalMatchMinute)+15))
+      if not goal[0].goalPenalty:
         gp = False
       else:
         gp = True
-      if not goal.goalOwnGoal:
+      if not goal[0].goalOwnGoal:
         gog = False
       else:
         gog = True
-      g = session.merge(Goal(int(goal.goalID),goal.goalGetterName.encode('utf-8'),
-              int(goal.goalMatchMinute),wasPenalty=gp,wasOwnGoal=gog))
+      g = session.merge(Goal(int(goal[0].goalID),goal[0].goalGetterName.encode('utf-8'),
+              int(goal[0].goalMatchMinute),wasPenalty=gp,wasOwnGoal=gog))
       g.match = m
+      g.half = goal[1]
+      g.estTstamp = estTstamp
       team1.goals.append(g)
+      
+      
     for goal in team2goals:
-      g = session.merge(Goal(int(goal.goalID),goal.goalGetterName.encode('utf-8'),
-              int(goal.goalMatchMinute),wasPenalty=goal.goalPenalty,
-              wasOwnGoal=goal.goalOwnGoal))
+      if goal[1] == 1: # first half
+        estTstamp = startTime+timedelta(minutes=+int(goal[0].goalMatchMinute))
+      else:
+        estTstamp = startTime+timedelta(minutes=+int((goal[0].goalMatchMinute)+15))
+      if not goal[0].goalPenalty:
+        gp = False
+      else:
+        gp = True
+      if not goal[0].goalOwnGoal:
+        gog = False
+      else:
+        gog = True
+
+      g = session.merge(Goal(int(goal[0].goalID),goal[0].goalGetterName.encode('utf-8'),
+              int(goal[0].goalMatchMinute),wasPenalty=gp,wasOwnGoal=gog))
       g.match = m
+      g.half = goal[1]
+      g.estTstamp = estTstamp
       team2.goals.append(g)
     session.commit()
     session.close()
