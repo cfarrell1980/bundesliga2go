@@ -17,6 +17,19 @@ bundesliga and OpenLigaDB APIs included in the package. The requirements are:
 When you are sure that all of these requirements are installed, you are
 basically ready to go.
 
+**Starting the scheduler**
+==========================
+The scheduler is responsible for updating the local database with data from
+openligadb.de. This is done by using APScheduler to schedule a function to run
+every 30 seconds. This function checks if there are matches in progress. If not,
+the function just returns. Otherwise, the function uses api.py::localService to
+update the Match locally. To start the scheduler run:
+
+``python bundesligaScheduler.py``
+
+You can put the scheduler into the background by running:
+``python bundesligaScheduler.py &``
+
 **Running the server**
 ======================
 To get the server up and running you simply have to run the following command
@@ -36,7 +49,6 @@ choose another port for server.py.
 When you first start the server the script will automatically check if a local
 database has been configured and if it has been synchronised with openligadb.
 If not, this will be done first. This may take some time.
-
 
 
 **Copyright, License, Authors**
