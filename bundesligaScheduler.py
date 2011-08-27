@@ -46,9 +46,9 @@ def checkForUpdates():
 
 @fast.interval_schedule(seconds=30)
 def updateMatches():
-  #mip = api.getMatchesInProgressNow(ret_dict=False)
-  mip = api.getMatchesInProgressAsOf(datetime.strptime("2011-08-13 16:00",
-              "%Y-%m-%d %H:%M"),ret_dict=False)
+  mip = api.getMatchesInProgressNow(ret_dict=False)
+  #mip = api.getMatchesInProgressAsOf(datetime.strptime("2011-08-13 16:00",
+  #            "%Y-%m-%d %H:%M"),ret_dict=False)
   if not len(mip):
     print "No matches in progress now"
   else:
