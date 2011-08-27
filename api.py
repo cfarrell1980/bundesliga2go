@@ -58,6 +58,8 @@ class Dictify:
     t={ 'id':int(goal.id),
         'scorer':goal.scorer.encode('utf-8'),
         'minute':int(goal.minute),
+        'half':int(goal.half),
+        'estTstamp':goal.estTstamp.strftime("%Y-%m-%d %H:%M"),
         'wasPenalty':goal.wasPenalty,
         'wasOwnGoal':goal.wasOwnGoal}
     return t
@@ -402,10 +404,14 @@ class localService:
     session = Session()
     #TODO this loop is not needed. Find out how to use in_
     goaldict =  {}
+    print "api:localService:getGoalsSince\
+              with tstamp %s"%tstamp.strftime("%Y-%m-%d %H:%M")
     for match in matchlist:
       goaldict[match.id] = []
       goals = session.query(Goal).join(Match).filter(and_(Match.id==match.id,
               Goal.modified > tstamp)).all()
+      print "%d goals in match with id %d since %s"%(len(goals),match.id,
+              tstamp.strftime("%Y-%m-%d %H:%M"))
       for goal in goals:
         if ret_dict:
           goaldict[match.id].append(self.dictifier.dictifyGoal(goal))
