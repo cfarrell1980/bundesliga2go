@@ -108,6 +108,8 @@ goal_table = Table('goal',metadata,
   Column('id', Integer, primary_key=True),
   Column('scorer', String),
   Column('minute', Integer),
+  Column('estTstamp',DateTime),
+  Column('half',Integer,default=0),
   Column('match_id',Integer,ForeignKey('match.id')),
   Column('team_id',Integer,ForeignKey('team.id')),
   Column('wasPenalty',Boolean,default=False),
@@ -121,6 +123,8 @@ class Goal(object):
     self.id = goalID
     self.scorer = u"%s"%goalScorer.decode('utf-8')
     self.minute = goalMinute
+    self.estTstamp = None
+    self.half = 1
     self.wasPenalty = wasPenalty
     self.wasOwnGoal = wasOwnGoal
     self.modified = datetime.now()
