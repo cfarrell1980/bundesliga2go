@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from orm import *
 from OpenLigaDB import OpenLigaDB
 from sqlalchemy.sql import and_, or_, not_
-from sqlalchemy import func
+from sqlalchemy import func,desc
 from datetime import datetime
 from PermaData import getCurrentMatchDay,getCurrentSeason,DBASE,getDefaultLeague
 import os,json
@@ -209,8 +209,9 @@ class localService:
     '''
     session=Session()
     try:
-      mip = session.query(Match).join(League).filter(and_(Match.isFinished!=True,
-            Match.startTime<=datetime.now(),League.shortcut==league)).all()
+      mip = session.query(Match).join(League).filter(\
+            and_(Match.isFinished!=True,Match.startTime<=datetime.now(),
+            League.shortcut==league)).all()
     except:
       raise
     else:
@@ -224,7 +225,8 @@ class localService:
     finally:
       session.close()
       
-  def getMatchesInProgressAsOf(self,tstamp=datetime.now(),ret_dict=True):
+  def getMatchesInProgressAsOf(self,tstamp=datetime.now(),
+        league=getDefaultLeague(),ret_dict=True):
     ''' @tstamp:  datetime representing tstamp as of which requestor wants
                   to know if a match is in progress.
         This method takes a datetime and checks if any Match has a startTime
@@ -236,7 +238,8 @@ class localService:
     earlylimit = tstamp+matchdelta
     session = Session()
     try:
-      mip = session.query(Match).filter(and_(Match.startTime>=earlylimit,
+      mip = session.query(Match).join(League).filter(\
+            and_(Match.startTime>=earlylimit,League.shortcut==league,
             Match.startTime<=tstamp)).all()
     except:
       raise
@@ -420,20 +423,83 @@ class localService:
     session.close()
     return goaldict
     
-  def getGoalsSinceID(self,maxid,league=getDefaultLeague(),ret_dict=True):
+  def getMatchesSinceGoalID(self,maxid,league=getDefaultLeague(),ret_dict=True):
     ''' @maxid:   int representing the highest goal id that the requestor
                   currently has.
+        @league:  filter only goals from a certain League
         @returns: list of dictionaries representing Goals entered into local
                   database since maxid
     '''
     session = Session()
-    goals = session.query(Goal).filter(Goal.id > maxid).all()
+    matches = session.query(Match).join(League).join(Goal).filter(and_(
+            Goal.id > maxid,League.shortcut==league)).all()
     if ret_dict:
-      goallist = []
-      for goal in goals:
-        goallist.append(self.dictifier.dictifyGoal(goal))
+      matchlist = []
+      for match in matches:
+        matchlist.append(self.dictifier.dictifyMatch(match))
+      return matchlist
+    else:
+      return matches
+    session.close()
+    
+  def getMaxGoalID(self,league=getDefaultLeague()):
+    ''' @league:  string representing shortcut of League object (e.g. 'bl1')
+        @returns: int of maxid in Goal table for league
+    '''
+    session = Session()
+    maxgoal = session.query(Goal).join(Match).\
+          join(League).filter(League.shortcut == league).order_by(\
+          Goal.id.desc()).all()
+    session.close()
+    if not len(maxgoal):
+      raise StandardError, 'No goals found'
+    else:
+      return int(maxgoal[0].id)
+    
+  def getMatchGoalsSinceGoalID(self,maxid,ret_dict=True):
+    session = Session()
+    goals = session.query(Goal).filter(Goal.id > maxid).all()
+    matches = {}
+    for g in goals:
+      if not matches.has_key(g.match.id):
+        if ret_dict:
+          matches[g.match.id] =  [self.dictifier.dictifyGoal(g)]
+        else:
+          matches[g.match.id] =  [g]
+      else:
+        if ret_dict:
+          matches[g.match.id].append(self.dictifier.dictifyGoal(g))
+        else:
+          matches[g.match.id].append(g)
+    session.close()
+    return matches
+    
+  def getGoalsSinceID(self,goal_id,league=getDefaultLeague(),ret_dict=True):
+    session = Session()
+    goals = session.query(Goal).join(Match).join(League).filter(and_(\
+            Goal.id>goal_id,League.shortcut == league)).all()
+    if ret_dict:
+      goallist =  []
+      for g in goals:
+        goallist.append(self.dictifier.dictifyGoal(g))
       return goallist
     else:
       return goals
     session.close()
+    
+  def getGoalsPerMatchWithFlags(self,max_goal_id,league=getDefaultLeague()):
+    mip = self.getMatchesInProgressNow(league=league)
+    newgoals = self.getGoalsSinceID(max_goal_id,league,ret_dict=False)
+    matches = {}
+    for m in mip:
+      if not matches.has_key(m['id']):
+        matches[m['id']] = []
+      for goaldict in m['goals']:
+        if goaldict['id'] in [x.id for x in newgoals]:
+          goaldict['isNew'] = True
+        else:
+          goaldict['isNew'] = False
+        matches[m['id']].append(goaldict)
+    return matches
+          
 

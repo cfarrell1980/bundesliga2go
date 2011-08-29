@@ -78,6 +78,7 @@ urls = (
   '/api/matches/inprogress/(.*?)/?','jsonMatchesInProgess',
   '/api/teams/?','jsonTeams',
   '/api/goalupdates','jsonGoalUpdates',
+  '/api/maxgoalid','jsonMaxGoalID',
 )
 app = web.application(urls, globals(), autoreload=False)
 application = app.wsgifunc()
@@ -181,6 +182,10 @@ class jsonMatchesInProgess:
 
   def GET(self,tstamp=None):
     web.header('Content-Type','application/json')
+    league = web.input(league=None)
+    league = league.league
+    if not league:
+      league = getDefaultLeague()
     if not tstamp:
       mip = api.getMatchesInProgressNow()
       return json.dumps(mip)
@@ -188,7 +193,7 @@ class jsonMatchesInProgess:
       try:
         tstamp = datetime.strptime(tstamp,"%Y-%m-%d-%H-%M")
       except:
-        return json.dumps({'error':'%s is an invalid tstamp.'%tstamp})
+        return json.dumps({ 'error':'%s is an invalid tstamp.'%tstamp})
       else:
         mip = api.getMatchesInProgressAsOf(tstamp)
         return json.dumps(mip)
@@ -265,6 +270,30 @@ class jsonGoalUpdates:
       # the requesting device the max(id) in the Goal table for the requested
       # league (and matchday perhaps). The requesting device returns this id
       # when polling
+      
+class jsonMaxGoalID:
+
+  def OPTIONS(self):
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def GET(self):
+    web.header('Content-Type','application/json')
+    league = web.input(league=None)
+    league = league.league
+    if not league:
+      league = getDefaultLeague()
+    try:
+      max_goal_id = api.getMaxGoalID(league)
+    except:
+      return json.dumps({'error':'could not retrieve max\
+             goal id for %s'%league})
+    else:
+      return json.dumps({'max_goal_id':max_goal_id})
     
 if __name__ == '__main__':
   app.run()
