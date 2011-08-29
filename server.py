@@ -261,6 +261,10 @@ class jsonGoalUpdates:
       updates = api.getGoalsSince(tstamp,mip)
       updates['tstamp'] = datetime.now().strftime("%Y-%m-%d-%H-%M")
       return json.dumps(updates)
+      #TODO Returning using timestamp is quite stupid. A better idea is to send
+      # the requesting device the max(id) in the Goal table for the requested
+      # league (and matchday perhaps). The requesting device returns this id
+      # when polling
     
 if __name__ == '__main__':
   app.run()
