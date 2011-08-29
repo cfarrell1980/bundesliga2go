@@ -419,5 +419,21 @@ class localService:
           goaldict[match.id].append(goal)
     session.close()
     return goaldict
-
+    
+  def getGoalsSinceID(self,maxid,league=getDefaultLeague(),ret_dict=True):
+    ''' @maxid:   int representing the highest goal id that the requestor
+                  currently has.
+        @returns: list of dictionaries representing Goals entered into local
+                  database since maxid
+    '''
+    session = Session()
+    goals = session.query(Goal).filter(Goal.id > maxid).all()
+    if ret_dict:
+      goallist = []
+      for goal in goals:
+        goallist.append(self.dictifier.dictifyGoal(goal))
+      return goallist
+    else:
+      return goals
+    session.close()
 
