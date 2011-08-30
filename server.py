@@ -36,6 +36,7 @@ from PermaData import DBASE,getCurrentMatchDay,getCurrentSeason,\
     getDefaultLeague
 from datetime import datetime,timedelta
 from subprocess import Popen,PIPE
+from operator import itemgetter
 api = localService()
 sync = SyncAPI()
 def SYNC():
@@ -79,6 +80,7 @@ urls = (
   '/api/teams/?','jsonTeams',
   '/api/goalupdates','jsonGoalUpdates',
   '/api/maxgoalid','jsonMaxGoalID',
+  '/api/table','jsonLeagueTable',
 )
 app = web.application(urls, globals(), autoreload=False)
 application = app.wsgifunc()
@@ -220,7 +222,46 @@ class jsonTeams:
       return json.dumps({'error':'could not return team data'})
     else:
       return json.dumps(teams)
+      
+class jsonLeagueTable:
 
+  def OPTIONS(self):
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def GET(self):
+    web.header('Content-Type','application/json')
+    season = web.input(season=None)
+    league = web.input(league=None)
+    matchday = web.input(matchday=None)
+    season = season.season
+    league = league.league
+    matchday = matchday.matchday
+    pointslist = []
+    if not league:
+      league = getDefaultLeague()
+    if not season:
+      season = getCurrentSeason()
+    if not matchday:
+      matchday = getCurrentMatchDay()
+    try:
+      teams = api.getTeams(league=league,season=season,ret_dict=False)
+    except:
+      return json.dumps({'error':'could not return team data'})
+    else:
+      for team in teams:
+        ppt = api.getPointsPerTeam(team.id)
+        pointslist.append(ppt)
+      # TODO this is not ideal as it doesn't take goal diff into account
+      plist = sorted(pointslist, key=itemgetter('points')) 
+      plist.reverse()
+      return json.dumps(plist)
+      
+      
 class jsonGoalUpdates:
 
   def OPTIONS(self):
@@ -235,42 +276,18 @@ class jsonGoalUpdates:
     web.header('Content-Type','application/json')
     league = web.input(league=None)
     league = league.league
-    tstamp = web.input(tstamp=None)
-    tstamp = tstamp.tstamp
-    if not tstamp:
-      print "Looking for updates in the last 2 minutes"
-      tstamp = datetime.now()+timedelta(minutes=-2)
+    if not league:
+      league = getDefaultLeague()
+    clientmaxgoal = web.input(max_goal_id=None)
+    clientmaxgoal = clientmaxgoal.max_goal_id
+    if not clientmaxgoal:
+      return json.dumps({'error':'missing parameter max_goal_id'})
     else:
-      try:
-        tstamp = datetime.strptime(tstamp,"%Y-%m-%d-%H-%M")
-      except Exception,e:
-        print e
-        return json.dumps({'error':'improper format for %s'%tstamp})
-      else:
-        print "Looking for updates since %s"%tstamp.strftime("%Y-%m-%d %H:%M")
-    try:
-      if league:
-        mip = api.getMatchesInProgressNow(league=league,ret_dict=False)
-      else:
-        mip = api.getMatchesInProgressNow(ret_dict=False)
-    except:
-      return json.dumps({'error':'could not obtain matches in progress'})
-    else:
-      if not len(mip):
-        print "No matches in progress at the moment..."
-      else:
-        print "%d matches in progress at the moment..."%len(mip)
-      #TODO Goal.modified returns when the goal was entered into the database,
-      #not when the goal actually occurred. This has to be fixed, probably by
-      #adding an estimated goal timestamp to the Goal table.
-      updates = api.getGoalsSince(tstamp,mip)
-      updates['tstamp'] = datetime.now().strftime("%Y-%m-%d-%H-%M")
-      return json.dumps(updates)
-      #TODO Returning using timestamp is quite stupid. A better idea is to send
-      # the requesting device the max(id) in the Goal table for the requested
-      # league (and matchday perhaps). The requesting device returns this id
-      # when polling
-      
+      matches = api.getGoalsPerMatchWithFlags(clientmaxgoal,league=league)
+      matches['max_goal_id'] = api.getMaxGoalID(league=league)
+      return json.dumps(matches)
+
+
 class jsonMaxGoalID:
 
   def OPTIONS(self):

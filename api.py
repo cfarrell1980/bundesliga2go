@@ -501,5 +501,46 @@ class localService:
           goaldict['isNew'] = False
         matches[m['id']].append(goaldict)
     return matches
+    
+  def getPointsPerTeam(self,team_id,league=getDefaultLeague(),
+        season=getCurrentSeason(),matchday=getCurrentMatchDay()):
+      session=Session()
+      matches = session.query(Match).join(League).filter(\
+            and_(League.shortcut==league,
+            League.season==season,Match.matchDay<=matchday,
+            or_(Match.matchTeam1==team_id,
+            Match.matchTeam2==team_id))).all()
+      goals_for,goals_against,points,won,drew,lost = 0,0,0,0,0,0
+      for match in matches:
+        if match.matchTeam1 == team_id:
+          goals_for += len(match.team1goals)
+          goals_against += len(match.team2goals)
+          if len(match.team1goals) > len(match.team2goals):
+            points+=3
+            won+=1
+          elif len(match.team1goals) == len(match.team2goals):
+            points+=1
+            drew+=1
+          else:
+            lost+=1
+        elif match.matchTeam2 == team_id:
+          goals_for += len(match.team2goals)
+          goals_against += len(match.team1goals)
+          if len(match.team2goals) > len(match.team1goals):
+            points+=3
+            won+=1
+          elif len(match.team2goals) == len(match.team1goals):
+            points+=1
+            drew+=1
+          else:
+            lost+=1
+        else:
+          raise StandardError, "wtf?! Cannot be..."
+      session.close()
+      return {'goals_for':goals_for,'goals_against':goals_against,
+              'points':points,'won':won,'drew':drew,'lost':lost,
+              'played':len(matches),
+              'difference':goals_for-goals_against,'team_id':team_id}
+            
           
 
