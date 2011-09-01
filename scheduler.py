@@ -40,6 +40,8 @@ fast = Scheduler()
 sync = SyncAPI()
 api = localService()
 
+global matches = []
+
 @slow.cron_schedule(day_of_week='mon-sun', hour=22, minute=02)
 def checkForUpdates():
   # If there is an update, sync everything
@@ -52,6 +54,11 @@ def updateMatches():
       function calls the syncMatch method from sync.SyncAPI to update it.
   '''
   mip = api.getMatchesInProgressNow()
+  for m in mip:
+    matches.append(m)
+  for om in matches:
+    if om not in mip:
+      # Match that was in progress isFinished. Check and save result
   if len(mip):
     print "%d matches in progress..."%len(mip)
     for match in mip:

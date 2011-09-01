@@ -35,7 +35,7 @@ from sqlalchemy.sql import and_, or_, not_
 from sqlalchemy import func,desc
 from datetime import datetime
 from PermaData import getCurrentMatchDay,getCurrentSeason,DBASE,getDefaultLeague
-import os,json
+import os,json,time
 oldb = OpenLigaDB()
 
 class Dictify:
@@ -543,4 +543,43 @@ class localService:
               'difference':goals_for-goals_against,'team_id':team_id}
             
           
-
+  def test(self,matchday,league=getDefaultLeague(),season=getCurrentSeason()):
+    start=time.time()
+    session=Session()
+    if season > getCurrentSeason():
+      raise StandardError, "not possible to query future season tables"
+    elif season == getCurrentSeason() and matchday > getCurrentMatchDay():
+      raise StandardError, "not possible to query future match days"
+    else:
+      teams = {}
+      matches = session.query(Match).join(League).filter(\
+        and_(League.season==season,
+        League.shortcut==league,Match.matchDay<=matchday)).all()
+      for match in matches:
+        t1,t2 = match.team1.id,match.team2.id
+        if not teams.has_key(t1):
+          teams[t1] = {'gf':0,'ga':0,'points':0,'w':0,'l':0,'d':0,}
+        if not teams.has_key(t2):
+          teams[t2] = {'gf':0,'ga':0,'points':0,'w':0,'l':0,'d':0,}
+        if len(match.team1goals) > len(match.team2goals):
+          teams[t1]['points']+=3
+          teams[t1]['w']+=1
+          teams[t2]['l']+=1
+        elif len(match.team1goals) < len(match.team2goals):
+          teams[t2]['points']+=3
+          teams[t2]['w']+=1
+          teams[t1]['l']+=1
+        else:
+          teams[t1]['points']+=1
+          teams[t2]['points']+=1
+          teams[t1]['d']+=1
+          teams[t2]['d']+=1
+        teams[t1]['gf']+=len(match.team1goals)
+        teams[t2]['gf']+=len(match.team2goals)
+        teams[t1]['ga']+=len(match.team2goals)
+        teams[t2]['ga']+=len(match.team1goals) 
+    end=time.time()
+    took = end-start
+    print "%.3f seconds"%took
+    return teams
+    session.close()
