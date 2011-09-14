@@ -1,4 +1,5 @@
 from pymongo import Connection,ASCENDING
+from pymongo.code import Code
 from datetime import datetime
 from bundesligaGlobals import *
 connection = Connection()
@@ -6,6 +7,17 @@ db = connection.bundesliga2go
 bl_1 = db.bl1_2011
 
 class bundesligaAPI:
+
+  def test(self):
+    #count all goals?
+    map = Code( """
+                function MapCode() {
+	emit(this.shortTeam1,
+	{
+		"score": this.pointsTeam1
+	});
+}
+                """)
 
   def getMatchesByMatchday(self,matchday=getCurrentMatchday()):
     matches = bl_1.find({'groupOrderID':matchday}\
@@ -99,6 +111,41 @@ class bundesligaAPI:
     matches = bl_1.find({'shortTeam2':shortcut}\
         ).sort([('groupOrderID',ASCENDING)])
     return matches
+    
+  def getTableOnMatchday(self,matchday=getCurrentMatchday()):
+    pass
+    
+  def getTableRelevantStatsByTeamID(self,teamID):
+    #matches = bl_1.find({'$and':[{'matchIsFinished':True},
+    #                      {'$or':[{'idTeam1':teamID},
+    #                              {'idTeam2':teamID}
+    #                             ]
+    #                      }
+    #                      ]})
+    matches = bl_1.find({'$or':[{'idTeam1':teamID},{'idTeam2':teamID}]})
+    win,loss,draw,points = 0,0,0,0
+    for match in matches:
+      if not match['matchIsFinished']:
+        continue
+      if match['idTeam1'] == teamID:
+        if match['pointsTeam1'] > match['pointsTeam2']:
+          win+=1
+          points+=3
+        elif match['pointsTeam1'] == match['pointsTeam2']:
+          draw+=1
+          points+=1
+        else:
+          loss+=1
+      else:
+        if match['pointsTeam2'] > match['pointsTeam1']:
+          win+=1
+          points+=3
+        elif match['pointsTeam2'] == match['pointsTeam1']:
+          draw+=1
+          points+=1
+        else:
+          loss+=1
+    return (win,loss,draw,points)
     
   def getTeams(self,league=getDefaultLeague(),season=getCurrentSeason()):
     # need a map reduce here
