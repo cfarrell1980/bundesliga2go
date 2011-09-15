@@ -63,13 +63,6 @@ def matchToDict(match):
   if hasattr(match.location,'locationStadium'):
     m['locationStadium'] = match.location.locationStadium
   else: m['locationStadium'] = None
-  #m['goals'] = {}
-  #if hasattr(match.goals,'Goal'):
-  #  for g in match.goals.Goal:
-  #    gdict = goalToDict(g)
-  #    # python interprets str(3) as greater than str(2) so this should be ok
-  #    # still a hack though
-  #    m['goals'][str(gdict['goalID'])] = gdict
   m['goals'] = []
   if hasattr(match.goals,'Goal'):
     for g in match.goals.Goal:
@@ -113,3 +106,7 @@ class bundesligaSync:
     except Exception,e:
       print str(e)
       raise
+
+if __name__ == '__main__':
+  syncer = bundesligaSync()
+  syncer.matchesToMongo()

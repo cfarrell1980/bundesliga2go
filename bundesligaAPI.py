@@ -95,6 +95,54 @@ class bundesligaAPI:
             
       matchgoals[match['matchID']] = newgoals
     return matchgoals
+    
+  def getMatchGoalsWithFlaggedUpdates(self,maxclientid):
+    ''' @maxclientid: int representing highest goalID client device has
+        This method returns a dictionary where the keys are the matchIDs and
+        the value is a list of goals for that match with goals with goalID
+        greater than maxclientid flagged as new.
+    '''
+    matches = bl_1.find({"goals.goalID": {"$gt": maxclientid}})
+    # matches contains only those _matches_ with goals above goalID
+    matchgoals = {}
+    for match in matches:
+      matchgoals[match['matchID']] =  []
+      for goal in match['goals']:
+        tmp = {}
+        if goal['goalID'] > maxclientid:
+          tmp['new'] = True
+        else:
+          tmp['new'] = False
+        idx = match['goals'].index(goal)
+        if idx == 0: # first goal in the match
+          if goal['goalScoreTeam1'] == 1: #team1 scored
+            tmp['goalForTeamID'] = match['idTeam1']
+            tmp['goalForTeamShortcut'] = match['shortTeam1']
+            tmp['goalScorer'] = goal['goalGetterName']
+            tmp['goalMatchMinute'] = goal['goalMatchMinute']
+          else:
+            tmp['goalForTeamID'] = match['idTeam2']
+            tmp['goalForTeamShortcut'] = match['shortTeam2']
+            tmp['goalScorer'] = goal['goalGetterName']
+            tmp['goalMatchMinute'] = goal['goalMatchMinute']
+        else: # not the first goal of the match
+          if match['goals'][idx-1]['goalScoreTeam1'] < goal['goalScoreTeam1']:
+            # team1 has scored
+            tmp['goalForTeamID'] = match['idTeam1']
+            tmp['goalForTeamShortcut'] = match['shortTeam1']
+            tmp['goalScorer'] = goal['goalGetterName']
+            tmp['goalMatchMinute'] = goal['goalMatchMinute']
+          else: # team2 has scored
+            tmp['goalForTeamID'] = match['idTeam2']
+            tmp['goalForTeamShortcut'] = match['shortTeam2']
+            tmp['goalScorer'] = goal['goalGetterName']
+            tmp['goalMatchMinute'] = goal['goalMatchMinute']
+        tmp['goalID'] = goal['goalID']
+        tmp['goalPenalty'] = goal['goalPenalty']
+        tmp['goalOwnGoal'] = goal['goalOwnGoal']
+        tmp['goalComment'] = goal['goalComment']
+        matchgoals[match['matchID']].append(tmp)
+    return matchgoals
 
     
   def getAwayMatchesByTeamName(self,teamName):
@@ -116,12 +164,6 @@ class bundesligaAPI:
     pass
     
   def getTableRelevantStatsByTeamID(self,teamID):
-    #matches = bl_1.find({'$and':[{'matchIsFinished':True},
-    #                      {'$or':[{'idTeam1':teamID},
-    #                              {'idTeam2':teamID}
-    #                             ]
-    #                      }
-    #                      ]})
     matches = bl_1.find({'$or':[{'idTeam1':teamID},{'idTeam2':teamID}]})
     win,loss,draw,points = 0,0,0,0
     for match in matches:
@@ -148,15 +190,17 @@ class bundesligaAPI:
     return (win,loss,draw,points)
     
   def getTeams(self,league=getDefaultLeague(),season=getCurrentSeason()):
-    # need a map reduce here
     tdict = {}
-    teams = bl_1.find({},{'nameTeam1':1,'nameTeam2':1,'idTeam1':1,'idTeam2':1,
+    teams = bl_1.find({'leagueSaison':season,'leagueShortcut':league},
+                  {'nameTeam1':1,'nameTeam2':1,'idTeam1':1,'idTeam2':1,
+                  'shortTeam1':1
                          }).sort([('nameTeam1',ASCENDING)])
     for team in teams:
       if tdict.has_key(team['idTeam1']):
         pass
       else:
-        tdict[team['idTeam1']] = {'teamName':team['nameTeam1']}
+        tdict[team['idTeam1']] = {'teamName':team['nameTeam1'],
+                                  'teamShortcut':team['shortTeam1']}
     return tdict
       
       
