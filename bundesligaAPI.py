@@ -161,7 +161,27 @@ class bundesligaAPI:
     return matches
     
   def getTableOnMatchday(self,matchday=getCurrentMatchday()):
-    pass
+    teamwin = bl_1.group(['pointsDiv'],
+                        {'matchIsFinished':True},
+                        {'list': []}, # initial
+                        'function(obj, prev) {prev.list.push(obj)}')
+    y = []
+    for x in teamwin:
+      y.append(x)
+    return y
+
+
+    for x in teamdraw:
+      if len(x['onepoint']):
+        for id in x['onepoint']:
+          teamid = int(id)
+          if not teams.has_key(teamid):
+            teams[teamid] = {'points':0,'won':0,'lost':0,'drew':0,'gd':-0}
+          d = teams[teamid]
+          d['drew']+=1
+          d['points']+=1
+    return teams
+        
     
   def getTableRelevantStatsByTeamID(self,teamID):
     matches = bl_1.find({'$or':[{'idTeam1':teamID},{'idTeam2':teamID}]})

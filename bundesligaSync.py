@@ -81,6 +81,16 @@ def matchToDict(match):
   else:
     m['Endergebnis'] = {}
     m['Halbzeit'] = {}
+  m['pointsDiv'] = {3:None,1:[],0:None}
+  if m['matchIsFinished']:
+    if m['pointsTeam1'] > m['pointsTeam2']:
+      m['pointsDiv'][3] = m['idTeam1']
+      m['pointsDiv'][0] = m['idTeam2']
+    elif m['pointsTeam1'] == m['pointsTeam2']:
+      m['pointsDiv'][1] = [m['idTeam1'],m['idTeam2']]
+    else:
+      m['pointsDiv'][3] = m['idTeam2']
+      m['pointsDiv'][0] = m['idTeam1']
   return m
 
 class bundesligaSync:

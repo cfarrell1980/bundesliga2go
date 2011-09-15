@@ -48,6 +48,7 @@ urls = (
   '/api/table','jsonLeagueTable',
   '/api/getteams','getTeams',
   '/api/getnewgoals','getNewGoals',
+  '/api/gettable','getTableOnMatchday',
 )
 api = bundesligaAPI()
 app = web.application(urls, globals(), autoreload=False)
@@ -103,6 +104,33 @@ class getNewGoals:
         return json.dumps({'error':'maxid must be an integer'})
     matches = api.getMatchGoalsWithFlaggedUpdates(maxid)
     return json.dumps(matches)
+
+class getTableOnMatchday:
+
+  def OPTIONS(self):
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def GET(self):
+    web.header('Content-Type','application/json')
+    matchday = web.input(matchday=None).matchday
+    league = web.input(league=None)
+    if not league:
+      league = getDefaultLeague()
+    if not matchday:
+      matchday = getCurrentMatchday()
+    else:
+      try:
+        matchday = int(matchday)
+      except ValueError:
+        return json.dumps({'error':'matchday must be an integer'})
+    table = api.getTableOnMatchday(matchday)
+    return json.dumps(table)
+
 
 class jsonGoal:
 
