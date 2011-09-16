@@ -161,26 +161,15 @@ class bundesligaAPI:
     return matches
     
   def getTableOnMatchday(self,matchday=getCurrentMatchday()):
-    teamwin = bl_1.group(['pointsDiv'],
-                        {'matchIsFinished':True},
-                        {'list': []}, # initial
-                        'function(obj, prev) {prev.list.push(obj)}')
-    y = []
-    for x in teamwin:
-      y.append(x)
-    return y
+    m = Code(open('getTableMap.js','r').read())
+    r = Code("""function(k,values) { 
+        return k;
+    }""")
 
-
-    for x in teamdraw:
-      if len(x['onepoint']):
-        for id in x['onepoint']:
-          teamid = int(id)
-          if not teams.has_key(teamid):
-            teams[teamid] = {'points':0,'won':0,'lost':0,'drew':0,'gd':-0}
-          d = teams[teamid]
-          d['drew']+=1
-          d['points']+=1
-    return teams
+    result = bl_1.map_reduce(m, r, query={})
+    for doc in result.find():
+      print doc
+    
         
     
   def getTableRelevantStatsByTeamID(self,teamID):

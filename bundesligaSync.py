@@ -10,7 +10,7 @@ bl_1.ensure_index([('teamName1',ASCENDING),
                   ('leagueName',ASCENDING),
                   ('leagueSaison',ASCENDING),
                   ('goals.goalGetterName',ASCENDING)])
-oldb = OpenLigaDB()
+oldb = OpenLigaDB(timeout=14)
 
     
 def goalToDict(goal):
@@ -81,16 +81,6 @@ def matchToDict(match):
   else:
     m['Endergebnis'] = {}
     m['Halbzeit'] = {}
-  m['pointsDiv'] = {3:None,1:[],0:None}
-  if m['matchIsFinished']:
-    if m['pointsTeam1'] > m['pointsTeam2']:
-      m['pointsDiv'][3] = m['idTeam1']
-      m['pointsDiv'][0] = m['idTeam2']
-    elif m['pointsTeam1'] == m['pointsTeam2']:
-      m['pointsDiv'][1] = [m['idTeam1'],m['idTeam2']]
-    else:
-      m['pointsDiv'][3] = m['idTeam2']
-      m['pointsDiv'][0] = m['idTeam1']
   return m
 
 class bundesligaSync:
@@ -103,11 +93,14 @@ class bundesligaSync:
     md = oldb.GetMatchdataByLeagueSaison(league,season)
     matchdata = md.Matchdata
     print "Found %d matches"%len(matchdata)
+    print "Trying bulk insert..."
     try:
       bl_1.insert([matchToDict(x) for x in matchdata])
     except Exception,e:
       print str(e)
       raise
+    else:
+      print "Bulk insert successful"
     
   def matchToMongo(self,matchID):
     md = oldb.GetMatchByMatchID(matchID)
