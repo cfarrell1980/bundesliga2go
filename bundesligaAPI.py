@@ -161,12 +161,53 @@ class bundesligaAPI:
     return matches
     
   def getTableOnMatchday(self,matchday=getCurrentMatchday()):
-    m = Code(open('getTableMap.js','r').read())
+    m = Code('''function() {
+     var tablePoints1 = 0;
+     var tablePoints2 = 0;
+     if (this.pointsTeam1 == this.pointsTeam2) {
+       tablePoints1 = 1;
+       tablePoints2 = 1;
+     }
+     else {
+       if (this.pointsTeam1 > this.pointsTeam2) {
+         tablePoints1 = 3;
+       }
+       else {
+         tablePoints2 = 3;
+       }
+     }
+     emit(this.idTeam1, [tablePoints1, this.pointsTeam1, this.pointsTeam2]);
+     emit(this.idTeam2, [tablePoints2, this.pointsTeam2, this.pointsTeam1]);
+    }''')
     r = Code("""function(k,values) { 
-        return k;
+       var points = 0;
+       var goalsfor = 0;
+       var goalsagainst = 0;
+       var goaldiff = 0;
+       var won = 0;
+       var lost = 0;
+       var drew = 0;
+       var played = 0;
+       for (var i in values){
+        if(values[i][0]==3){
+          won+=1;
+        }
+        else if(values[i][0]==1){
+          drew+=1;
+        }
+        else {
+          lost+=1
+        }
+        points+=values[i][0];
+        goalsfor+=values[i][1];
+        goalsagainst+=values[i][2];
+       }
+       goaldiff = goalsfor-goalsagainst;
+       played = won+lost+drew;
+       return {points:points,played:played,goalsfor:goalsfor,goalsagainst:goalsagainst,goaldiff:goaldiff,won:won,lost:lost,drew:drew};
     }""")
 
-    result = bl_1.map_reduce(m, r, query={})
+    result = bl_1.map_reduce(m, r, out="foo",query={'matchIsFinished':True})
     for doc in result.find():
       print doc
     
