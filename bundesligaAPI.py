@@ -160,36 +160,49 @@ class bundesligaAPI:
         ).sort([('groupOrderID',ASCENDING)])
     return matches
     
-  def getTopScorers(self,matchday=getCurrentMatchday(),limit=None):
+  def getTopScorers(self,matchday=getCurrentMatchday(),limit=None,
+    sortdir='DESC'):
     m = Code('''function () {
       if(!this.goals){
         return;
       }
       for (var idx in this.goals){
-        if(this.goals[idx].goalPenalty){
-          emit(this.goals[idx]['goalGetterName'],[1,1]);
-        }
-        else{
-          emit(this.goals[idx]['goalGetterName'],[1,0]);
-        }
+        //if(this.goals[idx].goalPenalty == true){
+         // emit(this.goals[idx]['goalGetterName'],[1,1]);
+        //}
+        //else{
+          emit(this.goals[idx]['goalGetterName'],1);
+        //}
       }
     }
     ''')
     r = Code('''function (k,v){
       var goals = 0;
-      var penalties = 0;
+      //var penalties = 0;
       for (i in v){
-        goals+=v[i][0];
-        penalties+=v[i][1];
+        goals+=v[i];
+        //penalties+=v[i][1];
       }
-      return {goals:goals,penalties:penalties};
+      return goals;
     }
     ''')
     # TODO: fix query to only get up to matchday if available
     result = bl_1.map_reduce(m, r, out="foo",query={'matchIsFinished':True})
-    for doc in result.find({},sort=[('value',DESCENDING)]):
-      print doc
-    
+    scorerlist = []
+    if sortdir=='DESC':
+      sd = DESCENDING
+    else:
+      sd = ASCENDING
+    for doc in result.find({},sort=[('value',sd)]):
+      scorerlist.append(doc)
+    if limit:
+      if len(scorerlist) > limit:
+        return scorerlist[:limit]
+      elif len(scorerlist) == limit:
+        return scorerlist[:limit-1]
+    return scorerlist
+        
+            
   def getTableOnMatchday(self,matchday=getCurrentMatchday()):
     m = Code('''function() {
      var tablePoints1 = 0;

@@ -92,15 +92,15 @@ class bundesligaSync:
                        season=getCurrentSeason()):
     md = oldb.GetMatchdataByLeagueSaison(league,season)
     matchdata = md.Matchdata
-    print "Found %d matches"%len(matchdata)
-    print "Trying bulk insert..."
-    try:
-      bl_1.insert([matchToDict(x) for x in matchdata])
-    except Exception,e:
-      print str(e)
-      raise
-    else:
-      print "Bulk insert successful"
+    for x in matchdata:
+      mdict = matchToDict(x)
+      existing_match = bl_1.find_one({'matchID':mdict['matchID']})
+      if existing_match:
+        print "matchID %d exists. Updating..."%mdict['matchID']
+        mdict['_id'] = existing_match['_id']
+      else:
+        print "matchID %d does not exist. Inserting..."%mdict['matchID']
+        bl_1.insert(mdict)
     
   def matchToMongo(self,matchID):
     md = oldb.GetMatchByMatchID(matchID)
