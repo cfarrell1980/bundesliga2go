@@ -251,8 +251,9 @@ class bundesligaAPI:
     }""")
 
     result = bl_1.map_reduce(m, r, out="foo",query={'matchIsFinished':True})
-    for doc in result.find():
-      print doc
+    for teamresults in result.find(sort=[('value.points',DESCENDING),
+              ('value.goaldiff',DESCENDING)]):
+      print teamresults
     
         
     
