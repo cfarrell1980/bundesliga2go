@@ -13,7 +13,8 @@ def getCurrentSeason():
     return y
     
 def getCurrentMatchday(league=getDefaultLeague()):
-  return oldb.GetCurrentGroup(league)
+  groupinfo = oldb.GetCurrentGroup(league)
+  return int(groupinfo.groupOrderID)
   
 def getTeamShortcut(teamID):
   mapping = { 65:'KOE',131:'WOB',100:'HSV',6:'B04',134:'BRE',7:'BVB',
