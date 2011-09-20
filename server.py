@@ -49,6 +49,7 @@ urls = (
   '/api/getteams','getTeams',
   '/api/getnewgoals','getNewGoals',
   '/api/gettable','getTableOnMatchday',
+  '/api/gettopscorers','getTopScorers',
 )
 api = bundesligaAPI()
 app = web.application(urls, globals(), autoreload=False)
@@ -74,7 +75,6 @@ class getTeams:
       season = getCurrentSeason()
     else:
       if not isinstance(season,int):
-        print type(season)
         try:
           season = int(season)
         except ValueError:
@@ -128,9 +128,58 @@ class getTableOnMatchday:
         matchday = int(matchday)
       except ValueError:
         return json.dumps({'error':'matchday must be an integer'})
+      else:
+        if matchday < 1 or matchday > 34: # is this accurate?
+          return json.dumps({'error':'matchday must be between 1 and 34'})
     table = api.getTableOnMatchday(matchday)
     return json.dumps(table)
 
+class getTopScorers:
+
+  def OPTIONS(self):
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def GET(self):
+    web.header('Content-Type','application/json')
+    matchday = web.input(matchday=None).matchday
+    limit = web.input(limit=None).limit
+    sortdir=web.input(sortdir=None).sortdir
+    if sortdir:
+      if sortdir.upper() != 'ASC' and sortdir.upper() != 'DESC':
+        return json.dumps({'error':'sortdir must be either ASC or DESC'})
+      else:
+        sortdir = 'DESC'
+    else:
+      sortdir = 'DESC'
+    if limit:
+      try:
+        limit = int(limit)
+      except ValueError:
+        return json.dumps({'error':'limit must be an integer'})
+      else:
+        if limit < 1 or limit > 50:
+          return json.dumps({'error':'limit must be between 1 and 50'})
+    league = web.input(league=None)
+    if not league:
+      league = getDefaultLeague()
+    if not matchday:
+      matchday = getCurrentMatchday()
+    else:
+      try:
+        matchday = int(matchday)
+      except ValueError:
+        return json.dumps({'error':'matchday must be an integer'})
+      else:
+        if matchday < 1 or matchday > 34: # is this accurate?
+          return json.dumps({'error':'matchday must be between 1 and 34'})
+    topscorers = api.getTopScorers(matchday=matchday,limit=limit,
+        league=league,sortdir=sortdir)
+    return json.dumps(topscorers)
 
 class jsonGoal:
 

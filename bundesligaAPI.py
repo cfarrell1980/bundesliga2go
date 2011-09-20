@@ -161,7 +161,7 @@ class bundesligaAPI:
     return matches
     
   def getTopScorers(self,matchday=getCurrentMatchday(),limit=None,
-    sortdir='DESC'):
+    sortdir='DESC',league=getDefaultLeague()):
     m = Code('''function () {
       if(!this.goals){
         return;
