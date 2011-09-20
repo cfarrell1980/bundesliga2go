@@ -186,8 +186,8 @@ class bundesligaAPI:
       return goals;
     }
     ''')
-    # TODO: fix query to only get up to matchday if available
-    result = bl_1.map_reduce(m, r, out="foo",query={'matchIsFinished':True})
+    result = bl_1.map_reduce(m, r, out="foo",query={'matchIsFinished':True,
+        'groupOrderID':{'$lte':matchday}})
     scorerlist = []
     if sortdir=='DESC':
       sd = DESCENDING
