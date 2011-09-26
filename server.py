@@ -50,10 +50,21 @@ urls = (
   '/api/getnewgoals','getNewGoals',
   '/api/gettable','getTableOnMatchday',
   '/api/gettopscorers','getTopScorers',
+  '/api/routes','routes',
 )
 api = bundesligaAPI()
 app = web.application(urls, globals(), autoreload=False)
 application = app.wsgifunc()
+
+class routes:
+  def GET(self):
+    list_routes = []
+    i = 0
+    while i < (len(urls))-2:
+      if i%2==0:
+        list_routes.append("%s: %s"%(urls[i],urls[i+1]))
+      i+=1
+    return "\n".join(list_routes)
           
 class getTeams:
 
