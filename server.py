@@ -51,6 +51,7 @@ urls = (
   '/api/gettable','getTableOnMatchday',
   '/api/gettopscorers','getTopScorers',
   '/api/routes','routes',
+  '/api/websocket','webSocket'
 )
 api = bundesligaAPI()
 app = web.application(urls, globals(), autoreload=False)
@@ -65,6 +66,16 @@ class routes:
         list_routes.append("%s: %s"%(urls[i],urls[i+1]))
       i+=1
     return "\n".join(list_routes)
+    
+class webSocket:
+  def GET(self):
+    import socket
+    web.header("HTTP/1.1 101 Web Socket Protocol Handshake")
+    web.header("Upgrade: WebSocket")
+    web.header("Connection: Upgrade")
+    web.header("WebSocket-Origin: http://localhost:8888")
+    web.header("WebSocket-Location: ws://localhost:9876/")
+    web.header("WebSocket-Protocol: sample")
           
 class getTeams:
 
