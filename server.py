@@ -56,6 +56,7 @@ class getTeams:
     return None
 
   def GET(self):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     league = web.input(league=None).league
     season = web.input(season=None).season
@@ -85,6 +86,7 @@ class getNewGoals:
     return None
 
   def GET(self):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     clientmaxid = web.input(maxid=None).maxid
     if not clientmaxid:
@@ -108,6 +110,7 @@ class getTableOnMatchday:
     return None
 
   def GET(self):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     matchday = web.input(matchday=None).matchday
     league = web.input(league=None)
@@ -137,6 +140,7 @@ class getTopScorers:
     return None
 
   def GET(self):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     matchday = web.input(matchday=None).matchday
     limit = web.input(limit=None).limit
@@ -184,6 +188,7 @@ class jsonGoal:
     return None
 
   def GET(self,goal=None):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     if not goal:
       return json.dumps({'error':'no goal id provided'})
@@ -211,6 +216,7 @@ class jsonTeam:
     return None
 
   def GET(self,team=None):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     if not team:
       return json.dumps({'error':'no team id or shortcut sent'})
@@ -245,6 +251,7 @@ class jsonMatchesInProgess:
     return None
 
   def GET(self,tstamp=None):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     league = web.input(league=None).league
     season = web.input(season=None).season
@@ -280,6 +287,7 @@ class jsonLeagueTable:
     return None
 
   def GET(self):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     season = web.input(season=None)
     league = web.input(league=None)
@@ -326,6 +334,7 @@ class jsonGoalsSince:
     return None
 
   def GET(self,maxid):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     league = web.input(league=None).league
     if not league:
@@ -359,6 +368,7 @@ class jsonMaxGoalID:
     return None
 
   def GET(self):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     league = web.input(league=None).league
     if not league:
@@ -403,6 +413,7 @@ class jsonMatch:
     return None
     
   def GET(self,matchID):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     try:
       mid = int(matchID)
@@ -427,6 +438,7 @@ class jsonMatchday:
     return None
     
   def GET(self,matchday):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     try:
       mid = int(matchday)
