@@ -1,82 +1,50 @@
-# -*- coding: utf-8 -*-
-
-'''
-Copyright (c) 2011, Ciaran Farrell, Vladislav Lewin
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-Redistributions of source code must retain the above copyright notice, this
-list of conditions and the following disclaimer.
-
-Redistributions in binary form must reproduce the above copyright notice,
-this list of conditions and the following disclaimer in the documentation
-and/or other materials provided with the distribution.
-
-Neither the name of the authors nor the names of its contributors
-may be used to endorse or promote products derived from this software without
-specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-'''
-import web,json,re,os,sys
-from datetime import datetime,timedelta
-from subprocess import Popen,PIPE
-from operator import itemgetter
-from bundesligaGlobals import *
+#!/usr/bin/python
+"""A web.py application powered by gevent"""
 from bundesligaAPI import bundesligaAPI
-web.config.debug = True
+from bundesligaSync import *
+from gevent import monkey; monkey.patch_all()
+from gevent.pywsgi import WSGIServer
+import gevent,web,json,os,sys
+api = bundesligaAPI()
+
 urls = (
+  '/','index',
+  '/long','long_polling',
   '/api/match/(.*?)/?','jsonMatch',
   '/api/matchday/(\d{1,2})/?','jsonMatchday',
   '/api/team/(.*?)/?','jsonTeam',
   '/api/goal/(\d{1,6})/?','jsonGoal',
   '/api/matches/inprogress/(.*?)/?','jsonMatchesInProgess',
   '/api/teams/?','jsonTeams',
-  '/api/goalupdates','jsonGoalUpdates',
+  '/api/goalssince/(\d{1,6})/?','jsonGoalsSince',
   '/api/maxgoalid','jsonMaxGoalID',
-  '/api/table','jsonLeagueTable',
-  '/api/getteams','getTeams',
-  '/api/getnewgoals','getNewGoals',
-  '/api/gettable','getTableOnMatchday',
-  '/api/gettopscorers','getTopScorers',
+  '/api/table','getTableOnMatchday',
+  '/api/topscorers','getTopScorers',
   '/api/routes','routes',
-  '/api/websocket','webSocket'
+  '/ws','websocket',
 )
-api = bundesligaAPI()
-app = web.application(urls, globals(), autoreload=False)
-application = app.wsgifunc()
+class index:
+  def GET(self):
+    return '<html>Hello, world!<br><a href="/long">/long</a></html>'
+
 
 class routes:
   def GET(self):
-    list_routes = []
-    i = 0
-    while i < (len(urls))-2:
-      if i%2==0:
-        list_routes.append("%s: %s"%(urls[i],urls[i+1]))
-      i+=1
-    return "\n".join(list_routes)
-    
-class webSocket:
+    d = {}
+    for url in urls:
+      print url
+    return json.dumps(d)
+
+class long_polling:
+  # Since gevent's WSGIServer executes each incoming connection in a separate greenlet
+  # long running requests such as this one don't block one another;
+  # and thanks to "monkey.patch_all()" statement at the top, thread-local storage used by web.ctx
+  # becomes greenlet-local storage thus making requests isolated as they should be.
   def GET(self):
-    import socket
-    web.header("HTTP/1.1 101 Web Socket Protocol Handshake")
-    web.header("Upgrade: WebSocket")
-    web.header("Connection: Upgrade")
-    web.header("WebSocket-Origin: http://localhost:8888")
-    web.header("WebSocket-Location: ws://localhost:9876/")
-    web.header("WebSocket-Protocol: sample")
-          
+    print 'GET /long'
+    gevent.sleep(10)  # possible to block the request indefinitely, without harming others
+    return 'Hello, 10 seconds later'
+    
 class getTeams:
 
   def OPTIONS(self):
@@ -103,6 +71,8 @@ class getTeams:
           return json.dumps({'error':'season must be int, not %s'%season})
     teams = api.getTeams(league,season)
     return json.dumps(teams)
+    
+
 
 class getNewGoals:
 
@@ -229,7 +199,41 @@ class jsonGoal:
           return json.dumps({'error':'no goal with id %d'%goal})
         else:
           return json.dumps(goal)
-      
+
+class jsonTeam:
+
+  def OPTIONS(self):
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def GET(self,team=None):
+    web.header('Content-Type','application/json')
+    if not team:
+      return json.dumps({'error':'no team id or shortcut sent'})
+    try:
+      t = int(team)
+    except ValueError:
+      try:
+        team = api.getTeamByShortcut(team.upper())
+      except Exception,e:
+        print e
+        return json.dumps({'error':'no team with shortcut %s'%team})
+      else:
+        return json.dumps(team)
+    else:
+      try:
+        team = api.getTeamByID(t)
+      except Exception,e:
+        print e
+        return json.dumps({'error':'no team with id %d'%t})
+      else:
+        return json.dumps(team)
+        
+        
 class jsonMatchesInProgess:
 
   def OPTIONS(self):
@@ -242,21 +246,27 @@ class jsonMatchesInProgess:
 
   def GET(self,tstamp=None):
     web.header('Content-Type','application/json')
-    league = web.input(league=None)
-    league = league.league
+    league = web.input(league=None).league
+    season = web.input(season=None).season
+    ids_only = web.input(ids_only=None).ids_only
+    if not ids_only:
+      ids_only = False
+    else:
+      ids_only = True
     if not league:
       league = getDefaultLeague()
-    if not tstamp:
-      mip = api.getMatchesInProgressNow()
-      return json.dumps(mip)
-    else:
-      try:
-        tstamp = datetime.strptime(tstamp,"%Y-%m-%d-%H-%M")
-      except:
-        return json.dumps({ 'error':'%s is an invalid tstamp.'%tstamp})
+    if not season:
+      season = getCurrentSeason()
+    try:
+      tstamp = datetime.strptime(tstamp,"%Y-%m-%d-%H-%M")
+    except:
+      if not tstamp:
+        mip = api.getMatchesInProgress(ids_only=ids_only)
       else:
-        mip = api.getMatchesInProgressAsOf(tstamp)
-        return json.dumps(mip)
+        return json.dumps({'error':'bad tstamp'})
+    else:
+      mip = api.getMatchesInProgress(when=tstamp,ids_only=ids_only)
+      return json.dumps(mip)
         
       
 class jsonLeagueTable:
@@ -298,8 +308,15 @@ class jsonLeagueTable:
       return json.dumps(plist)
       
       
-class jsonGoalUpdates:
-
+class jsonGoalsSince:
+  """
+      Returns all goals scored since the client's max_goal_id
+      jsonGoalUpdates supports OPTIONS and GET
+      jsonGoalUpdates accepts optional parameter league (e.g. bl1)
+      jsonGoalUpdates accepts required int parameter max_goal_id
+      If the client does not provide max_goal_id the database maxgoalid is used
+      meaning that nothing at all is returned to the client
+  """
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
@@ -308,23 +325,30 @@ class jsonGoalUpdates:
     web.header("Access-Control-Max-Age", "60");
     return None
 
-  def GET(self):
+  def GET(self,maxid):
     web.header('Content-Type','application/json')
-    league = web.input(league=None)
-    league = league.league
+    league = web.input(league=None).league
     if not league:
       league = getDefaultLeague()
-    clientmaxgoal = web.input(max_goal_id=None)
-    clientmaxgoal = clientmaxgoal.max_goal_id
-    if not clientmaxgoal:
-      return json.dumps({'error':'missing parameter max_goal_id'})
+    if not maxid:
+      return json.dumps({'error':'no maxid provided'})
     else:
-      matches = api.getGoalsPerMatchWithFlags(clientmaxgoal,league=league)
-      matches['max_goal_id'] = api.getMaxGoalID(league=league)
+      try:
+        maxid = int(maxid)
+      except ValueError:
+        return json.dumps({'error':'maxid must be an integer'})
+      matches = api.getMatchGoalsWithFlaggedUpdates(maxid,league=league)
+      matches['maxid'] = api.getMaxGoalID(league=league)
       return json.dumps(matches)
 
 
 class jsonMaxGoalID:
+  """ 
+      Find the max (highest) goal id in the database
+      jsonMaxGoalID supports OPTIONS and GET
+      GET accepts optional parameter 'league' which is a string such as bl1
+      GET returns a json object in form {'maxgoalid':int()}
+  """
 
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
@@ -336,17 +360,90 @@ class jsonMaxGoalID:
 
   def GET(self):
     web.header('Content-Type','application/json')
-    league = web.input(league=None)
-    league = league.league
+    league = web.input(league=None).league
     if not league:
       league = getDefaultLeague()
     try:
       max_goal_id = api.getMaxGoalID(league)
-    except:
+    except Exception,e:
+      print e
       return json.dumps({'error':'could not retrieve max\
              goal id for %s'%league})
     else:
       return json.dumps({'max_goal_id':max_goal_id})
+      
+class jsonTeams:
+  def OPTIONS(self):
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
     
-if __name__ == '__main__':
-  app.run()
+  def GET(self):
+    web.header('Content-Type','application/json')
+    league = web.input(league=None).league
+    season = web.input(season=None).season
+    if not league:
+      league = getDefaultLeague()
+    if not season:
+      season = getCurrentSeason()
+    teams = api.getTeams(league=league,season=season)
+    return json.dumps(teams)
+
+class jsonMatch:
+  def OPTIONS(self):
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+    
+  def GET(self,matchID):
+    web.header('Content-Type','application/json')
+    try:
+      mid = int(matchID)
+    except ValueError:
+      return json.dumps({'error','matchID must be an integer'})
+    else:
+      try:
+        m = api.getMatchByID(mid)
+      except Exception,e:
+        print e
+        return json.dumps({'error':'could not return match with id %d'%mid})
+      else:
+        return json.dumps(m)
+
+class jsonMatchday:
+  def OPTIONS(self):
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+    
+  def GET(self,matchday):
+    web.header('Content-Type','application/json')
+    try:
+      mid = int(matchday)
+    except ValueError:
+      return json.dumps({'error','matchday must be an integer'})
+    else:
+      if matchday == 0 or matchday > 34:
+        return json.dumps({'error':'matchday cannot be 0 or greater than 34'})
+      try:
+        m = api.getMatchesByMatchday(mid)
+      except Exception,e:
+        return json.dumps({'error':'could not return matchday with id %d'%mid})
+      else:
+        return json.dumps(m)
+
+    
+if __name__ == "__main__":
+  application = web.application(urls, globals()).wsgifunc()
+  print 'Serving on 8088...'
+  WSGIServer(('', 8088), application).serve_forever()
+

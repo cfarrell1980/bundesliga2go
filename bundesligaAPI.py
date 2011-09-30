@@ -18,12 +18,27 @@ class bundesligaAPI:
 	});
 }
                 """)
+                
+  def jsonifyMatch(self,match):
+    match['lastUpdate'] = match['lastUpdate'].strftime("%Y-%m-%d %H:%M")
+    match['matchDateTime'] = match['matchDateTime'].strftime("%Y-%m-%d %H:%M")
+    match['matchDateTimeUTC'] = match['matchDateTimeUTC'].strftime("%Y-%m-%d %H:%M")
+    match['_id'] = None
+    return match
 
   def getMatchesByMatchday(self,matchday=getCurrentMatchday()):
     matches = bl_1.find({'groupOrderID':matchday}\
       ).sort([('groupOrderID',ASCENDING)])
-    return matches
+    return [self.jsonifyMatch(x) for x in matches]
     
+  def getMatchByID(self,id):
+    match = bl_1.find_one({'matchID':id})
+    print match
+    if not match:
+      raise StandardError, 'no match with matchID %d'%id
+    else:
+      return self.jsonifyMatch(match)
+         
   def getMatchesByTeamName(self,teamName):
     matches = bl_1.find({'$or' : [{'nameTeam1':teamName},
       {'nameTeam2':teamName}]}).sort([('groupOrderID',ASCENDING)])
@@ -51,7 +66,15 @@ class bundesligaAPI:
     matches = bl_1.find({'nameTeam1':teamName}\
       ).sort([('groupOrderID',ASCENDING)])
     return matches
-
+  
+  def getGoalByID(self,goalID):
+    # TODO: there has to be a better way of doing this
+    goals = bl_1.find({},{'goals':1})
+    for goal in goals:
+      for x in goal['goals']:        
+        if x['goalID'] == goalID:
+          return x
+    
   def getGoalsSinceGoalID(self,goalID):
     matches = bl_1.find({"goals.goalID": {"$gt": goalID}})
     # matches contains only those matches with goals above goalID
@@ -96,13 +119,15 @@ class bundesligaAPI:
       matchgoals[match['matchID']] = newgoals
     return matchgoals
     
-  def getMatchGoalsWithFlaggedUpdates(self,maxclientid):
+  def getMatchGoalsWithFlaggedUpdates(self,maxclientid,
+    league=getDefaultLeague()):
     ''' @maxclientid: int representing highest goalID client device has
         This method returns a dictionary where the keys are the matchIDs and
         the value is a list of goals for that match with goals with goalID
         greater than maxclientid flagged as new.
     '''
     matches = bl_1.find({"goals.goalID": {"$gt": maxclientid}})
+
     # matches contains only those _matches_ with goals above goalID
     matchgoals = {}
     for match in matches:
@@ -249,11 +274,12 @@ class bundesligaAPI:
        played = won+lost+drew;
        return {points:points,played:played,goalsfor:goalsfor,goalsagainst:goalsagainst,goaldiff:goaldiff,won:won,lost:lost,drew:drew};
     }""")
-
+    tablelist = []
     result = bl_1.map_reduce(m, r, out="foo",query={'matchIsFinished':True})
     for teamresults in result.find(sort=[('value.points',DESCENDING),
               ('value.goaldiff',DESCENDING)]):
-      print teamresults
+      tablelist.append(teamresults)
+    return tablelist
     
         
     
@@ -296,5 +322,47 @@ class bundesligaAPI:
         tdict[team['idTeam1']] = {'teamName':team['nameTeam1'],
                                   'teamShortcut':team['shortTeam1']}
     return tdict
-      
-      
+    
+  def getTeamByID(self,id):
+    t = bl_1.find_one({'idTeam1':id})
+    if not t:
+      raise StandardError, 'no team with id %d'%id
+    else:
+      return {'id':t['idTeam1'],'name':t['nameTeam1'],
+        'shortcut':t['shortTeam1']}
+    
+  def getTeamByShortcut(self,shortcut):
+    t = bl_1.find_one({'shortTeam1':shortcut})
+    if not t:
+      raise StandardError, 'no team with shortcut %s'%shortcut
+    else:
+      return {'id':t['idTeam1'],'name':t['nameTeam1'],
+        'shortcut':t['shortTeam1']}
+        
+  def getMaxGoalID(self,league=getDefaultLeague()):
+    # This is horrible hackery. TODO: use map reduce?
+    goals = bl_1.find({"goals.goalID": {"$gt": 0}},{'goals.goalID':1}
+            )
+    goallist = []
+    for goald in goals:
+      g = goald['goals']
+      for gdict in g:
+        goallist.append(gdict['goalID'])
+    goallist.sort()
+    return goallist[-1]
+    
+  def getMatchesInProgress(self,when=None,league=getDefaultLeague(),
+      season=getCurrentSeason(),ids_only=False):
+    if not when:
+      when = datetime.now()
+    if ids_only:
+      matches = bl_1.find({'matchDateTime':{'$lte':when},
+                          'matchIsFinished':False},{'matchID':1})
+      mlist = []
+      for x in matches:
+        mlist.append(x['matchID'])
+      return mlist
+    else:
+      matches = bl_1.find({'matchDateTime':{'$lte':when},
+                          'matchIsFinished':False})
+      return [self.jsonifyMatch(x) for x in matches]
