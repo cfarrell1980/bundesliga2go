@@ -318,11 +318,11 @@ class jsonLeagueTable:
       
 class jsonGoalsSince:
   """
-      Returns all goals scored since the client's max_goal_id
+      Returns all goals scored since the client's maxgoalid
       jsonGoalUpdates supports OPTIONS and GET
       jsonGoalUpdates accepts optional parameter league (e.g. bl1)
-      jsonGoalUpdates accepts required int parameter max_goal_id
-      If the client does not provide max_goal_id the database maxgoalid is used
+      jsonGoalUpdates accepts required int parameter maxgoalid
+      If the client does not provide maxgoalid the database maxgoalid is used
       meaning that nothing at all is returned to the client
   """
   def OPTIONS(self):
@@ -333,21 +333,21 @@ class jsonGoalsSince:
     web.header("Access-Control-Max-Age", "60");
     return None
 
-  def GET(self,maxid):
+  def GET(self,maxgoalid):
     web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     league = web.input(league=None).league
     if not league:
       league = getDefaultLeague()
-    if not maxid:
-      return json.dumps({'error':'no maxid provided'})
+    if not maxgoalid:
+      return json.dumps({'error':'no maxgoalid provided'})
     else:
       try:
-        maxid = int(maxid)
+        maxgoalid = int(maxgoalid)
       except ValueError:
-        return json.dumps({'error':'maxid must be an integer'})
-      matches = api.getMatchGoalsWithFlaggedUpdates(maxid,league=league)
-      matches['maxid'] = api.getMaxGoalID(league=league)
+        return json.dumps({'error':'maxgoalid must be an integer'})
+      matches = api.getMatchGoalsWithFlaggedUpdates(maxgoalid,league=league)
+      matches['maxgoalid'] = api.getMaxGoalID(league=league)
       return json.dumps(matches)
 
 
@@ -374,13 +374,13 @@ class jsonMaxGoalID:
     if not league:
       league = getDefaultLeague()
     try:
-      max_goal_id = api.getMaxGoalID(league)
+      maxgoalid = api.getMaxGoalID(league)
     except Exception,e:
       print e
       return json.dumps({'error':'could not retrieve max\
              goal id for %s'%league})
     else:
-      return json.dumps({'max_goal_id':max_goal_id})
+      return json.dumps({'maxgoalid':maxgoalid})
       
 class jsonTeams:
   def OPTIONS(self):
