@@ -6,7 +6,8 @@ installed. These are requirements of the server.py and of the various
 bundesliga and OpenLigaDB APIs included in the package. The requirements are:
 
 - web.py (http://www.webpy.org)
-- SQLAlchemy (http://www.sqlalchemy.org)
+- tornado
+- gevent
 - Suds (https://fedorahosted.org/suds)
 - Paste (http://www.pythonpaste.org)
 - APScheduler (http://packages.python.org/APScheduler/)
