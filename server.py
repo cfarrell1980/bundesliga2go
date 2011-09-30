@@ -374,14 +374,15 @@ class jsonMaxGoalID:
       
 class jsonTeams:
   def OPTIONS(self):
-    web.header("Access-Control-Allow-Origin", "*");
-    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
-    web.header("Access-Control-Allow-Credentials", "false");
-    web.header("Access-Control-Max-Age", "60");
+    web.header("Access-Control-Allow-Origin", "*")
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS")
+    web.header("Access-Control-Allow-Headers", "Content-Type")
+    web.header("Access-Control-Allow-Credentials", "false")
+    web.header("Access-Control-Max-Age", "60")
     return None
     
   def GET(self):
+    web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     league = web.input(league=None).league
     season = web.input(season=None).season
