@@ -353,16 +353,21 @@ class bundesligaAPI:
     
   def getMatchesInProgress(self,when=None,league=getDefaultLeague(),
       season=getCurrentSeason(),ids_only=False):
+    mlist = []
     if not when:
       when = datetime.now()
     if ids_only:
       matches = bl_1.find({'matchDateTime':{'$lte':when},
                           'matchIsFinished':False},{'matchID':1})
-      mlist = []
-      for x in matches:
-        mlist.append(x['matchID'])
-      return mlist
+
     else:
       matches = bl_1.find({'matchDateTime':{'$lte':when},
                           'matchIsFinished':False})
-      return [self.jsonifyMatch(x) for x in matches]
+    for x in matches:
+      # extra check needed as OpenLigaDB forgets to set match.IsFinished sometimes
+      if x['matchDateTime'].strftime("%Y-%m-%d") == datetime.now().strftime("%Y-%m-%d"):
+        if ids_only:
+          mlist.append(x['matchID'])
+        else:
+          mlist.append(self.jsonifyMatch(x))
+    return mlist

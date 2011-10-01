@@ -269,6 +269,7 @@ class jsonMatchesInProgess:
     except:
       if not tstamp:
         mip = api.getMatchesInProgress(ids_only=ids_only)
+        return json.dumps(mip)
       else:
         return json.dumps({'error':'bad tstamp'})
     else:
