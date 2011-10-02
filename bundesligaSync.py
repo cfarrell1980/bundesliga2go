@@ -96,7 +96,6 @@ class bundesligaSync:
       mdict = matchToDict(x)
       existing_match = bl_1.find_one({'matchID':mdict['matchID']})
       if existing_match:
-        # TODO: FIX this fucking stupid mistake - goals don't get updated!
         print "matchID %d exists. Updating..."%mdict['matchID']
         bl_1.update({'matchID':mdict['matchID']},
             {'$set':{ 'matchIsFinished':mdict['matchIsFinished'],
@@ -114,11 +113,23 @@ class bundesligaSync:
     
   def matchToMongo(self,matchID):
     md = oldb.GetMatchByMatchID(matchID)
-    try:
-      bl_1.insert(matchToDict(md))
-    except Exception,e:
-      print str(e)
-      raise
+    mdict = matchToDict(md)
+    existing_match = bl_1.find_one({'matchID':mdict['matchID']})
+    if existing_match:
+      print "matchID %d exists. Updating..."%mdict['matchID']
+      bl_1.update({'matchID':mdict['matchID']},
+          {'$set':{ 'matchIsFinished':mdict['matchIsFinished'],
+                    'pointsTeam1':mdict['pointsTeam1'],
+                    'pointsTeam2':mdict['pointsTeam2'],
+                    'lastUpdate':mdict['lastUpdate'],
+                    'NumberOfViewers':mdict['NumberOfViewers'],
+                    'locationCity':mdict['locationCity'],
+                    'locationStadium':mdict['locationStadium'],
+                    'goals':mdict['goals']
+                    }},upsert=True)
+    else:
+      print "matchID %d does not exist. Inserting..."%mdict['matchID']
+      bl_1.insert(mdict)
 
 if __name__ == '__main__':
   syncer = bundesligaSync()
