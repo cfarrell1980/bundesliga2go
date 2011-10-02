@@ -96,8 +96,18 @@ class bundesligaSync:
       mdict = matchToDict(x)
       existing_match = bl_1.find_one({'matchID':mdict['matchID']})
       if existing_match:
+        # TODO: FIX this fucking stupid mistake - goals don't get updated!
         print "matchID %d exists. Updating..."%mdict['matchID']
-        mdict['_id'] = existing_match['_id']
+        bl_1.update({'matchID':mdict['matchID']},
+            {'$set':{ 'matchIsFinished':mdict['matchIsFinished'],
+                      'pointsTeam1':mdict['pointsTeam1'],
+                      'pointsTeam2':mdict['pointsTeam2'],
+                      'lastUpdate':mdict['lastUpdate'],
+                      'NumberOfViewers':mdict['NumberOfViewers'],
+                      'locationCity':mdict['locationCity'],
+                      'locationStadium':mdict['locationStadium'],
+                      'goals':mdict['goals']
+                      }},upsert=True)
       else:
         print "matchID %d does not exist. Inserting..."%mdict['matchID']
         bl_1.insert(mdict)
