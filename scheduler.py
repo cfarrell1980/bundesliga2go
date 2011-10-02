@@ -32,15 +32,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 from apscheduler.scheduler import Scheduler
 from datetime import datetime
-from sync import SyncAPI
-from api import localService()
+from bundesligaSync import bundesligaSync
+from bundesligaAPI import bundesligaAPI
 import signal
 slow = Scheduler()
 fast = Scheduler()
-sync = SyncAPI()
-api = localService()
+sync = bundesligaSync()
+api = bundesligaAPI()
 
-global matches = []
+global matches
+matches = []
 
 @slow.cron_schedule(day_of_week='mon-sun', hour=22, minute=02)
 def checkForUpdates():
@@ -51,21 +52,23 @@ def checkForUpdates():
 def updateMatches():
   ''' Simple function run locally often. It first checks if there are
       matches in progress. If there are, for each match in progress, this
-      function calls the syncMatch method from sync.SyncAPI to update it.
+      function calls the matchToMongo method from bundesligaSync to update it.
   '''
-  mip = api.getMatchesInProgressNow()
+  print "updateMatches... (called every %d seconds)"%seconds
+  mip = api.getMatchesInProgress()
   for m in mip:
     matches.append(m)
   for om in matches:
     if om not in mip:
       # Match that was in progress isFinished. Check and save result
-  if len(mip):
-    print "%d matches in progress..."%len(mip)
-    for match in mip:
-      print "updating match with id %d"%match.id
-      api.syncMatch(match.id)
-  else:
-    print "no matches in progress"
+      matches.pop(om)
+    if len(mip):
+      print "%d matches in progress..."%len(mip)
+      for match in mip:
+        print "updating match with id %d"%match['matchID']
+        sync.matchToMongo(match['matchID'])
+    else:
+      print "no matches in progress"
 
 if __name__ == '__main__':
   fast.start()
