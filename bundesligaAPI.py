@@ -186,7 +186,7 @@ class bundesligaAPI:
     return matches
     
   def getTopScorers(self,matchday=getCurrentMatchday(),limit=None,
-    sortdir='DESC',league=getDefaultLeague()):
+    sortdir='DESC',league=getDefaultLeague(),onlyFinished=True):
     m = Code('''function () {
       if(!this.goals){
         return;
@@ -211,7 +211,7 @@ class bundesligaAPI:
       return goals;
     }
     ''')
-    result = bl_1.map_reduce(m, r, out="foo",query={'matchIsFinished':True,
+    result = bl_1.map_reduce(m, r, out="foo",query={
         'groupOrderID':{'$lte':matchday}})
     scorerlist = []
     if sortdir=='DESC':
