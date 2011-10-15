@@ -40,6 +40,7 @@ fast = Scheduler()
 sync = bundesligaSync()
 api = bundesligaAPI()
 
+
 global matches
 matches = []
 
@@ -48,27 +49,19 @@ def checkForUpdates():
   # If there is an update, sync everything
   print "Checking for updates"
 
-@fast.interval_schedule(seconds=60)
-def updateMatches():
+@fast.interval_schedule(seconds=20)
+def updateMatches(seconds=20):
   ''' Simple function run locally often. It first checks if there are
       matches in progress. If there are, for each match in progress, this
       function calls the matchToMongo method from bundesligaSync to update it.
   '''
-  print "updateMatches... (called every %d seconds)"%seconds
   mip = api.getMatchesInProgress()
-  for m in mip:
-    matches.append(m)
-  for om in matches:
-    if om not in mip:
-      # Match that was in progress isFinished. Check and save result
-      matches.pop(om)
-    if len(mip):
-      print "%d matches in progress..."%len(mip)
-      for match in mip:
-        print "updating match with id %d"%match['matchID']
-        sync.matchToMongo(match['matchID'])
-    else:
-      print "no matches in progress"
+  if len(mip):
+    for match in mip:
+      print "updating matchID %d"%match['matchID']
+      sync.matchToMongo(match['matchID'])
+  else:
+    print "no matches in progress"
 
 if __name__ == '__main__':
   fast.start()
