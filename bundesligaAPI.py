@@ -313,11 +313,12 @@ class bundesligaAPI:
           loss+=1
     return (win,loss,draw,points)
     
-  def getTeams(self,league=getDefaultLeague(),season=getCurrentSeason()):
+  def getTeams(self,league=getDefaultLeague(),season=getCurrentSeason(),
+                withurl=False):
     tdict = {}
     teams = bl_1.find({'leagueSaison':season,'leagueShortcut':league},
                   {'nameTeam1':1,'nameTeam2':1,'idTeam1':1,'idTeam2':1,
-                  'shortTeam1':1
+                  'shortTeam1':1,'iconUrlTeam1':1,'iconUrlTeam2':1
                          }).sort([('nameTeam1',ASCENDING)])
     for team in teams:
       if tdict.has_key(team['idTeam1']):
@@ -325,6 +326,8 @@ class bundesligaAPI:
       else:
         tdict[team['idTeam1']] = {'teamName':team['nameTeam1'],
                                   'teamShortcut':team['shortTeam1']}
+        if withurl:
+          tdict[team['idTeam1']]['iconURL'] = team['iconUrlTeam1']
     return tdict
     
   def getTeamByID(self,id):
