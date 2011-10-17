@@ -36,6 +36,7 @@ except ImportError:
   raise ImportError,\
     'PIL is needed to create the sprites. Install python-imaging'
 from bundesligaAPI import bundesligaAPI
+from bundesligaGlobals import getDefaultLeague,getCurrentSeason,getTeamShortcut
 api = bundesligaAPI()
 queue = Queue.Queue()
 
@@ -78,7 +79,7 @@ class Sprite:
         parallel and stores them to @tmpdir
     '''
     try:
-      teams = api.getTeams(self.league,self.season)
+      teams = api.getTeams(self.league,self.season,withurl=True)
     except:
       raise
     else:
@@ -89,15 +90,15 @@ class Sprite:
         t.setDaemon(True)
         t.start()
 
-      for team in teams:
+      for team in teams.values():
         if team['iconURL']:
           base = os.path.basename(team['iconURL'])
           team['target'] = os.path.join(self.tmpdir,base)
           queue.put(team)
-          self.iconmap.append([team['shortName'],team['target']])
+          self.iconmap.append([team['teamShortcut'],team['target']])
         else:
-          print "No iconURL for %s"%team['shortName']
-          self.iconmap.append([team['shortName'],self.default_icon])
+          print "No iconURL for %s"%team['teamShortcut']
+          self.iconmap.append([team['teamShortcut'],self.default_icon])
       queue.join()
       
     
@@ -154,3 +155,9 @@ class Sprite:
     fd.write(cssHead+"\n")
     fd.write("\n".join(css_str))
     fd.close()
+    
+if __name__ == '__main__':
+  sprite = Sprite(getDefaultLeague(),getCurrentSeason())
+  sprite.syncIcons()
+  sprite.makeSprite()
+  sprite.makeCSS()
