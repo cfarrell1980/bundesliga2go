@@ -19,6 +19,7 @@ bundesliga2go also requires that mongodb is installed (and running) on your
 system. The version should be at least 1.8. When you are sure that all of these
 requirements are installed, you are basically ready to go.
 
+
 **Starting the scheduler**
 ==========================
 The scheduler is responsible for updating the local database with data from
@@ -32,6 +33,7 @@ To start the scheduler run:
 
 You can put the scheduler into the background by running:
 ``python scheduler.py &``
+
 
 **Creating sprites for the team images**
 ========================================
