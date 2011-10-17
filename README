@@ -6,31 +6,32 @@ installed. These are requirements of the server.py and of the various
 bundesliga and OpenLigaDB APIs included in the package. The requirements are:
 
 - web.py (http://www.webpy.org)
-- tornado
-- gevent
-- gevent-websocket
+- gevent (http://www.gevent.org)
+- gevent-websocket (http://www.gelens.org/code/gevent-websocket/)
 - Suds (https://fedorahosted.org/suds)
 - Paste (http://www.pythonpaste.org)
 - APScheduler (http://packages.python.org/APScheduler/)
 - pyOpenSSL (https://launchpad.net/pyopenssl) if you want to use SSL on CherryPy
 - PIL (http://www.pythonware.com/products/pil/) for stitching icons
+- pymongo (http://api.mongodb.org/python/)
 
-
-When you are sure that all of these requirements are installed, you are
-basically ready to go.
+bundesliga2go also requires that mongodb is installed (and running) on your
+system. The version should be at least 1.8. When you are sure that all of these
+requirements are installed, you are basically ready to go.
 
 **Starting the scheduler**
 ==========================
 The scheduler is responsible for updating the local database with data from
 openligadb.de. This is done by using APScheduler to schedule a function to run
-every 30 seconds. This function checks if there are matches in progress. If not,
-the function just returns. Otherwise, the function uses api.py::localService to
-update the Match locally. To start the scheduler run:
+every x seconds (you define this in the script itself). This function checks if
+there are matches in progress. If not, the function just returns. Otherwise, the
+function uses bundesligaSync.py to update the Match locally.
+To start the scheduler run:
 
-``python bundesligaScheduler.py``
+``python scheduler.py``
 
 You can put the scheduler into the background by running:
-``python bundesligaScheduler.py &``
+``python scheduler.py &``
 
 **Running the server**
 ======================
@@ -47,10 +48,6 @@ something like:
 The default port used is port 8080. You will get an error if there is already
 something listening/using port 8080. You can either stop the other service or
 choose another port for server.py.
-
-When you first start the server the script will automatically check if a local
-database has been configured and if it has been synchronised with openligadb.
-If not, this will be done first. This may take some time.
 
 
 **Copyright, License, Authors**
