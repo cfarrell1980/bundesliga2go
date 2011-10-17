@@ -419,7 +419,7 @@ class jsonMatch:
     try:
       mid = int(matchID)
     except ValueError:
-      return json.dumps({'error','matchID must be an integer'})
+      return json.dumps({'error':'matchID must be an integer'})
     else:
       try:
         m = api.getMatchByID(mid)
@@ -444,7 +444,7 @@ class jsonMatchday:
     try:
       mid = int(matchday)
     except ValueError:
-      return json.dumps({'error','matchday must be an integer'})
+      return json.dumps({'error':'matchday must be an integer'})
     else:
       if matchday == 0 or matchday > 34:
         return json.dumps({'error':'matchday cannot be 0 or greater than 34'})
