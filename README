@@ -33,6 +33,20 @@ To start the scheduler run:
 You can put the scheduler into the background by running:
 ``python scheduler.py &``
 
+**Creating sprites for the team images**
+========================================
+There are 18 teams in the 1. Bundesliga and 2. Bundesliga. Each team has an
+icon (the URL is provided through the OpenLigaDB API). Even though the icon is
+small in size, to avoid 18 HTTP lookups we decided to stitch the icons together
+into one big icon and to use CSS to break the image apart locally. This is 
+called a sprite. In order to automate the process, the spritemaker.py script
+is included. This provides the Sprite class which can be called by e.g.
+server.py. However, the script can also be called directly from the commandline
+using:
+
+``python spritemaker.py``
+
+
 **Running the server**
 ======================
 To get the server up and running you simply have to run the following command
