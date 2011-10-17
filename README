@@ -8,6 +8,7 @@ bundesliga and OpenLigaDB APIs included in the package. The requirements are:
 - web.py (http://www.webpy.org)
 - tornado
 - gevent
+- gevent-websocket
 - Suds (https://fedorahosted.org/suds)
 - Paste (http://www.pythonpaste.org)
 - APScheduler (http://packages.python.org/APScheduler/)
