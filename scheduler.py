@@ -49,8 +49,8 @@ def checkForUpdates():
   # If there is an update, sync everything
   print "Checking for updates"
 
-@fast.interval_schedule(seconds=20)
-def updateMatches(seconds=20):
+@fast.interval_schedule(seconds=60)
+def updateMatches(seconds=60):
   ''' Simple function run locally often. It first checks if there are
       matches in progress. If there are, for each match in progress, this
       function calls the matchToMongo method from bundesligaSync to update it.
