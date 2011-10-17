@@ -278,7 +278,11 @@ class bundesligaAPI:
     result = bl_1.map_reduce(m, r, out="foo",query={'matchIsFinished':True})
     for teamresults in result.find(sort=[('value.points',DESCENDING),
               ('value.goaldiff',DESCENDING)]):
-      tablelist.append(teamresults)
+      t,v = teamresults['_id'],teamresults['value']
+      tmp = {'id':t,'won':v['won'],'lost':v['lost'],'played':v['played'],
+             'drew':v['drew'],'points':v['points'],'goaldiff':v['goaldiff'],
+             'goalsagainst':v['goalsagainst'],'goalsfor':v['goalsfor']}
+      tablelist.append(tmp)
     return tablelist
     
         
