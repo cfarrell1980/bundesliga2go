@@ -34,7 +34,7 @@ from apscheduler.scheduler import Scheduler
 from datetime import datetime
 from bundesligaSync import bundesligaSync
 from bundesligaAPI import bundesligaAPI
-from bundesligaGlobals import getCurrentMatchday,getAppRoot
+from bundesligaGlobals import getCurrentMatchday,getAppRoot,getCurrentMatchdayLive
 import signal,json,os
 slow = Scheduler()
 fast = Scheduler()
@@ -54,7 +54,7 @@ def checkForUpdates():
       Also, use the opportunity to cache the table and the top scorers. This
       means we don't have to hammer mongodb with map/reduce all the time
   '''
-  current_matchday = int(getCurrentMatchday())
+  current_matchday = int(getCurrentMatchdayLive())
   fd = open(os.path.join('%s/cache/'%getAppRoot(),'cmd.json'),'w')
   json.dump({'cmd':current_matchday},fd)
   fd.close()

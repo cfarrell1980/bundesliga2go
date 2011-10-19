@@ -1,4 +1,4 @@
-import os
+import os,json
 from datetime import datetime
 from OpenLigaDB import OpenLigaDB
 oldb = OpenLigaDB()
@@ -13,9 +13,14 @@ def getCurrentSeason():
   else:
     return y
     
-def getCurrentMatchday(league=getDefaultLeague()):
+def getCurrentMatchdayLive(league=getDefaultLeague()):
   groupinfo = oldb.GetCurrentGroup(league)
   return int(groupinfo.groupOrderID)
+  
+def getCurrentMatchday(league=None):
+  fd = open("%s/cache/cmd.json"%getAppRoot(),'r')
+  cmd = json.load(fd)
+  return int(cmd['cmd'])
   
 def getTeamShortcut(teamID):
   mapping = { 65:'KOE',131:'WOB',100:'HSV',6:'B04',134:'BRE',7:'BVB',

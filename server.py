@@ -25,7 +25,7 @@ urls = (
 )
 class index:
   def GET(self):
-    return '<html>Hello, world!<br><a href="/long">/long</a></html>'
+    raise web.seeother('/static/foo.html')
 
 
 class routes:
