@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from OpenLigaDB import OpenLigaDB
 oldb = OpenLigaDB()
@@ -26,3 +27,6 @@ def getTeamShortcut(teamID):
     return '???'
   else:
     return shortcut
+    
+def getAppRoot():
+  return os.path.abspath(os.path.dirname(__file__))

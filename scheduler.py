@@ -34,7 +34,8 @@ from apscheduler.scheduler import Scheduler
 from datetime import datetime
 from bundesligaSync import bundesligaSync
 from bundesligaAPI import bundesligaAPI
-import signal
+from bundesligaGlobals import getCurrentMatchday,getAppRoot
+import signal,json,os
 slow = Scheduler()
 fast = Scheduler()
 sync = bundesligaSync()
@@ -44,10 +45,30 @@ api = bundesligaAPI()
 global matches
 matches = []
 
-@slow.cron_schedule(day_of_week='mon-sun', hour=22, minute=02)
+#@slow.cron_schedule(day_of_week='mon-sun', hour=15, minute=11)
+@slow.interval_schedule(seconds=10)
 def checkForUpdates():
-  # If there is an update, sync everything
-  print "Checking for updates"
+  ''' Rather than bombarding OpenLigaDB with requests for information that
+      only changes once a week anyway, just do it once a day and cache the 
+      information locally. Overwrite every time.
+      Also, use the opportunity to cache the table and the top scorers. This
+      means we don't have to hammer mongodb with map/reduce all the time
+  '''
+  current_matchday = int(getCurrentMatchday())
+  fd = open(os.path.join('%s/cache/'%getAppRoot(),'cmd.json'),'w')
+  json.dump({'cmd':current_matchday},fd)
+  fd.close()
+  
+  table = api.getTableOnMatchday()
+  tfd = open(os.path.join('%s/cache/'%getAppRoot(),'table.json'),'w')
+  json.dump(table,tfd)
+  tfd.close()
+  
+  topscorers = api.getTopScorers()
+  topfd = open(os.path.join('%s/cache/'%getAppRoot(),'topscorers.json'),'w')
+  json.dump({'topscorers':topscorers},topfd)
+  topfd.close()
+  
 
 @fast.interval_schedule(seconds=60)
 def updateMatches(seconds=60):

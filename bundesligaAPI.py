@@ -192,7 +192,7 @@ class bundesligaAPI:
   def getTopScorers(self,matchday=None,limit=None,
     sortdir='DESC',league=None,onlyFinished=True):
     if not matchday:
-      matchday = getCurrentMatchDay()
+      matchday = getCurrentMatchday()
     if not league:
       league = getDefaultLeague()
     m = Code('''function () {
@@ -238,7 +238,7 @@ class bundesligaAPI:
             
   def getTableOnMatchday(self,matchday=None):
     if not matchday:
-      matchday=getCurrentMatchDay()
+      matchday=getCurrentMatchday()
     m = Code('''function() {
      var tablePoints1 = 0;
      var tablePoints2 = 0;

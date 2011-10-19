@@ -126,6 +126,13 @@ class getTableOnMatchday:
       else:
         if matchday < 1 or matchday > 34: # is this accurate?
           return json.dumps({'error':'matchday must be between 1 and 34'})
+    if matchday == getCurrentMatchday():
+      t = os.path.join('%s/cache/table.json'%getAppRoot())
+      if os.path.exists(t):
+        print "returning table from file"
+        fd = open(t,'r').read()
+        return fd
+    print "returning table from fly"
     table = api.getTableOnMatchday(matchday)
     return json.dumps(table)
 
