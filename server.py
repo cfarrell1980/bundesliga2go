@@ -113,7 +113,7 @@ class getTableOnMatchday:
     web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
     matchday = web.input(matchday=None).matchday
-    league = web.input(league=None)
+    league = web.input(league=None).league
     if not league:
       league = getDefaultLeague()
     if not matchday:
@@ -290,12 +290,9 @@ class jsonLeagueTable:
   def GET(self):
     web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
-    season = web.input(season=None)
-    league = web.input(league=None)
-    matchday = web.input(matchday=None)
-    season = season.season
-    league = league.league
-    matchday = matchday.matchday
+    season = web.input(season=None).season
+    league = web.input(league=None).league
+    matchday = web.input(matchday=None).matchday
     pointslist = []
     if not league:
       league = getDefaultLeague()
