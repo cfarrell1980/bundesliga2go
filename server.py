@@ -14,7 +14,7 @@ urls = (
   '/api/matchday/(\d{1,2})/?','jsonMatchday',
   '/api/team/(.*?)/?','jsonTeam',
   '/api/goal/(\d{1,6})/?','jsonGoal',
-  '/api/matches/inprogress/(.*?)/?','jsonMatchesInProgess',
+  '/api/matches/inprogress/?','jsonMatchesInProgess',
   '/api/matches/upcoming/?','jsonMatchesUpcoming',
   '/api/teams/?','jsonTeams',
   '/api/goalssince/(\d{1,6})/?','jsonGoalsSince',
