@@ -15,6 +15,7 @@ urls = (
   '/api/team/(.*?)/?','jsonTeam',
   '/api/goal/(\d{1,6})/?','jsonGoal',
   '/api/matches/inprogress/(.*?)/?','jsonMatchesInProgess',
+  '/api/matches/upcoming/?','jsonMatchesUpcoming',
   '/api/teams/?','jsonTeams',
   '/api/goalssince/(\d{1,6})/?','jsonGoalsSince',
   '/api/maxgoalid','jsonMaxGoalID',
@@ -355,6 +356,36 @@ class jsonGoalsSince:
       matches['maxgoalid'] = api.getMaxGoalID(league=league)
       return json.dumps(matches)
 
+class jsonMatchesUpcoming:
+  """ Returns matches for current_matchday +1
+  """
+  def OPTIONS(self):
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def GET(self):
+    web.header("Access-Control-Allow-Origin", "*")
+    web.header('Content-Type','application/json')
+    season = web.input(season=None).season
+    league = web.input(league=None).league
+    limit = web.input(limit=None).limit
+    if not limit:
+      limit = 20
+    else:
+      try:
+        limit = int(limit)
+      except:
+        return json.dumps({'error':'limit must be an integer'})
+    if not league:
+      league = getDefaultLeague()
+    if not season:
+      season = getCurrentSeason()
+    matches = api.getMatchesUpcoming(limit=limit)
+    return json.dumps(matches)
 
 class jsonMaxGoalID:
   """ 

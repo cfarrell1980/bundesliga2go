@@ -68,6 +68,15 @@ class bundesligaAPI:
     matches = bl_1.find({'nameTeam1':teamName}\
       ).sort([('groupOrderID',ASCENDING)])
     return matches
+    
+  def getMatchesUpcoming(self,league=None,season=None,limit=None):
+    if not limit: limit = 20
+    matches = bl_1.find({'matchDateTime':{'$gt':datetime.now()}},
+                        sort=[('matchDateTime',ASCENDING)])[:limit]
+    m = []
+    for match in matches:
+      m.append(self.jsonifyMatch(match))
+    return m
   
   def getGoalByID(self,goalID):
     # TODO: there has to be a better way of doing this
