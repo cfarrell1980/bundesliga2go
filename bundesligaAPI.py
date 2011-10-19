@@ -26,7 +26,9 @@ class bundesligaAPI:
     match['_id'] = None
     return match
 
-  def getMatchesByMatchday(self,matchday=getCurrentMatchday()):
+  def getMatchesByMatchday(self,matchday=None):
+    if not matchday:
+      matchday = getCurrentMatchday()
     matches = bl_1.find({'groupOrderID':matchday}\
       ).sort([('groupOrderID',ASCENDING)])
     return [self.jsonifyMatch(x) for x in matches]
@@ -120,12 +122,14 @@ class bundesligaAPI:
     return matchgoals
     
   def getMatchGoalsWithFlaggedUpdates(self,maxclientid,
-    league=getDefaultLeague()):
+    league=None):
     ''' @maxclientid: int representing highest goalID client device has
         This method returns a dictionary where the keys are the matchIDs and
         the value is a list of goals for that match with goals with goalID
         greater than maxclientid flagged as new.
     '''
+    if not league:
+      league = getDefaultLeague()
     matches = bl_1.find({"goals.goalID": {"$gt": maxclientid}})
 
     # matches contains only those _matches_ with goals above goalID
@@ -185,8 +189,12 @@ class bundesligaAPI:
         ).sort([('groupOrderID',ASCENDING)])
     return matches
     
-  def getTopScorers(self,matchday=getCurrentMatchday(),limit=None,
-    sortdir='DESC',league=getDefaultLeague(),onlyFinished=True):
+  def getTopScorers(self,matchday=None,limit=None,
+    sortdir='DESC',league=None,onlyFinished=True):
+    if not matchday:
+      matchday = getCurrentMatchDay()
+    if not league:
+      league = getDefaultLeague()
     m = Code('''function () {
       if(!this.goals){
         return;
@@ -228,7 +236,9 @@ class bundesligaAPI:
     return scorerlist
         
             
-  def getTableOnMatchday(self,matchday=getCurrentMatchday()):
+  def getTableOnMatchday(self,matchday=None):
+    if not matchday:
+      matchday=getCurrentMatchDay()
     m = Code('''function() {
      var tablePoints1 = 0;
      var tablePoints2 = 0;
@@ -313,8 +323,12 @@ class bundesligaAPI:
           loss+=1
     return (win,loss,draw,points)
     
-  def getTeams(self,league=getDefaultLeague(),season=getCurrentSeason(),
+  def getTeams(self,league=None,season=None,
                 withurl=False):
+    if not league:
+      league = getDefaultLeague()
+    if not season:
+      season = getCurrentSeason()
     tdict = {}
     teams = bl_1.find({'leagueSaison':season,'leagueShortcut':league},
                   {'nameTeam1':1,'nameTeam2':1,'idTeam1':1,'idTeam2':1,
@@ -346,7 +360,9 @@ class bundesligaAPI:
       return {'id':t['idTeam1'],'name':t['nameTeam1'],
         'shortcut':t['shortTeam1']}
         
-  def getMaxGoalID(self,league=getDefaultLeague()):
+  def getMaxGoalID(self,league=None):
+    if not league:
+      league = getDefaultLeague()
     # This is horrible hackery. TODO: use map reduce?
     goals = bl_1.find({"goals.goalID": {"$gt": 0}},{'goals.goalID':1}
             )
@@ -358,8 +374,12 @@ class bundesligaAPI:
     goallist.sort()
     return goallist[-1]
     
-  def getMatchesInProgress(self,when=None,league=getDefaultLeague(),
-      season=getCurrentSeason(),ids_only=False):
+  def getMatchesInProgress(self,when=None,league=None,
+      season=None,ids_only=False):
+    if not league:
+      league = getDefaultLeague()
+    if not season:
+      season = getCurrentSeason()
     mlist = []
     if not when:
       when = datetime.now()
