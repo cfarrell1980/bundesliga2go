@@ -450,8 +450,11 @@ class jsonMatchday:
     except ValueError:
       return json.dumps({'error':'matchday must be an integer'})
     else:
-      if matchday == 0 or matchday > 34:
-        return json.dumps({'error':'matchday cannot be 0 or greater than 34'})
+      if mid == 0: # interpret this as asking for the current matchday
+        m = api.getMatchesByMatchday(getCurrentMatchday())
+        return json.dumps(m)
+      if mid > 34:
+        return json.dumps({'error':'matchday cannot be greater than 34'})
       try:
         m = api.getMatchesByMatchday(mid)
       except Exception,e:
