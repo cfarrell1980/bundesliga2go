@@ -22,6 +22,7 @@ urls = (
   '/api/table','getTableOnMatchday',
   '/api/topscorers','getTopScorers',
   '/api/routes','routes',
+  '/api/cmd','getCmd',
   '/ws','websocket',
 )
 class index:
@@ -45,6 +46,34 @@ class long_polling:
     print 'GET /long'
     gevent.sleep(10)  # possible to block the request indefinitely, without harming others
     return 'Hello, 10 seconds later'
+    
+class getCmd:
+
+  def OPTIONS(self):
+    web.header("Access-Control-Allow-Origin", "*");
+    web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
+    web.header("Access-Control-Allow-Credentials", "false");
+    web.header("Access-Control-Max-Age", "60");
+    return None
+
+  def GET(self):
+    web.header("Access-Control-Allow-Origin", "*")
+    web.header('Content-Type','application/json')
+    league = web.input(league=None).league
+    season = web.input(season=None).season
+    if not league:
+      league = getDefaultLeague()
+    if not season:
+      season = getCurrentSeason()
+    else:
+      if not isinstance(season,int):
+        try:
+          season = int(season)
+        except ValueError:
+          return json.dumps({'error':'season must be int, not %s'%season})
+    cmd = getCurrentMatchday()
+    return json.dumps({'cmd':cmd})
     
 class getTeams:
 
@@ -466,7 +495,6 @@ class jsonMatch:
 
 class jsonMatchday:
   def OPTIONS(self,*arg,**kw):
-    print web.ctx.env
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
     web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
