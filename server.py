@@ -465,10 +465,11 @@ class jsonMatch:
         return json.dumps(m)
 
 class jsonMatchday:
-  def OPTIONS(self):
+  def OPTIONS(self,*arg,**kw):
+    print web.ctx.env
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
