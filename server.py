@@ -51,7 +51,7 @@ class getTeams:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
@@ -81,7 +81,7 @@ class getNewGoals:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
@@ -105,7 +105,7 @@ class getTableOnMatchday:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
@@ -142,7 +142,7 @@ class getTopScorers:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
@@ -190,7 +190,7 @@ class jsonGoal:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
@@ -218,7 +218,7 @@ class jsonTeam:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
@@ -253,7 +253,7 @@ class jsonMatchesInProgess:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
@@ -290,7 +290,7 @@ class jsonLeagueTable:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
@@ -334,7 +334,7 @@ class jsonGoalsSince:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
@@ -362,7 +362,7 @@ class jsonMatchesUpcoming:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
@@ -398,7 +398,7 @@ class jsonMaxGoalID:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
@@ -422,7 +422,7 @@ class jsonTeams:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*")
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS")
-    web.header("Access-Control-Allow-Headers", "Content-Type")
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false")
     web.header("Access-Control-Max-Age", "60")
     return None
@@ -443,7 +443,7 @@ class jsonMatch:
   def OPTIONS(self):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
-    web.header("Access-Control-Allow-Headers", "Content-Type");
+    web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
     web.header("Access-Control-Allow-Credentials", "false");
     web.header("Access-Control-Max-Age", "60");
     return None
