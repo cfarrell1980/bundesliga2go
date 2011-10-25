@@ -505,6 +505,7 @@ class jsonMatchday:
   def GET(self,matchday):
     web.header("Access-Control-Allow-Origin", "*")
     web.header('Content-Type','application/json')
+    allkeys = web.input(allkeys=False).allkeys
     try:
       mid = int(matchday)
     except ValueError:
@@ -518,7 +519,7 @@ class jsonMatchday:
       if mid > 35:
         return json.dumps({'error':'matchday cannot be greater than 34'})
       try:
-        m = api.getMatchesByMatchday(mid)
+        m = api.getMatchesByMatchday(mid,allkeys=allkeys)
       except Exception,e:
         return json.dumps({'error':'could not return matchday with id %d'%mid})
       else:

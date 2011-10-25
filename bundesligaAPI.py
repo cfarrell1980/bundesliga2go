@@ -19,19 +19,37 @@ class bundesligaAPI:
 }
                 """)
                 
-  def jsonifyMatch(self,match):
+  def jsonifyMatch(self,match,allkeys=False):
     match['lastUpdate'] = match['lastUpdate'].strftime("%Y-%m-%d %H:%M")
     match['matchDateTime'] = match['matchDateTime'].strftime("%Y-%m-%d %H:%M")
     match['matchDateTimeUTC'] = match['matchDateTimeUTC'].strftime("%Y-%m-%d %H:%M")
     match['_id'] = None
+    if not allkeys: # the UI doesn't need all the information in the dict
+     t = {}
+     t['matchDateTime'] = match['matchDateTime']
+     t['matchIsFinished'] = match['matchIsFinished']
+     t['matchID'] = match['matchID']
+     t['goals'] = []
+     for goal in match['goals']: # UI doesn't need all the info
+       t['goals'].append({'goalGetterName':goal['goalGetterName'],
+                          'goalMatchMinute':goal['goalMatchMinute']})
+     t['shortTeam1'] = match['shortTeam1']
+     t['shortTeam2'] = match['shortTeam2']
+     t['nameTeam1'] = match['nameTeam1']
+     t['nameTeam2'] = match['nameTeam2']
+     t['pointsTeam1'] = match['pointsTeam1']
+     t['pointsTeam2'] = match['pointsTeam2']
+     t['idTeam1'] = match['idTeam1']
+     t['idTeam2'] = match['idTeam2']
+     return t
     return match
 
-  def getMatchesByMatchday(self,matchday=None):
+  def getMatchesByMatchday(self,matchday=None,allkeys=False):
     if not matchday:
       matchday = getCurrentMatchday()
     matches = bl_1.find({'groupOrderID':matchday}\
       ).sort([('groupOrderID',ASCENDING)])
-    return [self.jsonifyMatch(x) for x in matches]
+    return [self.jsonifyMatch(x,allkeys=allkeys) for x in matches]
     
   def getMatchByID(self,id):
     match = bl_1.find_one({'matchID':id})
