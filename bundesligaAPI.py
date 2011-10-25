@@ -32,7 +32,9 @@ class bundesligaAPI:
      t['goals'] = []
      for goal in match['goals']: # UI doesn't need all the info
        t['goals'].append({'goalGetterName':goal['goalGetterName'],
-                          'goalMatchMinute':goal['goalMatchMinute']})
+                          'goalMatchMinute':goal['goalMatchMinute']},
+                          'goalPenalty':goal['goalPenalty'],
+                          'goalOwnGoal':goal['goalOwnGoal'])
      t['shortTeam1'] = match['shortTeam1']
      t['shortTeam2'] = match['shortTeam2']
      t['nameTeam1'] = match['nameTeam1']
