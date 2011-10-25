@@ -24,26 +24,52 @@ class bundesligaAPI:
     match['matchDateTime'] = match['matchDateTime'].strftime("%Y-%m-%d %H:%M")
     match['matchDateTimeUTC'] = match['matchDateTimeUTC'].strftime("%Y-%m-%d %H:%M")
     match['_id'] = None
+    for goal in match['goals']:
+      tmp = {}
+      idx = match['goals'].index(goal)
+      if idx == 0: # first goal in the match
+        if goal['goalScoreTeam1'] == 1: #team1 scored
+          tmp['goalForTeamID'] = match['idTeam1']
+        else:
+          tmp['goalForTeamID'] = match['idTeam2']
+      else: # not the first goal of the match
+        if match['goals'][idx-1]['goalScoreTeam1'] < goal['goalScoreTeam1']:
+          # team1 has scored
+          tmp['goalForTeamID'] = match['idTeam1']
+        else: # team2 has scored
+          tmp['goalForTeamID'] = match['idTeam2']
+      tmp['goalForTeamShortcut'] = match['shortTeam2']
+      tmp['goalScorer'] = goal['goalGetterName']
+      tmp['goalMatchMinute'] = goal['goalMatchMinute']
+      tmp['goalID'] = goal['goalID']
+      tmp['goalPenalty'] = goal['goalPenalty']
+      tmp['goalOwnGoal'] = goal['goalOwnGoal']
+      tmp['goalGetterName'] = goal['goalGetterName']
+      tmp['goalScoreTeam1'] = goal['goalScoreTeam1']
+      tmp['goalScoreTeam2'] = goal['goalScoreTeam2']
+      match['goals'][idx] = tmp
     if not allkeys: # the UI doesn't need all the information in the dict
-     t = {}
-     t['matchDateTime'] = match['matchDateTime']
-     t['matchIsFinished'] = match['matchIsFinished']
-     t['matchID'] = match['matchID']
-     t['goals'] = []
-     for goal in match['goals']: # UI doesn't need all the info
-       t['goals'].append({'goalGetterName':goal['goalGetterName'],
+      t = {}
+      t['matchDateTime'] = match['matchDateTime']
+      t['matchIsFinished'] = match['matchIsFinished']
+      t['matchID'] = match['matchID']
+      t['goals'] = []
+     
+      for goal in match['goals']: # UI doesn't need all the info
+        t['goals'].append({'goalGetterName':goal['goalGetterName'],
                           'goalMatchMinute':goal['goalMatchMinute'],
                           'goalPenalty':goal['goalPenalty'],
-                          'goalOwnGoal':goal['goalOwnGoal']})
-     t['shortTeam1'] = match['shortTeam1']
-     t['shortTeam2'] = match['shortTeam2']
-     t['nameTeam1'] = match['nameTeam1']
-     t['nameTeam2'] = match['nameTeam2']
-     t['pointsTeam1'] = match['pointsTeam1']
-     t['pointsTeam2'] = match['pointsTeam2']
-     t['idTeam1'] = match['idTeam1']
-     t['idTeam2'] = match['idTeam2']
-     return t
+                          'goalOwnGoal':goal['goalOwnGoal'],
+                          'goalForTeamID':goal['goalForTeamID']})
+      t['shortTeam1'] = match['shortTeam1']
+      t['shortTeam2'] = match['shortTeam2']
+      t['nameTeam1'] = match['nameTeam1']
+      t['nameTeam2'] = match['nameTeam2']
+      t['pointsTeam1'] = match['pointsTeam1']
+      t['pointsTeam2'] = match['pointsTeam2']
+      t['idTeam1'] = match['idTeam1']
+      t['idTeam2'] = match['idTeam2']
+      return t
     return match
 
   def getMatchesByMatchday(self,matchday=None,allkeys=False):
