@@ -19,11 +19,12 @@ class bundesligaAPI:
 }
                 """)
                 
-  def jsonifyMatch(self,match,allkeys=False,goals_by_teamid=False):
+  def jsonifyMatch(self,match,allkeys=False):
     match['lastUpdate'] = match['lastUpdate'].strftime("%Y-%m-%d %H:%M")
     match['matchDateTime'] = match['matchDateTime'].strftime("%Y-%m-%d %H:%M")
     match['matchDateTimeUTC'] = match['matchDateTimeUTC'].strftime("%Y-%m-%d %H:%M")
     match['_id'] = None
+    goals_dict = {}
     for goal in match['goals']:
       tmp = {}
       idx = match['goals'].index(goal)
@@ -45,58 +46,27 @@ class bundesligaAPI:
       tmp['goalPenalty'] = goal['goalPenalty']
       tmp['goalOwnGoal'] = goal['goalOwnGoal']
       tmp['goalGetterName'] = goal['goalGetterName']
-      tmp['goalScoreTeam1'] = goal['goalScoreTeam1']
-      tmp['goalScoreTeam2'] = goal['goalScoreTeam2']
-      if not goals_by_teamid:
-        match['goals'][idx] = tmp
-      else:
-        if not isinstance(match['goals'],dict):
-          match['goals'] = {}
-        if not match['goals'].has_key(tmp['goalForTeamID']):
-          match['goals'][tmp['goalForTeamID']] = [tmp]
-        else:
-          match['goals'][tmp['goalForTeamID']].append(tmp)
-    if not allkeys: # the UI doesn't need all the information in the dict
-      t = {}
-      t['matchDateTime'] = match['matchDateTime']
-      t['matchIsFinished'] = match['matchIsFinished']
-      t['matchID'] = match['matchID']
-      if not goals_by_teamid:
-        t['goals'] = []
-        for goal in match['goals']: # UI doesn't need all the info
-          t['goals'].append({'goalGetterName':goal['goalGetterName'],
-                          'goalMatchMinute':goal['goalMatchMinute'],
-                          'goalPenalty':goal['goalPenalty'],
-                          'goalOwnGoal':goal['goalOwnGoal'],
-                          'goalForTeamID':goal['goalForTeamID']})
-      else:
-        t['goals'] = {}
-        for goal in match['goals'].keys(): # UI doesn't need all the info
-          if not t['goals'].has_key(goal['goalForTeamID']):
-              t['goals'][goal['goalForTeamID']] = []
-          t['goals'][goal['goalForTeamID']].append({'goalGetterName':goal['goalGetterName'],
-                          'goalMatchMinute':goal['goalMatchMinute'],
-                          'goalPenalty':goal['goalPenalty'],
-                          'goalOwnGoal':goal['goalOwnGoal'],
-                          'goalForTeamID':goal['goalForTeamID']})
-      t['shortTeam1'] = match['shortTeam1']
-      t['shortTeam2'] = match['shortTeam2']
-      t['nameTeam1'] = match['nameTeam1']
-      t['nameTeam2'] = match['nameTeam2']
-      t['pointsTeam1'] = match['pointsTeam1']
-      t['pointsTeam2'] = match['pointsTeam2']
-      t['idTeam1'] = match['idTeam1']
-      t['idTeam2'] = match['idTeam2']
-      return t
+      #tmp['goalScoreTeam1'] = goal['goalScoreTeam1']
+      #tmp['goalScoreTeam2'] = goal['goalScoreTeam2']
+      if not goals_dict.has_key(tmp['goalForTeamID']):
+        goals_dict[tmp['goalForTeamID']] = []
+      goals_dict[tmp['goalForTeamID']].append(tmp)
+    match['goals'] = goals_dict
     return match
+      
 
   def getMatchesByMatchday(self,matchday=None,allkeys=False):
     if not matchday:
       matchday = getCurrentMatchday()
     matches = bl_1.find({'groupOrderID':matchday}\
       ).sort([('groupOrderID',ASCENDING)])
-    return [self.jsonifyMatch(x,allkeys=allkeys) for x in matches]
-    
+    retlist = []
+    for x in matches:
+      jsonMatch = self.jsonifyMatch(x,allkeys=allkeys)
+      retlist.append(jsonMatch)
+    print retlist
+    return retlist
+        
   def getMatchByID(self,id):
     match = bl_1.find_one({'matchID':id})
     print match

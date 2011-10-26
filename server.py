@@ -521,6 +521,7 @@ class jsonMatchday:
       try:
         m = api.getMatchesByMatchday(mid,allkeys=allkeys)
       except Exception,e:
+        print e
         return json.dumps({'error':'could not return matchday with id %d'%mid})
       else:
         return json.dumps(m)
