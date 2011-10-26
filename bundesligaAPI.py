@@ -52,8 +52,21 @@ class bundesligaAPI:
         goals_dict[tmp['goalForTeamID']] = []
       goals_dict[tmp['goalForTeamID']].append(tmp)
     match['goals'] = goals_dict
+    if not allkeys:
+      del match['lastUpdate']
+      del match['locationStadium']
+      del match['Endergebnis']
+      del match['Halbzeit']
+      del match['iconUrlTeam1']
+      del match['iconUrlTeam2']
+      del match['NumberOfViewers']
+      del match['TimeZoneID']
+      del match['matchDateTimeUTC']
+      del match['_id']
+      del match['locationCity']
+      del match['leagueID']
+      del match['leagueShortcut']
     return match
-      
 
   def getMatchesByMatchday(self,matchday=None,allkeys=False):
     if not matchday:
