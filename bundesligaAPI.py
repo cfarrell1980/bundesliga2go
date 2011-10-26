@@ -19,7 +19,7 @@ class bundesligaAPI:
 }
                 """)
                 
-  def jsonifyMatch(self,match,allkeys=False):
+  def jsonifyMatch(self,match,allkeys=False,goals_by_teamid=False):
     match['lastUpdate'] = match['lastUpdate'].strftime("%Y-%m-%d %H:%M")
     match['matchDateTime'] = match['matchDateTime'].strftime("%Y-%m-%d %H:%M")
     match['matchDateTimeUTC'] = match['matchDateTimeUTC'].strftime("%Y-%m-%d %H:%M")
@@ -47,16 +47,34 @@ class bundesligaAPI:
       tmp['goalGetterName'] = goal['goalGetterName']
       tmp['goalScoreTeam1'] = goal['goalScoreTeam1']
       tmp['goalScoreTeam2'] = goal['goalScoreTeam2']
-      match['goals'][idx] = tmp
+      if not goals_by_teamid:
+        match['goals'][idx] = tmp
+      else:
+        if not isinstance(match['goals'],dict):
+          match['goals'] = {}
+        if not match['goals'].has_key(tmp['goalForTeamID']):
+          match['goals'][tmp['goalForTeamID']] = [tmp]
+        else:
+          match['goals'][tmp['goalForTeamID']].append(tmp)
     if not allkeys: # the UI doesn't need all the information in the dict
       t = {}
       t['matchDateTime'] = match['matchDateTime']
       t['matchIsFinished'] = match['matchIsFinished']
       t['matchID'] = match['matchID']
-      t['goals'] = []
-     
-      for goal in match['goals']: # UI doesn't need all the info
-        t['goals'].append({'goalGetterName':goal['goalGetterName'],
+      if not goals_by_teamid:
+        t['goals'] = []
+        for goal in match['goals']: # UI doesn't need all the info
+          t['goals'].append({'goalGetterName':goal['goalGetterName'],
+                          'goalMatchMinute':goal['goalMatchMinute'],
+                          'goalPenalty':goal['goalPenalty'],
+                          'goalOwnGoal':goal['goalOwnGoal'],
+                          'goalForTeamID':goal['goalForTeamID']})
+      else:
+        t['goals'] = {}
+        for goal in match['goals'].keys(): # UI doesn't need all the info
+          if not t['goals'].has_key(goal['goalForTeamID']):
+              t['goals'][goal['goalForTeamID']] = []
+          t['goals'][goal['goalForTeamID']].append({'goalGetterName':goal['goalGetterName'],
                           'goalMatchMinute':goal['goalMatchMinute'],
                           'goalPenalty':goal['goalPenalty'],
                           'goalOwnGoal':goal['goalOwnGoal'],
