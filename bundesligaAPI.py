@@ -77,12 +77,10 @@ class bundesligaAPI:
     for x in matches:
       jsonMatch = self.jsonifyMatch(x,allkeys=allkeys)
       retlist.append(jsonMatch)
-    print retlist
     return retlist
         
   def getMatchByID(self,id):
     match = bl_1.find_one({'matchID':id})
-    print match
     if not match:
       raise StandardError, 'no match with matchID %d'%id
     else:
