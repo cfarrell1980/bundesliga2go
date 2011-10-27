@@ -29,39 +29,15 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
-import os,Queue,threading,urllib2,tempfile,shutil
+import os,tempfile,shutil
 try:
   import Image
 except ImportError:
   raise ImportError,\
     'PIL is needed to create the sprites. Install python-imaging'
-from bundesligaAPI import bundesligaAPI
 from bundesligaGlobals import getDefaultLeague,getCurrentSeason,getTeamShortcut
+from bundesligaAPI import bundesligaAPI
 api = bundesligaAPI()
-queue = Queue.Queue()
-
-class ThreadUrl(threading.Thread):
-  def __init__(self, queue):
-    ''' This class is based on an example from
-    http://samratjp.posterous.com/a-multi-threaded-python-script-for-downloadin
-    '''
-    threading.Thread.__init__(self)
-    self.queue = queue
-     
-  def run(self):
-    try:
-      while True:
-        team = self.queue.get()
-        url = urllib2.urlopen(team['iconURL'])
-        icon = url.read()
-        output=open(team['target'],'wb')
-        output.write(icon)
-        url.close()
-        output.close()
-        self.queue.task_done()
-    except:
-      self.queue.task_done()
-
 class Sprite:
   def __init__(self,league,season):
     self.league = league
@@ -73,11 +49,13 @@ class Sprite:
     self.default_icon = os.path.join(os.getcwd(),
                       '/static/images/default_icon.png')
         
-  def syncIcons(self):
+  def syncIcons(self,size="80x80"):
     ''' This method obtains information about each team in the League and 
-        Season requested. It then uses threads to download all of the icons in
-        parallel and stores them to @tmpdir
+        Season requested. It then checks static/images/$size/ to see if the 
+        appropriate image for the team is there
     '''
+    staticdir = os.path.join(os.path.dirname(__file__),'static/images/icons/')
+    searchpath = os.path.join(staticdir,size)
     try:
       teams = api.getTeams(self.league,self.season,withurl=True)
     except:
@@ -85,24 +63,18 @@ class Sprite:
     else:
       if not len(teams):
         raise StandardError, "No teams found locally. Did you sync?"
-      for i in range(len(teams)):
-        t = ThreadUrl(queue)
-        t.setDaemon(True)
-        t.start()
-
       for team in teams.values():
-        if team['iconURL']:
-          base = os.path.basename(team['iconURL'])
-          team['target'] = os.path.join(self.tmpdir,base)
-          queue.put(team)
-          self.iconmap.append([team['teamShortcut'],team['target']])
+        x = os.path.abspath(os.path.join(searchpath,
+                          '%s.png'%team['teamShortcut']))
+        if os.path.exists(x):
+          self.iconmap.append([team['teamShortcut'],x])
         else:
           print "No iconURL for %s"%team['teamShortcut']
           self.iconmap.append([team['teamShortcut'],self.default_icon])
-      queue.join()
       
     
-  def makeSprite(self,targetdir=os.path.join(os.getcwd(),'static/images/')):
+  def makeSprite(self,size="80x80",
+            targetdir=os.path.join(os.getcwd(),'static/images/')):
     # read all of the individual team icons into memory and get properties
     images =  []
     for imglist in self.iconmap:
@@ -123,15 +95,16 @@ class Sprite:
     for count, image in enumerate(images):
       location = self.image_height*count*2
       master.paste(image,(0,location))
-    master_png_target = os.path.join(targetdir,'%s_%s.png'%(self.league,
-          str(self.season)))
+    master_png_target = os.path.join(targetdir,'%s_%s_%s.png'%(self.league,
+          str(self.season),size))
     master.save(master_png_target)
     shutil.rmtree(self.tmpdir,ignore_errors=True)
     
     
-  def makeCSS(self,targetdir=os.path.join(os.getcwd(),'static/css/')):
+  def makeCSS(self,size="80x80",
+          targetdir=os.path.join(os.getcwd(),'static/css/')):
     # create the css code needed to define the icon sprite
-    bg_url = '%s_%s.png'%(self.league,str(self.season))
+    bg_url = '%s_%s_%s.png'%(self.league,str(self.season),size)
     cssHead = " span.icon { margin:0 10px; vertical-align:middle;\
                 line-height: 20px; border: 2px solid #cccccc;\n\
                 -moz-border-radius:50%; -webkit-border-radius:20px;"
@@ -151,13 +124,18 @@ class Sprite:
 
     # open the target css file
     fd = open(os.path.join(targetdir,
-        "%s_%s.css"%(self.league,str(self.season))),'w')
+        "%s_%s_%s.css"%(self.league,str(self.season),size)),'w')
     fd.write(cssHead+"\n")
     fd.write("\n".join(css_str))
     fd.close()
     
 if __name__ == '__main__':
+  import sys
+  if len(sys.argv) >1:
+    size = sys.argv[1]
+    if not size.lower() in ['80x80']:
+      sys.stderr.write("%s is not a recognized size. Try e.g. 80x80\n"%size)
   sprite = Sprite(getDefaultLeague(),getCurrentSeason())
-  sprite.syncIcons()
-  sprite.makeSprite()
-  sprite.makeCSS()
+  sprite.syncIcons(size=size)
+  sprite.makeSprite(size=size)
+  sprite.makeCSS(size=size)
