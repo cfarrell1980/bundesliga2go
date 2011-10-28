@@ -24,7 +24,6 @@ class bundesligaAPI:
     match['matchDateTime'] = match['matchDateTime'].strftime("%Y-%m-%d %H:%M")
     match['matchDateTimeUTC'] = match['matchDateTimeUTC'].strftime("%Y-%m-%d %H:%M")
     match['_id'] = None
-    goals_dict = {}
     for goal in match['goals']:
       tmp = {}
       idx = match['goals'].index(goal)
@@ -39,6 +38,8 @@ class bundesligaAPI:
           tmp['goalForTeamID'] = match['idTeam1']
         else: # team2 has scored
           tmp['goalForTeamID'] = match['idTeam2']
+      tmp['goalScoreTeam1'] = goal['goalScoreTeam1']
+      tmp['goalScoreTeam2'] = goal['goalScoreTeam2']
       tmp['goalForTeamShortcut'] = match['shortTeam2']
       tmp['goalScorer'] = goal['goalGetterName']
       tmp['goalMatchMinute'] = goal['goalMatchMinute']
@@ -46,12 +47,7 @@ class bundesligaAPI:
       tmp['goalPenalty'] = goal['goalPenalty']
       tmp['goalOwnGoal'] = goal['goalOwnGoal']
       tmp['goalGetterName'] = goal['goalGetterName']
-      #tmp['goalScoreTeam1'] = goal['goalScoreTeam1']
-      #tmp['goalScoreTeam2'] = goal['goalScoreTeam2']
-      if not goals_dict.has_key(tmp['goalForTeamID']):
-        goals_dict[tmp['goalForTeamID']] = []
-      goals_dict[tmp['goalForTeamID']].append(tmp)
-    match['goals'] = goals_dict
+      match['goals'][idx] = tmp
     if not allkeys:
       del match['lastUpdate']
       del match['locationStadium']
