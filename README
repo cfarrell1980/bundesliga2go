@@ -35,6 +35,21 @@ You can put the scheduler into the background by running:
 ``python scheduler.py &``
 
 
+**Starting ZMQ and WebSocket server**
+=====================================
+bundesliga2go can use websockets to push updates to connect clients. This is done
+using a non-blocking web socket server. bundesliga2go uses gevent and gevent-websocket
+to actually create the websocket and to push messages to connected clients. Messaging
+is handled using ZMQ (ZeroMQ). This uses a socket-like infrastructure to push notifications
+from bundesligaSync to the websocket server via zmq_relay (which can also be used to fork
+or redirect the messages elsewhere. In order to use these facilies, on the server side
+the following scripts have to be run (they continue to run, so a screen session may be 
+helpful):
+
+``python zmq_relay.py``
+``python websocket_server.py``
+
+
 **Creating sprites for the team images**
 ========================================
 There are 18 teams in the 1. Bundesliga and 2. Bundesliga. Each team has an
