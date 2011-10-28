@@ -103,23 +103,25 @@ class Sprite:
     
   def makeCSS(self,size="80x80",
           targetdir=os.path.join(os.getcwd(),'static/css/')):
+    s = size.split("x")
+    w,h = s[0],s[1]
     # create the css code needed to define the icon sprite
     bg_url = '%s_%s_%s.png'%(self.league,str(self.season),size)
     cssHead = " span.icon { margin:0 10px; vertical-align:middle;\
-                line-height: 20px; border: 2px solid #cccccc;\n\
-                -moz-border-radius:50%; -webkit-border-radius:20px;"
+                line-height: %s px; border: 2px solid #cccccc;\n\
+                -moz-border-radius:50%s; -webkit-border-radius:%s px;"%(w,"%",w)
     cssHead=cssHead+"background: url(../images/%s)"%bg_url
     cssHead=cssHead+"no-repeat top left; }"
     # create the css code needed to interpret the sprite
     cssTemplate = " span.icon-%s { background-position: 0px -%dpx;\
-                    width: 20px; height: 20px; display:inline-block; }\n"
+                    width: %spx; height: %spx; display:inline-block; }\n"
     # write the css code to string
     css_str = []
     iterator = 0
     for teamlist in self.iconmap:
       scut,filename = teamlist[0],teamlist[1]
       location = (self.image_height*iterator*2)
-      css_str.append(cssTemplate%(scut,location))
+      css_str.append(cssTemplate%(scut,location,w,h))
       iterator+=1
 
     # open the target css file
@@ -133,8 +135,10 @@ if __name__ == '__main__':
   import sys
   if len(sys.argv) >1:
     size = sys.argv[1]
-    if not size.lower() in ['80x80']:
+    if not size.lower() in ['80x80','20x20','30x30']:
       sys.stderr.write("%s is not a recognized size. Try e.g. 80x80\n"%size)
+  else:
+    size = "30x30"
   sprite = Sprite(getDefaultLeague(),getCurrentSeason())
   sprite.syncIcons(size=size)
   sprite.makeSprite(size=size)
