@@ -2,8 +2,8 @@
 """A web.py application powered by gevent"""
 from bundesligaAPI import bundesligaAPI
 from bundesligaSync import *
-#from gevent import monkey; monkey.patch_all()
-#from gevent.pywsgi import WSGIServer
+from gevent import monkey; monkey.patch_all()
+from gevent.pywsgi import WSGIServer
 import gevent,web,json,os,sys
 api = bundesligaAPI()
 
@@ -23,7 +23,7 @@ urls = (
   '/api/topscorers','getTopScorers',
   '/api/routes','routes',
   '/api/cmd','getCmd',
-  '/ws','websocket',
+  '/ws','liveByWebsocket',
 )
 class index:
   def GET(self):
@@ -525,10 +525,54 @@ class jsonMatchday:
         return json.dumps({'error':'could not return matchday with id %d'%mid})
       else:
         return json.dumps(m)
+        
+class liveByWebsocket:
+  def GET(self):
+    return """
+      <html>
+      <head>
+        <title>Web Socket (v7) demo</title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+            <script type="text/javascript">
+        console.log("Got this far...");
+        if ('MozWebSocket' in window) {
+        var ws = new MozWebSocket('ws://paddy.suse.de:4040');
+        }
+        else if('WebSocket' in window) {
+          var ws = new WebSocket('ws://paddy.suse.de:4040');
+        }
+        else {
+          console.log("Neither WebSocket nor MozWebSocket is supported!");
+        }
+        ws.onopen = function(e) {
+          console.log('connected');
+        };
+        ws.onmessage = function(e) {
+          var existing = document.getElementById('place').innerHTML;
+          console.log('received message: '+e.data);
+          console.log(typeof(e.data))
+	  console.log(JSON.parse(e.data))
+          data = JSON.parse(e.data)
+          
+	        var s = data['nameTeam1']+" vs. "+data['nameTeam2']+" ("+data['pointsTeam1']+" : "+data['pointsTeam2']+")";
+
+          document.getElementById('place').innerHTML = existing+"<br/>"+s;
+
+        }
+      </script>
+      </head>
+      <body>
+      
+      Messages should appear directly below<br/>
+      <div id="place"></div>
+      </body>
+      </html>
+      """
+
 
     
 if __name__ == "__main__":
-  application = web.application(urls, globals())#.wsgifunc()
+  application = web.application(urls, globals()).wsgifunc()
   #print 'Serving on 8088...'
-  #WSGIServer(('', 8088), application).serve_forever()
-  application.run()
+  WSGIServer(('', 8088), application).serve_forever()
+  #application.run()

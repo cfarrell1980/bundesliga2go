@@ -2,7 +2,10 @@ from OpenLigaDB import OpenLigaDB
 from pymongo import Connection,ASCENDING
 from datetime import datetime
 from bundesligaGlobals import *
+from bundesligaAPI import bundesligaAPI
+import json
 connection = Connection()
+api = bundesligaAPI()
 db = connection.bundesliga2go
 bl_1 = db.bl1_2011
 bl_1.ensure_index([('teamName1',ASCENDING),
@@ -10,7 +13,12 @@ bl_1.ensure_index([('teamName1',ASCENDING),
                   ('leagueName',ASCENDING),
                   ('leagueSaison',ASCENDING),
                   ('goals.goalGetterName',ASCENDING)])
+                  
 oldb = OpenLigaDB(timeout=14)
+import zmq
+context = zmq.Context()
+pub = context.socket(zmq.REQ)
+pub.connect("tcp://localhost:6060")
 
     
 def goalToDict(goal):
@@ -111,12 +119,11 @@ class bundesligaSync:
         print "matchID %d does not exist. Inserting..."%mdict['matchID']
         bl_1.insert(mdict)
     
-  def matchToMongo(self,matchID):
+  def matchToMongo(self,matchID,push=False):
     md = oldb.GetMatchByMatchID(matchID)
     mdict = matchToDict(md)
     existing_match = bl_1.find_one({'matchID':mdict['matchID']})
     if existing_match:
-      print "matchID %d exists. Updating..."%mdict['matchID']
       bl_1.update({'matchID':mdict['matchID']},
           {'$set':{ 'matchIsFinished':mdict['matchIsFinished'],
                     'pointsTeam1':mdict['pointsTeam1'],
@@ -128,8 +135,10 @@ class bundesligaSync:
                     'goals':mdict['goals']
                     }},upsert=True)
     else:
-      print "matchID %d does not exist. Inserting..."%mdict['matchID']
       bl_1.insert(mdict)
+    if push:
+      pub.send(json.dumps(api.jsonifyMatch(mdict)))
+      reply = pub.recv()
 
 if __name__ == '__main__':
   syncer = bundesligaSync()
