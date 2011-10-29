@@ -536,28 +536,27 @@ class liveByWebsocket:
             <script type="text/javascript">
         console.log("Got this far...");
         if ('MozWebSocket' in window) {
-        var ws = new MozWebSocket('ws://foxhall.de:4040');
+        var ws = new MozWebSocket('ws://localhost:4040');
         }
         else if('WebSocket' in window) {
-          var ws = new WebSocket('ws://foxhall.de:4040');
+          var ws = new WebSocket('ws://localhost:4040');
         }
         else {
           console.log("Neither WebSocket nor MozWebSocket is supported!");
         }
         ws.onopen = function(e) {
-          console.log('connected');
         };
         ws.onmessage = function(e) {
           var existing = document.getElementById('place').innerHTML;
-          console.log('received message: '+e.data);
-          console.log(typeof(e.data))
-	  console.log(JSON.parse(e.data))
           data = JSON.parse(e.data)
-          
-	        var s = data['nameTeam1']+" vs. "+data['nameTeam2']+" ("+data['pointsTeam1']+" : "+data['pointsTeam2']+")";
-
-          document.getElementById('place').innerHTML = existing+"<br/>"+s;
-
+          if (data['status'] == 1){
+	          var s = data['nameTeam1']+" vs. "+data['nameTeam2']+" ("+data['pointsTeam1']+" : "+data['pointsTeam2']+")";
+            document.getElementById('place').innerHTML = existing+"<br/>"+s;
+          }
+          else
+          {
+             console.log("No updates...")
+          }
         }
       </script>
       </head>
