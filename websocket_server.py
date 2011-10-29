@@ -12,7 +12,6 @@ def app(environ, start_response):
     socket.connect('tcp://localhost:3030')
     while True:
       msg = socket.recv()
-      print msg
       ws.send(msg)
       gevent.sleep(0.1)
 

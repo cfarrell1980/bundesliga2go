@@ -31,6 +31,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '''
 from apscheduler.scheduler import Scheduler
+from apscheduler import scheduler
 from datetime import datetime
 from bundesligaSync import bundesligaSync
 from bundesligaAPI import bundesligaAPI
@@ -40,9 +41,17 @@ slow = Scheduler()
 fast = Scheduler()
 sync = bundesligaSync()
 api = bundesligaAPI()
-
+from logging import StreamHandler, ERROR
 global matches
 matches = []
+try:
+  from StringIO import StringIO
+except ImportError:
+  from io import StringIO
+logstream = StringIO()
+loghandler = StreamHandler(logstream)
+loghandler.setLevel(ERROR)
+scheduler.logger.addHandler(loghandler)
 
 #@slow.cron_schedule(day_of_week='mon-sun', hour=15, minute=11)
 @slow.interval_schedule(seconds=10)
@@ -75,10 +84,13 @@ def updateMatches(seconds=30):
       matches in progress. If there are, for each match in progress, this
       function calls the matchToMongo method from bundesligaSync to update it.
   '''
-  mip = api.getMatchesInProgress()
-  if len(mip):
-    for match in mip:
-      sync.matchToMongo(match['matchID'],push=True)
+  try:
+    mip = api.getMatchesInProgress()
+    if len(mip):
+      for match in mip:
+        sync.matchToMongo(match['matchID'],push=True)
+  except Exception,e:
+    print e
 
 if __name__ == '__main__':
   fast.start()

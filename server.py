@@ -536,10 +536,10 @@ class liveByWebsocket:
             <script type="text/javascript">
         console.log("Got this far...");
         if ('MozWebSocket' in window) {
-        var ws = new MozWebSocket('ws://paddy.suse.de:4040');
+        var ws = new MozWebSocket('ws://foxhall.de:4040');
         }
         else if('WebSocket' in window) {
-          var ws = new WebSocket('ws://paddy.suse.de:4040');
+          var ws = new WebSocket('ws://foxhall.de:4040');
         }
         else {
           console.log("Neither WebSocket nor MozWebSocket is supported!");
