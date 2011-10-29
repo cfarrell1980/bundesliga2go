@@ -545,17 +545,18 @@ class liveByWebsocket:
           console.log("Neither WebSocket nor MozWebSocket is supported!");
         }
         ws.onopen = function(e) {
+          console.log("Connected...");
         };
         ws.onmessage = function(e) {
+          console.log("received: "+e.data);
           var existing = document.getElementById('place').innerHTML;
-          data = JSON.parse(e.data)
-          if (data['status'] == 1){
-	          var s = data['nameTeam1']+" vs. "+data['nameTeam2']+" ("+data['pointsTeam1']+" : "+data['pointsTeam2']+")";
+          if (e.data != 0){
+            data = JSON.parse(e.data)
+	          var s = data['goalMatchMinute']+ " minute: goal by "+data['Scorer'];
             document.getElementById('place').innerHTML = existing+"<br/>"+s;
           }
-          else
-          {
-             console.log("No updates...")
+          else{
+            console.log("No updates");
           }
         }
       </script>

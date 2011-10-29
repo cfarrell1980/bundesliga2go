@@ -88,21 +88,23 @@ def updateMatches(seconds=30):
       matches in progress. If there are, for each match in progress, this
       function calls the matchToMongo method from bundesligaSync to update it.
   '''
-
   maxgoalid=api.getMaxGoalID()
   mip = api.getMatchesInProgress()
   if len(mip):
+    print "%d matches in progress"%len(mip)
     for match in mip:
-      sync.matchToMongo(match['matchID'],push=True)
+      sync.matchToMongo(match['matchID'])
   newmaxgoalid = api.getMaxGoalID()
   if newmaxgoalid > maxgoalid:
+    print "There are new goals..."
     newgoals = api.getGoalsSinceGoalID(maxgoalid)
-    newgoals['status'] = 1
-    pub.send(json.dumps(newgoals))
-    pub.recv()
+    for v in newgoals.keys():
+      print newgoals[v]['goalID']
+      if newgoals[v]['goalID'] > maxgoalid:
+        pub.send(json.dumps(newgoals[v]))
+        pub.recv()
   else:
-    pub.send(json.dumps({'status':0}))
-    pub.recv()
+    print "There are no new goals..."
     
 if __name__ == '__main__':
   fast.start()
