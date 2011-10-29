@@ -93,7 +93,7 @@ def updateMatches(seconds=30):
   mip = api.getMatchesInProgress()
   if len(mip):
     for match in mip:
-      sync.matchToMongo(match['matchID'],push=True)
+      sync.matchToMongo(match['matchID'])
   newmaxgoalid = api.getMaxGoalID()
   if newmaxgoalid > maxgoalid:
     newgoals = api.getGoalsSinceGoalID(maxgoalid)
