@@ -536,10 +536,10 @@ class liveByWebsocket:
             <script type="text/javascript">
         console.log("Got this far...");
         if ('MozWebSocket' in window) {
-        var ws = new MozWebSocket('ws://localhost:4040');
+        var ws = new MozWebSocket('ws://foxhall.de:4040');
         }
         else if('WebSocket' in window) {
-          var ws = new WebSocket('ws://localhost:4040');
+          var ws = new WebSocket('ws://foxhall.de:4040');
         }
         else {
           console.log("Neither WebSocket nor MozWebSocket is supported!");
@@ -550,7 +550,7 @@ class liveByWebsocket:
         ws.onmessage = function(e) {
           console.log("received: "+e.data);
           var existing = document.getElementById('place').innerHTML;
-          if (e.data != 0){
+          if (e.data != 'nothing happened'){
             data = JSON.parse(e.data)
 	          var s = data['goalMatchMinute']+ " minute: goal by "+data['Scorer'];
             document.getElementById('place').innerHTML = existing+"<br/>"+s;

@@ -104,6 +104,8 @@ def updateMatches(seconds=30):
         pub.send(json.dumps(newgoals[v]))
         pub.recv()
   else:
+    pub.send("nothing happened")
+    pub.recv()
     print "There are no new goals..."
     
 if __name__ == '__main__':
