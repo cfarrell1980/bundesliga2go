@@ -360,7 +360,7 @@ class jsonGoalsSince:
       If the client does not provide maxgoalid the database maxgoalid is used
       meaning that nothing at all is returned to the client
   """
-  def OPTIONS(self):
+  def OPTIONS(self,maxgoalid):
     web.header("Access-Control-Allow-Origin", "*");
     web.header("Access-Control-Allow-Methods", "GET,OPTIONS");
     web.header("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Origin");
