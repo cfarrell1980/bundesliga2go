@@ -166,6 +166,7 @@ class bundesligaAPI:
           tmp['goalPenalty'] = goal['goalPenalty']
           tmp['goalOwnGoal'] = goal['goalOwnGoal']
           tmp['goalComment'] = goal['goalComment']
+          tmp['goalMatchID'] = match['matchID']
           newgoals.append(tmp)
             
       matchgoals[match['matchID']] = newgoals
